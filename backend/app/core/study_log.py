@@ -38,7 +38,12 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Tuple
 
-SCHEMA_VERSION = 2
+# v3 adds the provenance triple (config_hash / material_manifest_hash /
+# tree_variant_id) to every event. Without them a log says what happened but
+# not what it happened *to*: which parameter set, which frozen material, which
+# of the five candidate trees. Those three answer "is this session comparable
+# with that one", which is the first question the analysis asks.
+SCHEMA_VERSION = 3
 
 # ---------------------------------------------------------------------------
 # The dictionary
@@ -51,6 +56,11 @@ SERVER_EVENTS = frozenset({
     "phase_enter",
     "phase_exit",
     "phase_softlock",
+    # The moment the participant said they were finished checking. In the
+    # verification phase nothing else marks the end -- there is no lock and no
+    # buzzer -- so this timestamp IS the dependent measure for "how long did
+    # they choose to verify" (PR-6).
+    "submit_declared",
     "msg_response",
     "frozen_draft_marked",
     "draft_snapshot",
@@ -189,6 +199,11 @@ def normalise(
         "cond": cond,
         "track": session.get("track"),
         "build": raw.get("build") or session.get("build", ""),
+        # Provenance, all three pinned on the session at creation so a
+        # mid-run edit to config or material cannot rewrite history.
+        "config_hash": session.get("config_hash", ""),
+        "material_manifest_hash": session.get("material_manifest_hash", ""),
+        "tree_variant_id": session.get("tree_variant_id", ""),
         "source": "client",
         "session_id": session.get("session_id"),
         "event": event,

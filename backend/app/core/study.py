@@ -23,11 +23,19 @@ comparable with a formal one.
 A single index at data/study_sessions.json maps session_id -> {workspace_id,
 track} so the moderator can reach any session without knowing its workspace.
 
-Timing (红线 #4). The organisation phase has a visible countdown, so `state`
-carries the remaining milliseconds. The verification phase is silently timed on
-the server: `state` for that phase carries NO time field at all -- not a null,
-not a zero, the key is structurally absent -- so a curious participant reading
-the network tab has nothing to render.
+Timing (红线 #4, PR-6). Two segments, and they are timed differently on purpose:
+
+    organisation   hard limit, VISIBLE countdown, soft-locks at the buzzer
+                   (+ a grace window so nobody is cut off mid-keystroke)
+    verification   timed silently for the moderator, NO lock, no clock in the
+                   participant's `state` at all -- not a null, not a zero, the
+                   key is structurally absent
+
+The asymmetry is the design. Organisation is bounded so every participant gets
+the same budget to structure the argument. Verification is not, because *when a
+participant decides they are done checking* is the behaviour being measured --
+a lock would replace that decision with the clock's. `hard_cap_seconds` exists
+only to tell the MODERATOR when to step in, and never leaves the moderator API.
 """
 
 from __future__ import annotations
@@ -38,10 +46,12 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from .atomic_io import read_json, update_json, write_json
-from .config import settings
 from .ids import is_safe_id
+from .study_config import config_hash, phase_config
 
-SCHEMA_VERSION = 2  # v2 == study envelope carries `track` (BE-19)
+# Version of the SESSION RECORD (session.json), not of the event envelope --
+# that one lives in study_log.SCHEMA_VERSION and moves independently.
+SESSION_SCHEMA_VERSION = 3
 
 CONDITIONS = ("c", "b")
 LANGS = ("en", "zh")
@@ -55,10 +65,19 @@ PHASES: Dict[str, List[str]] = {
           "confidence", "probe", "done"],
 }
 
-# Phases whose clock the participant may see.
-VISIBLE_CLOCK_PHASES = ("organization",)
-# Phases the server times WITHOUT telling the participant (红线 #4).
-SILENT_CLOCK_PHASES = ("verification", "work")
+# Phases the participant may end themselves by submitting. This is the whole
+# point of the verification phase: when they stop checking is the measurement,
+# so the software must not decide it for them.
+SUBMITTABLE_PHASES = ("verification", "work")
+
+# Which phases show a clock, which are timed silently, and which soft-lock is
+# no longer decided here -- it comes from study_config.json, so pilot can change
+# the protocol without a code change (PR-6). These helpers just read it.
+#
+# The shape that matters: organisation is hard-limited WITH a visible countdown;
+# verification is timed silently and does NOT lock, because the participant
+# declaring themselves finished is the behaviour under study. Locking them out
+# would replace the measurement with the clock's decision.
 
 
 def now_iso() -> str:
@@ -178,8 +197,15 @@ def create_session(
     session_id = new_session_id()
     workspace_id = workspace_id or f"ws{session_id}"
     session = {
-        "schema_version": SCHEMA_VERSION,
+        "schema_version": SESSION_SCHEMA_VERSION,
         "session_id": session_id,
+        # Pinned at creation so a mid-session config edit cannot retroactively
+        # change what this session ran under.
+        "config_hash": config_hash(),
+        # Filled in when the material bundle is bound to the session (M5).
+        # Present from creation so the field never appears mid-session.
+        "material_manifest_hash": "",
+        "tree_variant_id": "",
         "condition": condition,
         "participant_code": participant_code,
         "lang": lang,
@@ -224,16 +250,35 @@ def next_phase(session: Dict) -> Optional[str]:
 
 
 def phase_duration_ms(phase: str) -> Optional[int]:
-    """Budget for a timed phase, or None if the phase is untimed.
+    """Budget for a timed phase, or None if untimed. Read from study_config.
 
-    The numbers come from 实验方案 v2.1 and live in settings so a pilot can be
-    re-timed without a code change; they are pinned at the M5 freeze.
+    `is not None`, not a truthiness test: a configured 0 means "no time at
+    all", which is a legitimate (if unusual) setting and must not silently
+    become "untimed" -- those two have opposite effects on the soft lock.
     """
-    if phase == "organization":
-        return settings.study_org_seconds * 1000
-    if phase in ("verification", "work"):
-        return settings.study_verify_seconds * 1000
-    return None
+    seconds = phase_config(phase).get("duration_seconds")
+    return int(seconds) * 1000 if seconds is not None else None
+
+
+def phase_locks(phase: str) -> bool:
+    """Whether running out of budget soft-locks the participant.
+
+    True for organisation only. Verification is timed for the moderator's
+    information, not to cut the participant off -- see the note above.
+    """
+    return bool(phase_config(phase).get("softlock", False))
+
+
+def phase_shows_clock(phase: str) -> bool:
+    """Whether the participant may see a countdown (红线 #4)."""
+    return bool(phase_config(phase).get("visible_clock", False))
+
+
+def phase_hard_cap_ms(phase: str) -> Optional[int]:
+    """Point past which the MODERATOR should step in. Never sent to the
+    participant and never enforced by the software."""
+    seconds = phase_config(phase).get("hard_cap_seconds")
+    return int(seconds) * 1000 if seconds is not None else None
 
 
 def enter_phase(session: Dict, phase: str) -> Dict:
@@ -249,17 +294,18 @@ def enter_phase(session: Dict, phase: str) -> Dict:
 
 
 def softlock_due(session: Dict, at_ms: Optional[int] = None) -> bool:
-    """True once the current phase is past its budget and not already locked.
+    """True once a LOCKING phase is past its budget plus grace.
 
-    Organisation locks on the dot; the silently-timed phases get the grace
-    period the protocol specifies, so a participant mid-keystroke at the
-    buzzer is not cut off.
+    Returns False for verification however long it runs: that phase ends when
+    the participant says it does.
     """
+    phase = session["phase"]
+    if not phase_locks(phase):
+        return False
     deadline = session.get("phase_deadline_ms")
     if deadline is None or session.get("softlock"):
         return False
-    grace = (settings.study_softlock_grace_seconds * 1000
-             if session["phase"] in SILENT_CLOCK_PHASES else 0)
+    grace = int(phase_config(phase).get("softlock_grace_seconds", 0)) * 1000
     return (at_ms if at_ms is not None else now_ms()) >= deadline + grace
 
 
@@ -280,7 +326,11 @@ def public_state(session: Dict, at_ms: Optional[int] = None) -> Dict:
         "submitted": bool(session["submitted"]),
         "started": session.get("started_at") is not None,
     }
-    if session["phase"] in VISIBLE_CLOCK_PHASES and session.get("phase_deadline_ms"):
+    if phase_shows_clock(session["phase"]) and session.get("phase_deadline_ms"):
         remaining = session["phase_deadline_ms"] - (at_ms if at_ms is not None else now_ms())
         state["remaining_ms"] = max(0, remaining)
+    # The verification phase tells the participant they may finish whenever they
+    # like. It carries no time whatsoever -- the flag is a boolean, on purpose,
+    # so there is nothing here a clock could be reconstructed from.
+    state["can_submit"] = session["phase"] in SUBMITTABLE_PHASES and not session["submitted"]
     return state

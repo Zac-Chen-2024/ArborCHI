@@ -157,8 +157,12 @@ else:
         note('RED-4', f'public_state writes time-shaped keys: {leaky}')
 
 # 红线 #5 / C-14 -- no answer-key-shaped concept anywhere the frontend touches.
+# Answer-key-shaped concepts. `planted_id` joins the list: planted error
+# sentences are the probe's ground truth, so the field lives in the server-side
+# snapshot only. A frontend that knew which sentences were planted would be
+# marking its own homework.
 BANNED = ['distractor', 'ground_truth', 'groundtruth', 'isdistractor',
-          'probe_answer', 'answer_key', 'answerkey']
+          'probe_answer', 'answer_key', 'answerkey', 'planted_id', 'plantedid']
 for path in walk(APP, ('.ts', '.tsx')):
     src = strip_comments(io.open(path, encoding='utf-8').read()).lower()
     for word in BANNED:

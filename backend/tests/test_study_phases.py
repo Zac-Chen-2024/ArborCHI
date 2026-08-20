@@ -32,6 +32,18 @@ def moderator(tmp_data_dir):
     return workspace.mint_token("mod", role="moderator")["token"]
 
 
+@pytest.fixture
+def zero_org_budget(monkeypatch):
+    """Organisation phase with no time at all, so the soft lock is immediate."""
+    from app.core import study_config
+
+    cfg = json.loads(json.dumps(study_config.load()))
+    cfg["phases"]["organization"]["duration_seconds"] = 0
+    cfg["phases"]["organization"]["softlock_grace_seconds"] = 0
+    monkeypatch.setattr(study_config, "load", lambda force=False: cfg)
+    return cfg
+
+
 def _hdr(token):
     return {"Authorization": f"Bearer {token}"}
 
@@ -183,10 +195,7 @@ def test_verification_state_has_no_time_field_at_all(auth_client, moderator):
     assert not any(isinstance(v, (int, float)) and v > 10_000 for v in body.values()), body
 
 
-def test_softlock_drops_when_the_budget_runs_out(auth_client, moderator, monkeypatch):
-    from app.core.config import settings
-
-    monkeypatch.setattr(settings, "study_org_seconds", 0)
+def test_organization_softlocks_when_its_budget_runs_out(auth_client, moderator, zero_org_budget):
     out = _make_session(auth_client, moderator)
     _advance_to(auth_client, moderator, out["session_id"], "organization")
 
@@ -195,21 +204,37 @@ def test_softlock_drops_when_the_budget_runs_out(auth_client, moderator, monkeyp
     assert any(e["event"] == "phase_softlock" for e in _events(out["session_id"]))
 
 
-def test_silent_phases_get_the_grace_period(monkeypatch):
-    """Organisation locks on the dot; a silently-timed phase gets the grace
-    window so nobody is cut off mid-keystroke."""
-    from app.core.config import settings
-
-    monkeypatch.setattr(settings, "study_softlock_grace_seconds", 10)
+def test_organization_gets_its_grace_window():
+    """The buzzer does not cut anyone off mid-keystroke (PR-6: 10s grace)."""
     base = 1_000_000
-
     org = {"phase": "organization", "phase_deadline_ms": base, "softlock": False}
-    assert study.softlock_due(org, base) is True
+    assert study.softlock_due(org, base) is False
+    assert study.softlock_due(org, base + 9_999) is False
+    assert study.softlock_due(org, base + 10_000) is True
 
+
+def test_verification_never_softlocks_however_long_it_runs():
+    """PR-6. When a participant decides they have checked enough IS the
+    measurement -- a lock would replace their decision with the clock's. This
+    holds no matter how far past the budget they go."""
+    base = 1_000_000
     ver = {"phase": "verification", "phase_deadline_ms": base, "softlock": False}
-    assert study.softlock_due(ver, base) is False
-    assert study.softlock_due(ver, base + 9_999) is False
-    assert study.softlock_due(ver, base + 10_000) is True
+    for offset in (0, 10_000, 60 * 60 * 1000, 24 * 60 * 60 * 1000):
+        assert study.softlock_due(ver, base + offset) is False
+
+
+def test_verification_offers_submission_and_organization_does_not(auth_client, moderator):
+    """The participant is told they may finish, and told it with a boolean --
+    there is nothing here a clock could be reconstructed from."""
+    out = _make_session(auth_client, moderator)
+    _advance_to(auth_client, moderator, out["session_id"], "organization")
+    org = auth_client.get("/api/study/state", headers=_hdr(out["join_token"])).json()
+    assert org["can_submit"] is False
+
+    _advance_to(auth_client, moderator, out["session_id"], "verification")
+    ver = auth_client.get("/api/study/state", headers=_hdr(out["join_token"])).json()
+    assert ver["can_submit"] is True
+    assert isinstance(ver["can_submit"], bool)
 
 
 def test_moderator_monitor_does_see_the_clock(auth_client, moderator):

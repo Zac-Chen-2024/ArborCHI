@@ -31,7 +31,13 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 
 from .atomic_io import append_jsonl
-from .study import SCHEMA_VERSION, now_iso, session_dir
+from .study import now_iso, session_dir
+
+# The EVENT schema version, which is not the same number as the session
+# record's. Importing the wrong one is easy and silent -- an event stamped with
+# the session schema would claim a version whose envelope it does not have --
+# so it is taken from the module that owns the envelope.
+from .study_log import SCHEMA_VERSION
 
 # Events the server itself writes. Client events live in the log SDK's
 # dictionary (日志手册 §4) and are validated at the /log/batch door in M1.
@@ -41,6 +47,7 @@ SERVER_EVENTS = {
     "phase_enter",
     "phase_exit",
     "phase_softlock",
+    "submit_declared",
     "moderator_note",
     "submit",
 }
@@ -71,6 +78,9 @@ def write_server_event(
         "cond": session.get("condition"),
         "track": session.get("track"),
         "build": session.get("build", ""),
+        "config_hash": session.get("config_hash", ""),
+        "material_manifest_hash": session.get("material_manifest_hash", ""),
+        "tree_variant_id": session.get("tree_variant_id", ""),
         "source": "server",
         "session_id": session.get("session_id"),
         "event": event,

@@ -26,7 +26,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from app.core import study, study_log
+from app.core import study, study_log, study_snapshots
 from app.core.atomic_io import append_jsonl_many
 from app.core.config import settings
 from app.core.ids import validate_path_params
@@ -109,6 +109,19 @@ class NoteBody(BaseModel):
 
 class LogBatchBody(BaseModel):
     events: List[Dict[str, Any]] = Field(..., max_length=study_log.MAX_BATCH)
+
+
+class SubmitBody(BaseModel):
+    """The participant declaring themselves finished.
+
+    `final_text_hash` is the client's sha256 of what it is submitting. The
+    server recomputes it and refuses a mismatch: the probe samples sentences
+    from the stored final text and asks the participant about them, so the
+    bytes on disk must be the bytes they were looking at. A silent divergence
+    would have us quizzing them on a version they never saw.
+    """
+    text: str = Field(..., max_length=200_000)
+    final_text_hash: str = Field(..., pattern="^[0-9a-f]{64}$")
 
 
 # ---------------------------------------------------------------------------
@@ -287,6 +300,64 @@ def start_session() -> Dict[str, Any]:
         # Material hashes join this payload at M5 when the bundle lands (BE-07).
     })
     return study.public_state(session)
+
+
+@router.post("/submit")
+def submit(body: SubmitBody) -> Dict[str, Any]:
+    """The participant hands in their draft (BE-11, 红线 #1).
+
+    Everything about this endpoint is about the moment being unambiguous:
+
+    * It is only available in a phase the protocol says may be ended by the
+      participant. Submitting from the organisation phase is a 409, not an
+      early finish.
+    * The hash is verified before anything is written. A mismatch means the
+      client and server disagree about what is being submitted, and the probe
+      would otherwise quiz the participant on text they never saw.
+    * `submit_declared` records the moment. In the verification phase there is
+      no lock and no buzzer, so this timestamp is the only marker of when they
+      decided they had checked enough -- which is the dependent measure (PR-6).
+    * The session locks. Every later write is refused, so the final snapshot
+      cannot drift from what the probe is built on.
+    """
+    session = _participant_session()
+
+    if session.get("submitted"):
+        raise HTTPException(status_code=409, detail="Already submitted")
+    if session["phase"] not in study.SUBMITTABLE_PHASES:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Cannot submit from phase {session['phase']!r}",
+        )
+
+    computed = study_snapshots.sha256(body.text)
+    if computed != body.final_text_hash:
+        # 400, not 409: this is a malformed request, not a state conflict.
+        raise HTTPException(status_code=400, detail="final_text_hash does not match text")
+
+    write_server_event(session, "submit_declared", {
+        "phase": session["phase"],
+        # How long they chose to spend, measured server-side. The participant
+        # never saw this number.
+        "phase_elapsed_ms": study.now_ms() - int(session.get("phase_entered_ms", 0)),
+        "char_count": len(body.text),
+    })
+
+    meta = study_snapshots.write_snapshot(
+        session, "final", "final", body.text,
+        extra={"declared_by": "participant"},
+    )
+
+    def _lock(rec):
+        rec["submitted"] = True
+        rec["submitted_at"] = study.now_iso()
+        rec["final_text_hash"] = computed
+        return rec
+
+    session = study.update_session(session["session_id"], _lock)
+    write_server_event(session, "submit", meta)
+
+    return {"success": True, **study.public_state(session)}
 
 
 # ---------------------------------------------------------------------------
