@@ -189,6 +189,7 @@ def create_session(
     workspace_id: Optional[str] = None,
     build: str = "",
     material_id: str = "case_v1",
+    practice_material_id: str = "practice_v1",
 ) -> Dict:
     """Create one session and its workspace. The workspace id is derived from
     the session id, not the participant code: two runs of the same participant
@@ -225,6 +226,9 @@ def create_session(
         "material_id": material_id,
         "material_manifest_hash": material_hash,
         "tree_variant_id": variant_id,
+        # A separate, smaller bundle on a different criterion (BE-18). Bound at
+        # creation like the real one so a session always knows both.
+        "practice_material_id": practice_material_id,
         "condition": condition,
         "participant_code": participant_code,
         "lang": lang,

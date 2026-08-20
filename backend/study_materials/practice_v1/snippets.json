@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "bbox_space": 1000,
+  "exhibits": [
+    {
+      "id": "P1",
+      "pages": 3,
+      "title": "Patent grant - adaptive indexing"
+    },
+    {
+      "id": "P2",
+      "pages": 2,
+      "title": "Industry adoption memo"
+    }
+  ],
+  "snippets": {
+    "q1": {
+      "snippet_id": "q1",
+      "exhibit": "P1",
+      "page": 2,
+      "bbox": [
+        120,
+        300,
+        880,
+        360
+      ],
+      "label": "Patent granted 2021",
+      "text": "US Patent 11,204,881 was granted in 2021 for an adaptive indexing method.",
+      "doc_title": "UNITED STATES PATENT OFFICE",
+      "doc_subtitle": "Grant Notice - 2021"
+    },
+    "q2": {
+      "snippet_id": "q2",
+      "exhibit": "P2",
+      "page": 1,
+      "bbox": [
+        110,
+        420,
+        870,
+        478
+      ],
+      "label": "Adopted by four vendors",
+      "text": "Four independent vendors adopted the indexing method within two years.",
+      "doc_title": "INDUSTRY ADOPTION MEMO",
+      "doc_subtitle": "Two-year review"
+    }
+  }
+}

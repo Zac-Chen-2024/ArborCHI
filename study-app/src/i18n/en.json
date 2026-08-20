@@ -189,5 +189,15 @@
     "exPageTag": "{{ex}} · p.{{i}}",
     "page": "p.{{i}}",
     "pages": "{{n}}p"
+  },
+  "practice": {
+    "label": "PRACTICE",
+    "instruction": "Try these before the real task begins.",
+    "done": "All done — the researcher will move you on.",
+    "gate": {
+      "lightbox": "Open the magnifier",
+      "linkage": "Follow a citation to its source",
+      "manual_page": "Turn to another page"
+    }
   }
 }

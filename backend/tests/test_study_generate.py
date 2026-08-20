@@ -55,21 +55,14 @@ def _events(session_id):
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
 
 
-def _advance_to(client, moderator, sid, phase):
-    for _ in range(len(study.PHASES["c"])):
-        if study.load_session(sid)["phase"] == phase:
-            return
-        client.post("/api/study/advance", headers=_hdr(moderator),
-                    json={"session_id": sid})
-    raise AssertionError(f"never reached {phase}")
 
 
 @pytest.fixture
-def participant(auth_client, moderator):
+def participant(auth_client, moderator, walk_to):
     out = auth_client.post("/api/study/sessions", headers=_hdr(moderator), json={
         "condition": "c", "participant_code": "P21", "lang": "en"}).json()
     auth_client.post("/api/study/start", headers=_hdr(out["join_token"]))
-    _advance_to(auth_client, moderator, out["session_id"], "verification")
+    walk_to(auth_client, moderator, out, "verification")
     return out
 
 

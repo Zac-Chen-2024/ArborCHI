@@ -54,7 +54,7 @@ def _append_event(session, event, payload=None, **envelope):
 
 
 @pytest.fixture
-def finished(auth_client, moderator):
+def finished(auth_client, moderator, walk_to):
     """A complete, clean condition-C session: started, practised, generated,
     submitted, confidence answered, probe drawn and answered."""
     from app.core import materials
@@ -62,25 +62,17 @@ def finished(auth_client, moderator):
     out = auth_client.post("/api/study/sessions", headers=_hdr(moderator), json={
         "condition": "c", "participant_code": "P41", "lang": "en"}).json()
     token = _hdr(out["join_token"])
-    sid = out["session_id"]
     auth_client.post("/api/study/start", headers=token)
 
-    # setup -> tutorial -> practice
-    for _ in range(2):
-        auth_client.post("/api/study/advance", headers=_hdr(moderator),
-                         json={"session_id": sid})
     auth_client.post("/api/study/log/batch", headers=token, json={"events": [
-        {"seq": 0, "ts_mono": 0, "event": "checkpoint_passed",
-         "payload": {"gate": "lightbox"}},
+        {"seq": 0, "ts_mono": 0, "event": "heartbeat", "payload": {}},
         {"seq": 1, "ts_mono": 30_000, "event": "heartbeat", "payload": {}},
         {"seq": 2, "ts_mono": 60_000, "event": "heartbeat", "payload": {}},
         {"seq": 3, "ts_mono": 90_000, "event": "heartbeat", "payload": {}},
     ]})
-
-    # -> organization -> generation -> verification
-    for _ in range(3):
-        auth_client.post("/api/study/advance", headers=_hdr(moderator),
-                         json={"session_id": sid})
+    # walk_to clears the practice gates on the way through, which is what
+    # produces the checkpoint_passed events the report looks for.
+    walk_to(auth_client, moderator, out, "verification")
 
     states = {
         nid: {"title": n["title"], "parent_id": n["parent_id"],
@@ -215,29 +207,19 @@ def test_an_edit_before_the_snapshot_invalidates(finished):
     assert "before the initial snapshot" in snaps["detail"]
 
 
-def test_a_missing_checkpoint_only_flags(auth_client, moderator):
-    """A participant who skipped practice is still analysable -- but whoever
-    reads the session should know."""
-    from app.core import materials
+def test_a_lost_checkpoint_event_only_flags(finished):
+    """The gate makes it impossible to reach the task without clearing
+    practice, so a session missing the event did not skip practice -- it lost
+    the record of it. Still analysable; still worth telling the reader."""
+    session = study.load_session(finished["session_id"])
+    path = study.session_dir(
+        session["workspace_id"], session["session_id"], session["track"]) / "events.jsonl"
+    events = [e for e in integrity.read_events(session)
+              if e["event"] != "checkpoint_passed"]
+    path.write_text("\n".join(json.dumps(e, ensure_ascii=False) for e in events) + "\n",
+                    encoding="utf-8")
 
-    out = auth_client.post("/api/study/sessions", headers=_hdr(moderator), json={
-        "condition": "c", "participant_code": "P42", "lang": "en"}).json()
-    token = _hdr(out["join_token"])
-    auth_client.post("/api/study/start", headers=token)
-    for _ in range(5):
-        auth_client.post("/api/study/advance", headers=_hdr(moderator),
-                         json={"session_id": out["session_id"]})
-    states = {
-        nid: {"title": n["title"], "parent_id": n["parent_id"],
-              "snippet_ids": list(n["snippet_ids"]), "state": "accepted"}
-        for nid, n in materials.frozen_nodes().items()
-    }
-    gen = auth_client.post("/api/study/generate", headers=token,
-                           json={"node_states": states}).json()
-    auth_client.post("/api/study/submit", headers=token, json={
-        "text": gen["text"], "final_text_hash": study_snapshots.sha256(gen["text"])})
-
-    report = integrity.build_report(study.load_session(out["session_id"]))
+    report = integrity.build_report(study.load_session(finished["session_id"]))
     cp = next(c for c in report["checks"] if c["check"] == "practice_checkpoint")
     assert cp["status"] == integrity.FLAG
     assert report["verdict"] == "review"

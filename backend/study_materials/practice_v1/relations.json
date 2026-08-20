@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "focus_entity": "Dr. Wei Li",
+  "relations": {
+    "q1": [
+      {
+        "subject": "US Patent 11,204,881",
+        "predicate": "granted",
+        "object": "2021"
+      }
+    ],
+    "q2": [
+      {
+        "subject": "Indexing method",
+        "predicate": "adopted by",
+        "object": "four independent vendors"
+      }
+    ]
+  },
+  "other_mentions": {
+    "Dr. Wei Li": [
+      {
+        "exhibit": "P1",
+        "page": 2
+      }
+    ]
+  }
+}

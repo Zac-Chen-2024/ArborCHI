@@ -243,15 +243,13 @@ def _hdr(token):
 
 
 @pytest.fixture
-def submitted(auth_client, moderator):
+def submitted(auth_client, moderator, walk_to):
     """A participant who has generated, submitted, and is ready for the probe."""
     out = auth_client.post("/api/study/sessions", headers=_hdr(moderator), json={
         "condition": "c", "participant_code": "P31", "lang": "en"}).json()
     token = _hdr(out["join_token"])
     auth_client.post("/api/study/start", headers=token)
-    for _ in range(5):
-        auth_client.post("/api/study/advance", headers=_hdr(moderator),
-                         json={"session_id": out["session_id"]})
+    walk_to(auth_client, moderator, out, "verification")
 
     from app.core import materials
     states = {
@@ -273,10 +271,11 @@ def test_probe_refuses_before_confidence(auth_client, submitted):
     assert r.status_code == 409
 
 
-def test_probe_refuses_before_submission(auth_client, moderator):
+def test_probe_refuses_before_submission(auth_client, moderator, walk_to):
     out = auth_client.post("/api/study/sessions", headers=_hdr(moderator), json={
         "condition": "c", "participant_code": "P32", "lang": "en"}).json()
     auth_client.post("/api/study/start", headers=_hdr(out["join_token"]))
+    walk_to(auth_client, moderator, out, "verification")
     auth_client.post("/api/study/confidence", headers=_hdr(out["join_token"]),
                      json={"likert_1_7": 5, "est_problem_count": 2})
     r = auth_client.post("/api/study/probe/start", headers=_hdr(out["join_token"]))

@@ -30,6 +30,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "study_materials" / "case_v1"
+PRACTICE_OUT = ROOT / "study_materials" / "practice_v1"
 
 CRITERION = "Leading or Critical Role"
 CFR = "8 C.F.R. §204.5(h)(3)(viii)"
@@ -208,6 +209,123 @@ def write(path: Path, data) -> None:
     )
 
 
+# ---------------------------------------------------------------------------
+# Practice bundle (BE-18)
+# ---------------------------------------------------------------------------
+#
+# A DIFFERENT criterion on purpose. If practice used the real case, the
+# participant would arrive at the task having already read the exhibits, and
+# the first minutes of the measured phase would be spent on material they know
+# -- which is exactly the part of the session where the two conditions differ
+# most. Small, too: practice is for learning the controls, not for practising
+# the judgement.
+#
+# It carries NO planted errors. Practice is where someone learns that the
+# magnifier exists; discovering a planted error there would teach them the task
+# has traps, and they would go into the real one hunting.
+PRACTICE_CRITERION = "Original Contributions of Major Significance"
+PRACTICE_CFR = "8 C.F.R. §204.5(h)(3)(v)"
+
+PRACTICE_EXHIBITS = [
+    {"id": "P1", "pages": 3, "title": "Patent grant - adaptive indexing"},
+    {"id": "P2", "pages": 2, "title": "Industry adoption memo"},
+]
+
+PRACTICE_SNIPPETS = {
+    "q1": dict(ex="P1", page=2, label="Patent granted 2021",
+               text="US Patent 11,204,881 was granted in 2021 for an adaptive indexing method.",
+               bbox=[120, 300, 880, 360],
+               doc=("UNITED STATES PATENT OFFICE", "Grant Notice - 2021")),
+    "q2": dict(ex="P2", page=1, label="Adopted by four vendors",
+               text="Four independent vendors adopted the indexing method within two years.",
+               bbox=[110, 420, 870, 478],
+               doc=("INDUSTRY ADOPTION MEMO", "Two-year review")),
+}
+
+PRACTICE_TREE = {
+    "tree_variant_id": "practice-v0",
+    "criterion": PRACTICE_CRITERION,
+    "arguments": [{
+        "id": "pa1", "index": "①",
+        "title": "The contribution is original",
+        "rationale": "Establish novelty before significance",
+        "subs": [
+            {"id": "ps1", "title": "Granted patent", "snippet_ids": ["q1"], "distractor": False},
+            {"id": "ps2", "title": "Independent adoption", "snippet_ids": ["q2"], "distractor": False},
+        ],
+    }],
+}
+
+PRACTICE_PREGEN = {
+    "ps1": [("US Patent 11,204,881 was granted in 2021 for an adaptive indexing method.",
+             ["q1"], "evidence", None)],
+    "ps2": [("Four independent vendors adopted the method within two years of the grant.",
+             ["q2"], "evidence", None)],
+}
+
+
+def write_practice() -> None:
+    write(PRACTICE_OUT / "snippets.json", {
+        "schema_version": 1,
+        "bbox_space": 1000,
+        "exhibits": PRACTICE_EXHIBITS,
+        "snippets": {
+            sid: {"snippet_id": sid, "exhibit": s["ex"], "page": s["page"],
+                  "bbox": s["bbox"], "label": s["label"], "text": s["text"],
+                  "doc_title": s["doc"][0], "doc_subtitle": s["doc"][1]}
+            for sid, s in PRACTICE_SNIPPETS.items()
+        },
+    })
+    write(PRACTICE_OUT / "relations.json", {
+        "schema_version": 1,
+        "focus_entity": "Dr. Wei Li",
+        "relations": {
+            "q1": [{"subject": "US Patent 11,204,881", "predicate": "granted",
+                    "object": "2021"}],
+            "q2": [{"subject": "Indexing method", "predicate": "adopted by",
+                    "object": "four independent vendors"}],
+        },
+        "other_mentions": {"Dr. Wei Li": [{"exhibit": "P1", "page": 2}]},
+    })
+    write(PRACTICE_OUT / "tree.frozen.json", PRACTICE_TREE)
+    # Empty, not absent: the loader expects the file, and "no planted errors"
+    # is a statement the bundle should make rather than leave to inference.
+    write(PRACTICE_OUT / "planted.json", {"schema_version": 1, "items": []})
+
+    for node_id, sentences in PRACTICE_PREGEN.items():
+        write(PRACTICE_OUT / "pregen" / f"{node_id}.json", {
+            "schema_version": 1,
+            "node_id": node_id,
+            "sentences": [{
+                "sent_id": f"{node_id}_{i}",
+                "text": f"{text} " + " ".join(
+                    f"[Exhibit {PRACTICE_SNIPPETS[s]['ex']}, p.{PRACTICE_SNIPPETS[s]['page']}]"
+                    for s in snips),
+                "snippet_ids": snips,
+                "exhibit_refs": [{"exhibit": PRACTICE_SNIPPETS[s]["ex"],
+                                  "page": PRACTICE_SNIPPETS[s]["page"]} for s in snips],
+                "sentence_type": stype,
+                "source": "frozen",
+                "planted_id": planted,
+            } for i, (text, snips, stype, planted) in enumerate(sentences)],
+        })
+
+    write(PRACTICE_OUT / "manifest.json", {
+        "schema_version": 1,
+        "material_id": "practice_v1",
+        "placeholder": True,
+        "practice": True,
+        "_comment": "Practice bundle (BE-18): a different criterion, no planted errors.",
+        "criterion": PRACTICE_CRITERION,
+        "cfr": PRACTICE_CFR,
+        "tree_variant_id": PRACTICE_TREE["tree_variant_id"],
+        "model": "placeholder",
+        "model_params": {"temperature": 0.0, "max_tokens": 400},
+        "seed": 0,
+        "frozen_at": None,
+    })
+
+
 def main() -> int:
     write(OUT / "snippets.json", {
         "schema_version": 1,
@@ -285,11 +403,12 @@ def main() -> int:
         "selection_rule": "docs/预注册_pre-registration.md PR-1",
     })
 
-    files = sorted(str(p.relative_to(OUT)).replace(os.sep, "/")
-                   for p in OUT.rglob("*.json"))
-    print(f"wrote {len(files)} files to {OUT}")
-    for f in files:
-        print("  " + f)
+    write_practice()
+
+    for out in (OUT, PRACTICE_OUT):
+        files = sorted(str(p.relative_to(out)).replace(os.sep, "/")
+                       for p in out.rglob("*.json"))
+        print(f"wrote {len(files)} files to {out}")
     return 0
 
 

@@ -42,13 +42,6 @@ def _events(session_id):
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
 
 
-def _advance_to(client, moderator, sid, phase):
-    for _ in range(len(study.PHASES["c"])):
-        if study.load_session(sid)["phase"] == phase:
-            return
-        client.post("/api/study/advance", headers=_hdr(moderator),
-                    json={"session_id": sid})
-    raise AssertionError(f"never reached {phase}")
 
 
 FINAL = ("Dr. Li reported directly to the CTO [Exhibit B1, p.2]. "
@@ -56,12 +49,12 @@ FINAL = ("Dr. Li reported directly to the CTO [Exhibit B1, p.2]. "
 
 
 @pytest.fixture
-def verifying(auth_client, moderator):
+def verifying(auth_client, moderator, walk_to):
     """A condition-C participant sitting in the verification phase."""
     out = auth_client.post("/api/study/sessions", headers=_hdr(moderator), json={
         "condition": "c", "participant_code": "P11", "lang": "en"}).json()
     auth_client.post("/api/study/start", headers=_hdr(out["join_token"]))
-    _advance_to(auth_client, moderator, out["session_id"], "verification")
+    walk_to(auth_client, moderator, out, "verification")
     return out
 
 
@@ -115,11 +108,11 @@ def test_hash_mismatch_is_refused_before_anything_is_written(auth_client, verify
     assert not any(e["event"] == "submit_declared" for e in _events(verifying["session_id"]))
 
 
-def test_cannot_submit_from_a_phase_the_protocol_does_not_allow(auth_client, moderator):
+def test_cannot_submit_from_a_phase_the_protocol_does_not_allow(auth_client, moderator, walk_to):
     out = auth_client.post("/api/study/sessions", headers=_hdr(moderator), json={
         "condition": "c", "participant_code": "P12", "lang": "en"}).json()
     auth_client.post("/api/study/start", headers=_hdr(out["join_token"]))
-    _advance_to(auth_client, moderator, out["session_id"], "organization")
+    walk_to(auth_client, moderator, out, "organization")
 
     r = _submit(auth_client, out["join_token"])
     assert r.status_code == 409

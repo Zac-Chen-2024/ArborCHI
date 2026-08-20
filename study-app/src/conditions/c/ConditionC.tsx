@@ -31,9 +31,11 @@ import {
   fetchMaterial, generateLetter, submitFinal,
   type GeneratedLetter, type Material,
 } from '../../lib/material'
+import { usePractice } from '../../lib/practice'
 import { visibleRemainingMs } from '../../lib/session'
 import { useTree } from '../../lib/treeStore'
 import { HelpDrawer } from '../common/HelpDrawer'
+import { PracticeGate } from '../common/PracticeGate'
 import { LetterPanel } from './LetterPanel'
 import { RelationsPanel } from './RelationsPanel'
 import { TreePanel } from './TreePanel'
@@ -46,6 +48,12 @@ interface Props {
 export function ConditionC({ state }: Props) {
   const { t } = useTranslation()
   const tree = useTree()
+  const practice = usePractice()
+  const inPractice = state.phase === 'practice'
+
+  useEffect(() => {
+    if (inPractice) void usePractice.getState().refresh()
+  }, [inPractice])
 
   const [material, setMaterial] = useState<Material | null>(null)
   const [letter, setLetter] = useState<GeneratedLetter | null>(null)
@@ -71,13 +79,16 @@ export function ConditionC({ state }: Props) {
 
   // --- material ------------------------------------------------------------
   useEffect(() => {
+    // Refetched on the practice boundary: the server serves a different bundle
+    // during practice, so crossing that line means new material and a new tree.
     void (async () => {
       const m = await fetchMaterial()
       setMaterial(m)
       useTree.getState().load(m.tree)
+      setCommittedChip(null)
       if (m.exhibits[0]) setExhibit(m.exhibits[0].id)
     })()
-  }, [])
+  }, [inPractice])
 
   // Memoised: `material?.snippets ?? {}` builds a fresh object on every
   // render, which would make every memo and callback below re-create itself
@@ -206,6 +217,7 @@ export function ConditionC({ state }: Props) {
     })
     setLightboxPage(atPage)
     setLightboxOpen(true)
+    void usePractice.getState().clear('lightbox')
   }, [committedChip, snippets])
 
   const closeLightbox = useCallback(() => {
@@ -278,7 +290,15 @@ export function ConditionC({ state }: Props) {
     material.exhibits.find((e) => e.id === (snippet?.exhibit ?? viewExhibit))?.pages ?? 1
 
   return (
-    <div id="app" onKeyDown={onKeyDown}>
+    <div
+      id="app"
+      onKeyDown={onKeyDown}
+      style={
+        inPractice
+          ? { gridTemplateRows: 'var(--h-topbar) var(--h-status) minmax(0,1fr)' }
+          : undefined
+      }
+    >
       <TopBar
         condition="c"
         track={state.track}
@@ -291,6 +311,14 @@ export function ConditionC({ state }: Props) {
         }}
         onSubmit={() => void onSubmit()}
       />
+
+      {inPractice && practice.loaded && (
+        <PracticeGate
+          required={practice.required}
+          cleared={practice.cleared}
+          complete={practice.complete}
+        />
+      )}
 
       <div id="main">
         <aside
@@ -380,7 +408,10 @@ export function ConditionC({ state }: Props) {
             hoverDwell.current = null
             setPreviewChip(null)
           }}
-          onChipClick={(id) => commitChip(id, 'click')}
+          onChipClick={(id) => {
+            commitChip(id, 'click')
+            void usePractice.getState().clear('linkage')
+          }}
           onChipZoom={(id) => {
             commitChip(id, 'click')
             openLightbox(snippets[id]?.page ?? 1, 'chip_magnifier')
@@ -400,6 +431,7 @@ export function ConditionC({ state }: Props) {
           onCiteClick={(id) => {
             commitChip(id, 'linkage')
             openLightbox(snippets[id]?.page ?? 1, 'citation')
+            void usePractice.getState().clear('linkage')
           }}
           onRegenerate={() => void runGeneration('participant')}
           onEdit={setEditedText}

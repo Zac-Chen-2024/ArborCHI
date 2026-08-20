@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "node_id": "ps1",
+  "sentences": [
+    {
+      "sent_id": "ps1_0",
+      "text": "US Patent 11,204,881 was granted in 2021 for an adaptive indexing method. [Exhibit P1, p.2]",
+      "snippet_ids": [
+        "q1"
+      ],
+      "exhibit_refs": [
+        {
+          "exhibit": "P1",
+          "page": 2
+        }
+      ],
+      "sentence_type": "evidence",
+      "source": "frozen",
+      "planted_id": null
+    }
+  ]
+}

@@ -22,7 +22,9 @@ import { DRAFT_FIXTURE, PAGE_BODY_FIXTURE } from '../../data/fixtures'
 import { fetchMaterial, type Material } from '../../lib/material'
 import type { StudyState } from '../../lib/api'
 import { logger } from '../../lib/logger'
+import { usePractice } from '../../lib/practice'
 import { HelpDrawer } from '../common/HelpDrawer'
+import { PracticeGate } from '../common/PracticeGate'
 import { ChatPanel } from './ChatPanel'
 import { DraftEditor } from './DraftEditor'
 import './b.css'
@@ -33,16 +35,24 @@ interface Props {
 
 export function ConditionB({ state }: Props) {
   const { t } = useTranslation()
+  const practice = usePractice()
+  const inPractice = state.phase === 'practice'
+
+  useEffect(() => {
+    if (inPractice) void usePractice.getState().refresh()
+  }, [inPractice])
+
   const [material, setMaterial] = useState<Material | null>(null)
   const [exhibit, setExhibit] = useState('')
 
   useEffect(() => {
+    // Refetched on the practice boundary: practice runs on a different bundle.
     void (async () => {
       const m = await fetchMaterial()
       setMaterial(m)
       if (m.exhibits[0]) setExhibit(m.exhibits[0].id)
     })()
-  }, [])
+  }, [inPractice])
   const [page, setPage] = useState(2)
   const [zoom, setZoom] = useState(1)
   const [draft, setDraft] = useState(DRAFT_FIXTURE)
@@ -54,7 +64,14 @@ export function ConditionB({ state }: Props) {
   if (!material) return null
 
   return (
-    <div id="app">
+    <div
+      id="app"
+      style={
+        inPractice
+          ? { gridTemplateRows: 'var(--h-topbar) var(--h-status) minmax(0,1fr)' }
+          : undefined
+      }
+    >
       <TopBar
         condition="b"
         track={state.track}
@@ -69,6 +86,14 @@ export function ConditionB({ state }: Props) {
         }}
         onSubmit={() => logger.log('declare_done', { condition: 'b' })}
       />
+
+      {inPractice && practice.loaded && (
+        <PracticeGate
+          required={practice.required}
+          cleared={practice.cleared}
+          complete={practice.complete}
+        />
+      )}
 
       <div id="main">
         <aside
@@ -103,6 +128,9 @@ export function ConditionB({ state }: Props) {
             onPageChange={(p, via) => {
               logger.log('page_change', { exhibit, page: p, from_page: page, via })
               setPage(p)
+              // B's only route to the evidence is its own hands (B-03), so the
+              // gate is having used it.
+              void usePractice.getState().clear('manual_page')
             }}
             onZoom={(z) => {
               logger.log('zoom', { panel: 'evidence', from: zoom, to: z })

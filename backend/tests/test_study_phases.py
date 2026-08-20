@@ -115,10 +115,18 @@ def test_moderator_token_is_not_bound_to_a_session(auth_client, moderator):
 # ---------------------------------------------------------------------------
 
 def test_phase_machine_walks_the_condition_c_order(auth_client, moderator):
+    from app.routers.study import PRACTICE_GATES
+
     out = _make_session(auth_client, moderator, condition="c")
     sid = out["session_id"]
     seen = ["setup"]
     for _ in range(len(study.PHASES["c"]) - 1):
+        # The practice gate is part of the machine now (FS-06): the walk only
+        # continues once the participant has done what practice is for.
+        if study.load_session(sid)["phase"] == "practice":
+            for gate in PRACTICE_GATES["c"]:
+                auth_client.post("/api/study/checkpoint",
+                                 headers=_hdr(out["join_token"]), json={"gate": gate})
         r = auth_client.post("/api/study/advance", headers=_hdr(moderator),
                              json={"session_id": sid})
         assert r.status_code == 200, r.text
@@ -137,6 +145,37 @@ def test_condition_b_has_no_organization_or_generation(auth_client, moderator):
     assert "work" in study.PHASES["b"]
 
 
+def test_advance_refuses_to_leave_practice_until_the_gates_are_cleared(auth_client, moderator):
+    """FS-06 is a refusal, not a warning: nobody starts the measured task
+    without having used the interaction the condition is about."""
+    from app.routers.study import PRACTICE_GATES
+
+    out = _make_session(auth_client, moderator, condition="c")
+    sid = out["session_id"]
+    for _ in range(2):
+        auth_client.post("/api/study/advance", headers=_hdr(moderator),
+                         json={"session_id": sid})
+    assert study.load_session(sid)["phase"] == "practice"
+
+    blocked = auth_client.post("/api/study/advance", headers=_hdr(moderator),
+                               json={"session_id": sid})
+    assert blocked.status_code == 409
+    assert "lightbox" in blocked.json()["detail"]
+
+    # One of two gates is not enough.
+    auth_client.post("/api/study/checkpoint", headers=_hdr(out["join_token"]),
+                     json={"gate": "lightbox"})
+    assert auth_client.post("/api/study/advance", headers=_hdr(moderator),
+                            json={"session_id": sid}).status_code == 409
+
+    for gate in PRACTICE_GATES["c"]:
+        auth_client.post("/api/study/checkpoint", headers=_hdr(out["join_token"]),
+                         json={"gate": gate})
+    assert auth_client.post("/api/study/advance", headers=_hdr(moderator),
+                            json={"session_id": sid}).status_code == 200
+    assert study.load_session(sid)["phase"] == "organization"
+
+
 def test_advance_refuses_to_skip_a_phase(auth_client, moderator):
     """`to` is a confirmation of the next phase, never a jump instruction."""
     sid = _make_session(auth_client, moderator)["session_id"]
@@ -146,13 +185,12 @@ def test_advance_refuses_to_skip_a_phase(auth_client, moderator):
     assert study.load_session(sid)["phase"] == "setup"
 
 
-def test_phase_transitions_are_logged_in_pairs(auth_client, moderator):
-    sid = _make_session(auth_client, moderator)["session_id"]
-    for _ in range(3):
-        auth_client.post("/api/study/advance", headers=_hdr(moderator),
-                         json={"session_id": sid})
+def test_phase_transitions_are_logged_in_pairs(auth_client, moderator, walk_to):
+    out = _make_session(auth_client, moderator)
+    walk_to(auth_client, moderator, out, "organization")
 
-    evs = [e for e in _events(sid) if e["event"] in ("phase_enter", "phase_exit")]
+    evs = [e for e in _events(out["session_id"])
+           if e["event"] in ("phase_enter", "phase_exit")]
     assert [e["event"] for e in evs] == ["phase_exit", "phase_enter"] * 3
     assert [e["payload"]["phase"] for e in evs] == [
         "setup", "tutorial", "tutorial", "practice", "practice", "organization",
@@ -163,29 +201,22 @@ def test_phase_transitions_are_logged_in_pairs(auth_client, moderator):
 # BE-04 / 红线 #4: the clock
 # ---------------------------------------------------------------------------
 
-def _advance_to(client, moderator, sid, phase):
-    for _ in range(len(study.PHASES["c"])):
-        if study.load_session(sid)["phase"] == phase:
-            return
-        client.post("/api/study/advance", headers=_hdr(moderator),
-                    json={"session_id": sid})
-    raise AssertionError(f"never reached {phase}")
 
 
-def test_organization_exposes_a_countdown(auth_client, moderator):
+def test_organization_exposes_a_countdown(auth_client, moderator, walk_to):
     out = _make_session(auth_client, moderator)
-    _advance_to(auth_client, moderator, out["session_id"], "organization")
+    walk_to(auth_client, moderator, out, "organization")
 
     state = auth_client.get("/api/study/state", headers=_hdr(out["join_token"])).json()
     assert state["phase"] == "organization"
     assert state["remaining_ms"] > 0
 
 
-def test_verification_state_has_no_time_field_at_all(auth_client, moderator):
+def test_verification_state_has_no_time_field_at_all(auth_client, moderator, walk_to):
     """红线 #4. Not null, not zero -- absent. A participant reading the network
     tab must have nothing to render a clock from."""
     out = _make_session(auth_client, moderator)
-    _advance_to(auth_client, moderator, out["session_id"], "verification")
+    walk_to(auth_client, moderator, out, "verification")
 
     r = auth_client.get("/api/study/state", headers=_hdr(out["join_token"]))
     body = r.json()
@@ -195,9 +226,9 @@ def test_verification_state_has_no_time_field_at_all(auth_client, moderator):
     assert not any(isinstance(v, (int, float)) and v > 10_000 for v in body.values()), body
 
 
-def test_organization_softlocks_when_its_budget_runs_out(auth_client, moderator, zero_org_budget):
+def test_organization_softlocks_when_its_budget_runs_out(auth_client, moderator, zero_org_budget, walk_to):
     out = _make_session(auth_client, moderator)
-    _advance_to(auth_client, moderator, out["session_id"], "organization")
+    walk_to(auth_client, moderator, out, "organization")
 
     state = auth_client.get("/api/study/state", headers=_hdr(out["join_token"])).json()
     assert state["softlock"] is True
@@ -223,24 +254,24 @@ def test_verification_never_softlocks_however_long_it_runs():
         assert study.softlock_due(ver, base + offset) is False
 
 
-def test_verification_offers_submission_and_organization_does_not(auth_client, moderator):
+def test_verification_offers_submission_and_organization_does_not(auth_client, moderator, walk_to):
     """The participant is told they may finish, and told it with a boolean --
     there is nothing here a clock could be reconstructed from."""
     out = _make_session(auth_client, moderator)
-    _advance_to(auth_client, moderator, out["session_id"], "organization")
+    walk_to(auth_client, moderator, out, "organization")
     org = auth_client.get("/api/study/state", headers=_hdr(out["join_token"])).json()
     assert org["can_submit"] is False
 
-    _advance_to(auth_client, moderator, out["session_id"], "verification")
+    walk_to(auth_client, moderator, out, "verification")
     ver = auth_client.get("/api/study/state", headers=_hdr(out["join_token"])).json()
     assert ver["can_submit"] is True
     assert isinstance(ver["can_submit"], bool)
 
 
-def test_moderator_monitor_does_see_the_clock(auth_client, moderator):
+def test_moderator_monitor_does_see_the_clock(auth_client, moderator, walk_to):
     """The clock exists; only the participant is kept from it (MOD-03)."""
     out = _make_session(auth_client, moderator)
-    _advance_to(auth_client, moderator, out["session_id"], "verification")
+    walk_to(auth_client, moderator, out, "verification")
 
     mon = auth_client.get(f"/api/study/monitor/{out['session_id']}",
                           headers=_hdr(moderator)).json()

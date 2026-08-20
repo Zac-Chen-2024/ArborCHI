@@ -1,0 +1,30 @@
+{
+  "tree_variant_id": "practice-v0",
+  "criterion": "Original Contributions of Major Significance",
+  "arguments": [
+    {
+      "id": "pa1",
+      "index": "①",
+      "title": "The contribution is original",
+      "rationale": "Establish novelty before significance",
+      "subs": [
+        {
+          "id": "ps1",
+          "title": "Granted patent",
+          "snippet_ids": [
+            "q1"
+          ],
+          "distractor": false
+        },
+        {
+          "id": "ps2",
+          "title": "Independent adoption",
+          "snippet_ids": [
+            "q2"
+          ],
+          "distractor": false
+        }
+      ]
+    }
+  ]
+}

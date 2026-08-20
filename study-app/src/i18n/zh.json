@@ -189,5 +189,15 @@
     "exPageTag": "{{ex}} · 第 {{i}} 页",
     "page": "第 {{i}} 页",
     "pages": "{{n}}页"
+  },
+  "practice": {
+    "label": "练习",
+    "instruction": "正式任务开始前,先试一下这几件事。",
+    "done": "都完成了 —— 主试会带你继续。",
+    "gate": {
+      "lightbox": "打开放大镜",
+      "linkage": "顺着引证找到原文",
+      "manual_page": "手动翻到另一页"
+    }
   }
 }

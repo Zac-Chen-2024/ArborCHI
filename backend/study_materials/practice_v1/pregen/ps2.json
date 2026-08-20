@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "node_id": "ps2",
+  "sentences": [
+    {
+      "sent_id": "ps2_0",
+      "text": "Four independent vendors adopted the method within two years of the grant. [Exhibit P2, p.1]",
+      "snippet_ids": [
+        "q2"
+      ],
+      "exhibit_refs": [
+        {
+          "exhibit": "P2",
+          "page": 1
+        }
+      ],
+      "sentence_type": "evidence",
+      "source": "frozen",
+      "planted_id": null
+    }
+  ]
+}

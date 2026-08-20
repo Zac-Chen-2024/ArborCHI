@@ -138,6 +138,11 @@ class SubmitBody(BaseModel):
     final_text_hash: str = Field(..., pattern="^[0-9a-f]{64}$")
 
 
+class CheckpointBody(BaseModel):
+    """One practice gate cleared. `gate` names which."""
+    gate: str = Field(..., pattern="^[a-z_]{1,32}$")
+
+
 class ConfidenceBody(BaseModel):
     likert_1_7: int = Field(..., ge=1, le=7)
     est_problem_count: int = Field(..., ge=0, le=500)
@@ -344,12 +349,28 @@ def get_material() -> Dict[str, Any]:
     answer key is removed. No endpoint may reach into the bundle directly.
     """
     session = _participant_session()
-    material_id = session.get("material_id") or "case_v1"
+    material_id = _material_for_phase(session)
     return {
+        "material_id": material_id,
+        "practice": session["phase"] == "practice",
         "tree": materials.public_tree(material_id),
         "relations": materials.public_relations(material_id),
         **materials.public_snippets(material_id),
     }
+
+
+def _material_for_phase(session: Dict[str, Any]) -> str:
+    """Which bundle this request gets.
+
+    Decided by the SERVER from the phase, never by a query parameter. If the
+    client could name the bundle, a participant in the practice phase could ask
+    for the real case and arrive at the measured task having already read the
+    exhibits -- which is precisely the part of the session the two conditions
+    are being compared on.
+    """
+    if session["phase"] == "practice":
+        return session.get("practice_material_id") or "practice_v1"
+    return session.get("material_id") or "case_v1"
 
 
 @router.post("/generate")
@@ -375,7 +396,7 @@ def generate(body: GenerateBody) -> Dict[str, Any]:
     if session.get("submitted"):
         raise HTTPException(status_code=409, detail="Session already submitted")
 
-    material_id = session.get("material_id") or "case_v1"
+    material_id = _material_for_phase(session)
     try:
         built = study_generator.assemble(
             body.node_states,
@@ -473,6 +494,67 @@ def submit(body: SubmitBody) -> Dict[str, Any]:
     write_server_event(session, "submit", meta)
 
     return {"success": True, **study.public_state(session)}
+
+
+# The practice gates each condition must clear before the measured task
+# (FS-06). C has to have used the two things that distinguish it -- the
+# magnifier and a linkage jump -- at least once, because a participant who
+# never discovers them is not in condition C in any meaningful sense. B has to
+# have navigated by hand, which is its only route to the evidence.
+PRACTICE_GATES = {
+    "c": ("lightbox", "linkage"),
+    "b": ("manual_page",),
+}
+
+
+@router.post("/checkpoint")
+def checkpoint(body: CheckpointBody) -> Dict[str, Any]:
+    """Record a cleared practice gate (FS-06, BE-18).
+
+    Kept on the SERVER rather than in client state: the gate decides whether
+    someone may start the measured task, and a client-side flag is a flag a
+    reload clears. The response says what is still outstanding so the practice
+    screen can show it without keeping its own tally.
+    """
+    session = _participant_session()
+    required = PRACTICE_GATES.get(session["condition"], ())
+    if body.gate not in required:
+        raise HTTPException(status_code=400, detail="Unknown gate for this condition")
+
+    already = set(session.get("checkpoints") or [])
+    if body.gate not in already:
+        def _record(rec):
+            rec.setdefault("checkpoints", [])
+            if body.gate not in rec["checkpoints"]:
+                rec["checkpoints"].append(body.gate)
+            return rec
+
+        session = study.update_session(session["session_id"], _record)
+        write_server_event(session, "checkpoint_passed", {
+            "gate": body.gate,
+            "cleared": list(session["checkpoints"]),
+            "remaining": [g for g in required if g not in session["checkpoints"]],
+        })
+
+    cleared = set(session.get("checkpoints") or [])
+    return {
+        "cleared": sorted(cleared),
+        "remaining": [g for g in required if g not in cleared],
+        "complete": all(g in cleared for g in required),
+    }
+
+
+@router.get("/checkpoint")
+def checkpoint_state() -> Dict[str, Any]:
+    session = _participant_session()
+    required = PRACTICE_GATES.get(session["condition"], ())
+    cleared = set(session.get("checkpoints") or [])
+    return {
+        "required": list(required),
+        "cleared": sorted(cleared),
+        "remaining": [g for g in required if g not in cleared],
+        "complete": all(g in cleared for g in required),
+    }
 
 
 @router.post("/confidence")
@@ -609,6 +691,18 @@ def advance(body: AdvanceBody) -> Dict[str, Any]:
             status_code=409,
             detail=f"Next phase is {target!r}, not {body.to!r}",
         )
+
+    if session["phase"] == "practice":
+        required = PRACTICE_GATES.get(session["condition"], ())
+        cleared = set(session.get("checkpoints") or [])
+        missing = [g for g in required if g not in cleared]
+        if missing:
+            # FS-06: not a warning, a refusal. The moderator can see what is
+            # outstanding and ask the participant to do it.
+            raise HTTPException(
+                status_code=409,
+                detail=f"Practice gates not cleared: {missing}",
+            )
 
     left = session["phase"]
     write_server_event(session, "phase_exit", {"phase": left})

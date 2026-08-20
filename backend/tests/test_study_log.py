@@ -148,11 +148,9 @@ def test_out_of_order_within_a_batch_is_accepted(auth_client, ptc):
     assert r.json()["acked_seq"] == 2
 
 
-def test_phase_comes_from_the_server_not_the_client(auth_client, moderator, ptc):
+def test_phase_comes_from_the_server_not_the_client(auth_client, moderator, ptc, walk_to):
     """A client a poll behind must not file events under the previous phase."""
-    for _ in range(3):
-        auth_client.post("/api/study/advance", headers=_hdr(moderator),
-                         json={"session_id": ptc["session_id"]})
+    walk_to(auth_client, moderator, ptc, "organization")
     assert study.load_session(ptc["session_id"])["phase"] == "organization"
 
     stale = _ev(0)

@@ -57,3 +57,40 @@ def _skip_llm_config_check(monkeypatch):
     from app.core.config import settings
 
     monkeypatch.setattr(settings, "skip_llm_config_check", True)
+
+
+# ---------------------------------------------------------------------------
+# Study helpers
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def walk_to():
+    """Advance a session to `phase`, doing what a real participant would.
+
+    In particular it clears the practice gates before leaving the practice
+    phase, because the server now refuses to advance past them (FS-06). Every
+    test that needs a session further along goes through here, so the day
+    another gate is added there is one place to teach.
+    """
+    from app.core import study
+
+    def _walk(client, moderator_token, session, phase):
+        sid = session["session_id"]
+        headers = {"Authorization": f"Bearer {moderator_token}"}
+        participant = {"Authorization": f"Bearer {session['join_token']}"}
+
+        for _ in range(len(study.PHASES[session["condition"]]) + 2):
+            current = study.load_session(sid)["phase"]
+            if current == phase:
+                return
+            if current == "practice":
+                from app.routers.study import PRACTICE_GATES
+                for gate in PRACTICE_GATES.get(session["condition"], ()):
+                    client.post("/api/study/checkpoint", headers=participant,
+                                json={"gate": gate})
+            r = client.post("/api/study/advance", headers=headers,
+                            json={"session_id": sid})
+            assert r.status_code == 200, r.text
+        raise AssertionError(f"never reached {phase}")
+
+    return _walk
