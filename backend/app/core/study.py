@@ -40,6 +40,7 @@ only to tell the MODERATOR when to step in, and never leaves the moderator API.
 
 from __future__ import annotations
 
+import logging
 import secrets
 from datetime import datetime, timezone
 from pathlib import Path
@@ -52,6 +53,8 @@ from .study_config import config_hash, phase_config
 # Version of the SESSION RECORD (session.json), not of the event envelope --
 # that one lives in study_log.SCHEMA_VERSION and moves independently.
 SESSION_SCHEMA_VERSION = 3
+
+logger = logging.getLogger(__name__)
 
 CONDITIONS = ("c", "b")
 LANGS = ("en", "zh")
@@ -185,6 +188,7 @@ def create_session(
     track: str,
     workspace_id: Optional[str] = None,
     build: str = "",
+    material_id: str = "case_v1",
 ) -> Dict:
     """Create one session and its workspace. The workspace id is derived from
     the session id, not the participant code: two runs of the same participant
@@ -196,16 +200,31 @@ def create_session(
 
     session_id = new_session_id()
     workspace_id = workspace_id or f"ws{session_id}"
+
+    # A missing or broken bundle must not take the session down: the moderator
+    # can still run setup and tutorial while it is fixed, and the empty hashes
+    # make those sessions obvious in the data.
+    from .materials import MaterialError, manifest_hash, tree_variant_id
+    try:
+        material_hash = manifest_hash(material_id)
+        variant_id = tree_variant_id(material_id)
+    except MaterialError as e:
+        logger.error("session %s created without a usable material bundle: %s",
+                     session_id, e)
+        material_hash, variant_id = "", ""
     session = {
         "schema_version": SESSION_SCHEMA_VERSION,
         "session_id": session_id,
         # Pinned at creation so a mid-session config edit cannot retroactively
         # change what this session ran under.
         "config_hash": config_hash(),
-        # Filled in when the material bundle is bound to the session (M5).
-        # Present from creation so the field never appears mid-session.
-        "material_manifest_hash": "",
-        "tree_variant_id": "",
+        # Bound at creation, not at first use: every event in the session --
+        # including the ones before the letter exists -- must say which material
+        # it belongs to, and a session that failed early is still a session
+        # somebody has to classify.
+        "material_id": material_id,
+        "material_manifest_hash": material_hash,
+        "tree_variant_id": variant_id,
         "condition": condition,
         "participant_code": participant_code,
         "lang": lang,

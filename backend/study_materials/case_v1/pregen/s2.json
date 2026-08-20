@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "node_id": "s2",
+  "sentences": [
+    {
+      "sent_id": "s2_0",
+      "text": "Its platform serves 13 of the 20 largest retailers in North America. [Exhibit D1, p.3]",
+      "snippet_ids": [
+        "c3"
+      ],
+      "exhibit_refs": [
+        {
+          "exhibit": "D1",
+          "page": 3
+        }
+      ],
+      "sentence_type": "evidence",
+      "source": "frozen",
+      "planted_id": null
+    }
+  ]
+}

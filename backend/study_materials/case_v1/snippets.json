@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "bbox_space": 1000,
+  "_comment": "bbox is normalised to a 1000x1000 space (红线 #8), not pixels.",
+  "exhibits": [
+    {
+      "id": "A3",
+      "pages": 2,
+      "title": "ACM SIGMOD - Best Paper Award"
+    },
+    {
+      "id": "B1",
+      "pages": 6,
+      "title": "Organisational chart and delegation of authority"
+    },
+    {
+      "id": "B2",
+      "pages": 8,
+      "title": "Annual Report 2023"
+    },
+    {
+      "id": "C1",
+      "pages": 3,
+      "title": "Letter of recommendation - Marcus Reed"
+    },
+    {
+      "id": "C2",
+      "pages": 5,
+      "title": "Internal memorandum - Project Atlas"
+    },
+    {
+      "id": "D1",
+      "pages": 4,
+      "title": "Data Infrastructure Review - Vendor of the Year"
+    },
+    {
+      "id": "E2",
+      "pages": 4,
+      "title": "VLDB 2023 - Programme committee invitation"
+    }
+  ],
+  "snippets": {
+    "c1": {
+      "snippet_id": "c1",
+      "exhibit": "B2",
+      "page": 5,
+      "bbox": [
+        120,
+        340,
+        880,
+        400
+      ],
+      "label": "Revenue $320M - 1,800 employees",
+      "text": "Global revenue reached $320M in FY2023, with 1,800 employees across eleven offices."
+    },
+    "c2": {
+      "snippet_id": "c2",
+      "exhibit": "D1",
+      "page": 1,
+      "bbox": [
+        110,
+        220,
+        890,
+        275
+      ],
+      "label": "Data Infrastructure Vendor of the Year",
+      "text": "Northwind Data Systems was named Data Infrastructure Vendor of the Year for 2023."
+    },
+    "c3": {
+      "snippet_id": "c3",
+      "exhibit": "D1",
+      "page": 3,
+      "bbox": [
+        110,
+        500,
+        870,
+        552
+      ],
+      "label": "13 of the 20 largest retailers in North America",
+      "text": "Its platform serves 13 of the 20 largest retailers in North America."
+    },
+    "c4": {
+      "snippet_id": "c4",
+      "exhibit": "B1",
+      "page": 2,
+      "bbox": [
+        100,
+        300,
+        900,
+        395
+      ],
+      "label": "Reports to the CTO - 4 teams, 47 people",
+      "text": "The Director of AI Research reports directly to the Chief Technology Officer and oversees four research teams comprising 47 researchers."
+    },
+    "c5": {
+      "snippet_id": "c5",
+      "exhibit": "B1",
+      "page": 4,
+      "bbox": [
+        100,
+        415,
+        900,
+        490
+      ],
+      "label": "Final approval over a $12M budget",
+      "text": "Final approval authority over the division's $12M annual R&D budget rests with the Director of AI Research."
+    },
+    "c6": {
+      "snippet_id": "c6",
+      "exhibit": "C1",
+      "page": 1,
+      "bbox": [
+        130,
+        380,
+        870,
+        455
+      ],
+      "label": "Retrieval rebuild cut query latency 60%",
+      "text": "The retrieval infrastructure rebuild that Dr. Li led reduced median query latency by 60% across our platform."
+    },
+    "c7": {
+      "snippet_id": "c7",
+      "exhibit": "C2",
+      "page": 3,
+      "bbox": [
+        120,
+        260,
+        880,
+        315
+      ],
+      "label": "Led Project Atlas - delivered 2022 Q3",
+      "text": "Project Atlas was initiated and led by Dr. Li, and was delivered in Q3 2022."
+    },
+    "c8": {
+      "snippet_id": "c8",
+      "exhibit": "A3",
+      "page": 1,
+      "bbox": [
+        140,
+        430,
+        860,
+        505
+      ],
+      "label": "SIGMOD 2022 Best Paper Award",
+      "text": "Best Paper Award presented to Dr. Wei Li et al. for “Efficient Query Processing in Large-Scale Distributed Databases.”"
+    },
+    "c9": {
+      "snippet_id": "c9",
+      "exhibit": "E2",
+      "page": 2,
+      "bbox": [
+        130,
+        300,
+        870,
+        355
+      ],
+      "label": "VLDB 2023 programme committee invitation",
+      "text": "We invite Dr. Wei Li to serve on the Program Committee for VLDB 2023."
+    },
+    "c10": {
+      "snippet_id": "c10",
+      "exhibit": "E2",
+      "page": 4,
+      "bbox": [
+        130,
+        610,
+        870,
+        662
+      ],
+      "label": "Conference registration figures",
+      "text": "Registration for the 2023 meeting totalled 2,140 attendees."
+    }
+  }
+}

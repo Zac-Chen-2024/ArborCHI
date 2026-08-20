@@ -123,6 +123,14 @@ REQUIRED = [
     'study-app/tailwind.config.js', 'study-app/postcss.config.js',
     'backend/pyproject.toml', 'backend/requirements.txt',
     'backend/requirements-dev.txt', '.github/workflows/ci.yml',
+    'backend/study_config.json',
+    # The material bundle is data the tests and every session read. It went in
+    # a directory called `study_materials`, deliberately not `data`, after
+    # .gitignore's bare `data/` swallowed study-app/src/data/fixtures.ts.
+    'backend/study_materials/case_v1/manifest.json',
+    'backend/study_materials/case_v1/tree.frozen.json',
+    'backend/study_materials/case_v1/snippets.json',
+    'backend/study_materials/case_v1/planted.json',
 ]
 for rel in REQUIRED:
     if rel not in tracked:

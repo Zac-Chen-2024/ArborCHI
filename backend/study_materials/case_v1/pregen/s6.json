@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "node_id": "s6",
+  "sentences": [
+    {
+      "sent_id": "s6_0",
+      "text": "Dr. Li's SIGMOD 2022 Best Paper Award further underscores his professional standing. [Exhibit A3, p.1]",
+      "snippet_ids": [
+        "c8"
+      ],
+      "exhibit_refs": [
+        {
+          "exhibit": "A3",
+          "page": 1
+        }
+      ],
+      "sentence_type": "evidence",
+      "source": "frozen",
+      "planted_id": null
+    },
+    {
+      "sent_id": "s6_1",
+      "text": "He was invited to serve on the VLDB 2023 Program Committee. [Exhibit E2, p.2]",
+      "snippet_ids": [
+        "c9"
+      ],
+      "exhibit_refs": [
+        {
+          "exhibit": "E2",
+          "page": 2
+        }
+      ],
+      "sentence_type": "evidence",
+      "source": "frozen",
+      "planted_id": null
+    }
+  ]
+}

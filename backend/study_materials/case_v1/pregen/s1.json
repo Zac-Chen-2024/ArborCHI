@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "node_id": "s1",
+  "sentences": [
+    {
+      "sent_id": "s1_0",
+      "text": "Northwind Data Systems is a data-infrastructure firm reporting $320M in revenue and 1,800 employees across eleven offices. [Exhibit B2, p.5]",
+      "snippet_ids": [
+        "c1"
+      ],
+      "exhibit_refs": [
+        {
+          "exhibit": "B2",
+          "page": 5
+        }
+      ],
+      "sentence_type": "claim",
+      "source": "frozen",
+      "planted_id": null
+    },
+    {
+      "sent_id": "s1_1",
+      "text": "The company was named Data Infrastructure Vendor of the Year for 2023, placing it among the top five vendors worldwide. [Exhibit D1, p.1]",
+      "snippet_ids": [
+        "c2"
+      ],
+      "exhibit_refs": [
+        {
+          "exhibit": "D1",
+          "page": 1
+        }
+      ],
+      "sentence_type": "evidence",
+      "source": "frozen",
+      "planted_id": "p1"
+    }
+  ]
+}

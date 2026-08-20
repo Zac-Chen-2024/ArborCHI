@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "planted_id": "p1",
+      "node_id": "s1",
+      "kind": "overstated",
+      "note": "claims a figure larger than the exhibit supports"
+    },
+    {
+      "planted_id": "p2",
+      "node_id": "s3",
+      "kind": "wrong_exhibit",
+      "note": "cites an exhibit that does not contain the claim"
+    },
+    {
+      "planted_id": "p3",
+      "node_id": "s5",
+      "kind": "unsupported_causal",
+      "note": "asserts a causal link the exhibit only describes as temporal"
+    }
+  ]
+}

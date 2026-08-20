@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "node_id": "s4",
+  "sentences": [
+    {
+      "sent_id": "s4_0",
+      "text": "Dr. Li held final approval authority over the division's $12M annual research and development budget. [Exhibit B1, p.4]",
+      "snippet_ids": [
+        "c5"
+      ],
+      "exhibit_refs": [
+        {
+          "exhibit": "B1",
+          "page": 4
+        }
+      ],
+      "sentence_type": "claim",
+      "source": "frozen",
+      "planted_id": null
+    }
+  ]
+}

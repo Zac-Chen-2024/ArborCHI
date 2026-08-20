@@ -1,0 +1,73 @@
+{
+  "tree_variant_id": "placeholder-v0",
+  "criterion": "Leading or Critical Role",
+  "arguments": [
+    {
+      "id": "a1",
+      "index": "①",
+      "title": "The organisation has a distinguished reputation",
+      "rationale": "Establish the standing of the organisation before the individual role",
+      "subs": [
+        {
+          "id": "s1",
+          "title": "Scale and market position",
+          "snippet_ids": [
+            "c1",
+            "c2"
+          ],
+          "distractor": false
+        },
+        {
+          "id": "s2",
+          "title": "Industry recognition and client coverage",
+          "snippet_ids": [
+            "c3"
+          ],
+          "distractor": false
+        }
+      ]
+    },
+    {
+      "id": "a2",
+      "index": "②",
+      "title": "The petitioner performs a leading role within it",
+      "rationale": "Argue hierarchical position, decision authority and actual impact",
+      "subs": [
+        {
+          "id": "s3",
+          "title": "Position in the hierarchy and reporting line",
+          "snippet_ids": [
+            "c4"
+          ],
+          "distractor": false
+        },
+        {
+          "id": "s4",
+          "title": "Decision and resource authority",
+          "snippet_ids": [
+            "c5"
+          ],
+          "distractor": false
+        },
+        {
+          "id": "s5",
+          "title": "Quantified impact of the leadership",
+          "snippet_ids": [
+            "c6",
+            "c7"
+          ],
+          "distractor": false
+        },
+        {
+          "id": "s6",
+          "title": "Academic honours corroborating professional standing",
+          "snippet_ids": [
+            "c8",
+            "c9"
+          ],
+          "distractor": true
+        }
+      ]
+    }
+  ]
+}

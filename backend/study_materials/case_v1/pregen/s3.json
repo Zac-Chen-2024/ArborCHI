@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "node_id": "s3",
+  "sentences": [
+    {
+      "sent_id": "s3_0",
+      "text": "As Director of AI Research at Northwind Data Systems, Dr. Li reported directly to the Chief Technology Officer and oversaw four research teams comprising 47 researchers. [Exhibit B1, p.2]",
+      "snippet_ids": [
+        "c4"
+      ],
+      "exhibit_refs": [
+        {
+          "exhibit": "B1",
+          "page": 2
+        }
+      ],
+      "sentence_type": "claim",
+      "source": "frozen",
+      "planted_id": null
+    },
+    {
+      "sent_id": "s3_1",
+      "text": "This reporting line is documented in the company's delegation of authority. [Exhibit B1, p.4]",
+      "snippet_ids": [
+        "c5"
+      ],
+      "exhibit_refs": [
+        {
+          "exhibit": "B1",
+          "page": 4
+        }
+      ],
+      "sentence_type": "evidence",
+      "source": "frozen",
+      "planted_id": "p2"
+    }
+  ]
+}

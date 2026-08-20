@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "node_id": "s5",
+  "sentences": [
+    {
+      "sent_id": "s5_0",
+      "text": "The retrieval infrastructure rebuild that Dr. Li led reduced median query latency by 60% across the platform. [Exhibit C1, p.1]",
+      "snippet_ids": [
+        "c6"
+      ],
+      "exhibit_refs": [
+        {
+          "exhibit": "C1",
+          "page": 1
+        }
+      ],
+      "sentence_type": "claim",
+      "source": "frozen",
+      "planted_id": null
+    },
+    {
+      "sent_id": "s5_1",
+      "text": "Because of Project Atlas, which Dr. Li initiated and led, the company's Q3 2022 revenue rose. [Exhibit C2, p.3]",
+      "snippet_ids": [
+        "c7"
+      ],
+      "exhibit_refs": [
+        {
+          "exhibit": "C2",
+          "page": 3
+        }
+      ],
+      "sentence_type": "evidence",
+      "source": "frozen",
+      "planted_id": "p3"
+    }
+  ]
+}

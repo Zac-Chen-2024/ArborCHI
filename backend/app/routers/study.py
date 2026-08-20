@@ -26,7 +26,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from app.core import study, study_log, study_snapshots
+from app.core import materials, study, study_log, study_snapshots
 from app.core.atomic_io import append_jsonl_many
 from app.core.config import settings
 from app.core.ids import validate_path_params
@@ -38,6 +38,7 @@ from app.core.workspace import (
     current_workspace,
     mint_token,
 )
+from app.services import study_generator
 
 logger = logging.getLogger(__name__)
 
@@ -92,6 +93,7 @@ class CreateSessionBody(BaseModel):
     lang: str = Field("en", pattern="^(en|zh)$")
     track: str = Field("formal", pattern="^(formal|test)$")
     build: str = Field("", max_length=64)
+    material_id: str = Field("case_v1", max_length=64)
 
 
 class AdvanceBody(BaseModel):
@@ -111,6 +113,17 @@ class LogBatchBody(BaseModel):
     events: List[Dict[str, Any]] = Field(..., max_length=study_log.MAX_BATCH)
 
 
+class GenerateBody(BaseModel):
+    """The tree as the participant left it.
+
+    Only what the node IS -- title, parent, evidence. Deliberately no "changed"
+    flag: whether a node counts as changed is a statement about the independent
+    variable, and the client is the thing being measured. The server decides by
+    comparing against tree.frozen.json (see services/study_generator.py).
+    """
+    node_states: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
+
+
 class SubmitBody(BaseModel):
     """The participant declaring themselves finished.
 
@@ -122,6 +135,13 @@ class SubmitBody(BaseModel):
     """
     text: str = Field(..., max_length=200_000)
     final_text_hash: str = Field(..., pattern="^[0-9a-f]{64}$")
+
+
+def _live_generator():
+    """Live generation is not wired to a provider yet (M5). Returning None makes
+    a changed node a loud 503 rather than a quiet substitution of frozen text --
+    which would look like success while falsifying `source`."""
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -140,6 +160,7 @@ def create_session(body: CreateSessionBody) -> Dict[str, Any]:
         lang=body.lang,
         track=body.track,
         build=body.build,
+        material_id=body.material_id,
     )
 
     entry = mint_token(
@@ -300,6 +321,86 @@ def start_session() -> Dict[str, Any]:
         # Material hashes join this payload at M5 when the bundle lands (BE-07).
     })
     return study.public_state(session)
+
+
+@router.get("/material")
+def get_material() -> Dict[str, Any]:
+    """The tree and the evidence, as the participant may see them (BE-07).
+
+    Everything here goes through `materials.public_*`, which is where the
+    answer key is removed. No endpoint may reach into the bundle directly.
+    """
+    session = _participant_session()
+    material_id = session.get("material_id") or "case_v1"
+    return {
+        "tree": materials.public_tree(material_id),
+        **materials.public_snippets(material_id),
+    }
+
+
+@router.post("/generate")
+def generate(body: GenerateBody) -> Dict[str, Any]:
+    """Assemble the letter and snapshot it (BE-08, 红线 #1).
+
+    **The ordering in this function is the red line.** The snapshot is written
+    before the response is returned, therefore before the participant can type
+    a single character. That snapshot is the only baseline against which "what
+    did the human change" can ever be answered, and unlike almost everything
+    else in the system it cannot be reconstructed after the fact -- once the
+    text is edited, the pre-edit version is simply gone.
+
+    So: assemble -> write snapshot -> log -> return. Never return early, never
+    write the snapshot in a background task, never make it conditional on
+    anything. If this endpoint succeeds, the baseline exists.
+
+    The response carries `source: frozen|live` per sentence and NOT
+    `planted_id` -- the first is data the analysis needs and the UI must ignore
+    (红线 #3), the second is the probe's answer key.
+    """
+    session = _participant_session()
+    if session.get("submitted"):
+        raise HTTPException(status_code=409, detail="Session already submitted")
+
+    material_id = session.get("material_id") or "case_v1"
+    try:
+        built = study_generator.assemble(
+            body.node_states,
+            material_id=material_id,
+            generate_live=_live_generator(),
+        )
+    except study_generator.GenerationError as e:
+        # Surfaced as 503 rather than 500: the request was fine, the capability
+        # is missing. A moderator seeing this needs to know it is configuration.
+        logger.error("generation failed for %s: %s", session["session_id"], e)
+        raise HTTPException(status_code=503, detail="Generation is not available")
+
+    # 红线 #1 -- before the participant can edit anything.
+    meta = study_snapshots.write_snapshot(
+        session,
+        "initial",
+        "draft",
+        built["text"],
+        sentences=built["sentences"],
+        extra={"stats": built["stats"], "material_id": material_id},
+    )
+    write_server_event(session, "draft_snapshot", {
+        "snapshot_id": "initial",
+        "trigger": "generation",
+        **meta,
+    })
+
+    def _mark(rec):
+        rec["generated_at"] = study.now_iso()
+        rec["initial_snapshot_hash"] = meta["sha256"]
+        return rec
+
+    study.update_session(session["session_id"], _mark)
+
+    return {
+        "text": built["text"],
+        "sentences": materials.public_sentences(built["sentences"]),
+        "stats": built["stats"],
+    }
 
 
 @router.post("/submit")
