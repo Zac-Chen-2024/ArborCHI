@@ -12,7 +12,9 @@
     {
       "why": "a citation bracket contains a period that must not split",
       "text": "Revenue reached $320M [Exhibit B2, p.5].",
-      "expect": ["Revenue reached $320M [Exhibit B2, p.5]."]
+      "expect": [
+        "Revenue reached $320M [Exhibit B2, p.5]."
+      ]
     },
     {
       "why": "multi-citation bracket stays whole",
@@ -57,7 +59,11 @@
     {
       "why": "question and exclamation marks end sentences",
       "text": "Does the evidence support it? It does. Clearly!",
-      "expect": ["Does the evidence support it?", "It does.", "Clearly!"]
+      "expect": [
+        "Does the evidence support it?",
+        "It does.",
+        "Clearly!"
+      ]
     },
     {
       "why": "a closing quote after the period belongs to the sentence it closes",
@@ -70,7 +76,9 @@
     {
       "why": "no trailing punctuation still yields one sentence",
       "text": "A draft with no final period",
-      "expect": ["A draft with no final period"]
+      "expect": [
+        "A draft with no final period"
+      ]
     },
     {
       "why": "blank input yields nothing rather than one empty sentence",
@@ -80,12 +88,18 @@
     {
       "why": "paragraph breaks are whitespace like any other",
       "text": "First paragraph ends here.\n\nSecond one starts.",
-      "expect": ["First paragraph ends here.", "Second one starts."]
+      "expect": [
+        "First paragraph ends here.",
+        "Second one starts."
+      ]
     },
     {
       "why": "a lower-case start is not treated as a new sentence",
       "text": "The figure is 60% vs. baseline. Latency fell.",
-      "expect": ["The figure is 60% vs. baseline.", "Latency fell."]
+      "expect": [
+        "The figure is 60% vs. baseline.",
+        "Latency fell."
+      ]
     },
     {
       "why": "the realistic paragraph the study actually produces",
@@ -94,6 +108,39 @@
         "As Director of AI Research at Northwind Data Systems, Dr. Li reported directly to the Chief Technology Officer and oversaw four research teams comprising 47 researchers [Exhibit B1, p.2].",
         "The retrieval infrastructure rebuild that Dr. Li led reduced median query latency by 60% [Exhibit C1, p.1].",
         "Dr. Li's SIGMOD 2022 Best Paper Award [Exhibit A3, p.1] further underscores his standing."
+      ]
+    },
+    {
+      "why": "citation AFTER the full stop -- the convention the generated letter uses",
+      "text": "Northwind reported $320M in revenue. [Exhibit B2, p.5] The company was named vendor of the year. [Exhibit D1, p.1]",
+      "expect": [
+        "Northwind reported $320M in revenue. [Exhibit B2, p.5]",
+        "The company was named vendor of the year. [Exhibit D1, p.1]"
+      ]
+    },
+    {
+      "why": "two citations trailing one sentence stay with it",
+      "text": "He led the rebuild. [Exhibit C1, p.1] [Exhibit C2, p.3] Latency fell.",
+      "expect": [
+        "He led the rebuild. [Exhibit C1, p.1] [Exhibit C2, p.3]",
+        "Latency fell."
+      ]
+    },
+    {
+      "why": "an abbreviation before a trailing citation is still not a boundary",
+      "text": "The award went to Dr. Li. [Exhibit A3, p.1] The committee cited impact.",
+      "expect": [
+        "The award went to Dr. Li. [Exhibit A3, p.1]",
+        "The committee cited impact."
+      ]
+    },
+    {
+      "why": "a heading is its own item, not glued to the first sentence under it",
+      "text": "① The organisation has a distinguished reputation\n\nNorthwind reported $320M. [Exhibit B2, p.5] It has eleven offices.",
+      "expect": [
+        "① The organisation has a distinguished reputation",
+        "Northwind reported $320M. [Exhibit B2, p.5]",
+        "It has eleven offices."
       ]
     }
   ]

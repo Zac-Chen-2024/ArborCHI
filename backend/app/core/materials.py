@@ -82,6 +82,7 @@ def load_bundle(material_id: str = "case_v1") -> Dict[str, Any]:
     manifest = _read(root / "manifest.json")
     tree = _read(root / "tree.frozen.json")
     snippets = _read(root / "snippets.json")
+    relations = _read(root / "relations.json")
     planted = _read(root / "planted.json")
 
     pregen: Dict[str, Any] = {}
@@ -93,6 +94,7 @@ def load_bundle(material_id: str = "case_v1") -> Dict[str, Any]:
         "manifest": manifest,
         "tree": tree,
         "snippets": snippets,
+        "relations": relations,
         "planted": planted,
         "pregen": pregen,
         "manifest_hash": _bundle_hash(root),
@@ -197,6 +199,16 @@ def public_snippets(material_id: str = "case_v1") -> Dict[str, Any]:
     return load_bundle(material_id)["snippets"]
 
 
+def public_relations(material_id: str = "case_v1") -> Dict[str, Any]:
+    """Factual triples for the relations panel (C-07).
+
+    A straight pass-through, and it stays that way: the file has no evaluative
+    field to strip because there is nowhere in the schema to put one. That is
+    the mechanism -- the panel cannot render a warning it was never given.
+    """
+    return load_bundle(material_id)["relations"]
+
+
 def public_sentence(sentence: Dict[str, Any]) -> Dict[str, Any]:
     """One sentence with the answer key removed.
 
@@ -213,6 +225,7 @@ def public_sentences(sentences: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 __all__ = [
     "MaterialError", "materials_root", "bundle_dir", "load_bundle",
     "manifest_hash", "tree_variant_id", "frozen_nodes", "pregen_sentences",
-    "planted_index", "public_tree", "public_snippets", "public_sentence",
+    "planted_index", "public_tree", "public_snippets", "public_relations",
+    "public_sentence",
     "public_sentences", "SERVER_ONLY_NODE_FIELDS", "SERVER_ONLY_SENTENCE_FIELDS",
 ]

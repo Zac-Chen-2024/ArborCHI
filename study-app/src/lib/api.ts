@@ -93,6 +93,10 @@ export interface StudyState {
   softlock: boolean
   submitted: boolean
   started: boolean
+  /** The protocol says this phase may be ended by the participant. A boolean,
+   *  deliberately: the verification phase has no clock and this flag must not
+   *  become one (红线 #4). */
+  can_submit: boolean
   remaining_ms?: number
 }
 

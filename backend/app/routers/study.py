@@ -334,6 +334,7 @@ def get_material() -> Dict[str, Any]:
     material_id = session.get("material_id") or "case_v1"
     return {
         "tree": materials.public_tree(material_id),
+        "relations": materials.public_relations(material_id),
         **materials.public_snippets(material_id),
     }
 

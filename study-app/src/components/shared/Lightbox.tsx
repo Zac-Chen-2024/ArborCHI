@@ -4,18 +4,23 @@
  * Restraint red line, deliberate and load-bearing: this dialog shows the
  * located passage and NOTHING ELSE. In particular it renders no neighbouring
  * candidate boxes -- the product frontend's BBoxLightbox takes a
- * `candidateBoxes` prop, and the study build passes an empty array forever.
- * Highlighting "other passages that might also fit" would be the interface
- * making the judgement we are measuring the participant on. Do not add it back
- * because it looks helpful; it is the experiment.
+ * `candidateBoxes` prop, and the study build would pass an empty array forever,
+ * so the prop simply does not exist here. Highlighting "other passages that
+ * might also fit" would be the interface making the judgement we are measuring
+ * the participant on. Do not add it back because it looks helpful; it is the
+ * experiment.
  *
  * Likewise there is no "is this enough support?" affordance, no confidence
  * shading, and no diff against the sentence being verified.
+ *
+ * Scrolling is reported (`onScroll`) because reading around a cited passage is
+ * verification behaviour: someone who opened the magnifier and read the rest of
+ * the page did something different from someone who opened and closed it.
  */
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { Snippet } from '../../data/fixtures'
+import type { Snippet } from '../../lib/material'
 
 const ZOOM_LEVELS = [1, 2, 3] as const
 export type LightboxZoom = (typeof ZOOM_LEVELS)[number]
@@ -23,33 +28,42 @@ export type LightboxZoom = (typeof ZOOM_LEVELS)[number]
 interface Props {
   open: boolean
   snippet: Snippet | null
+  /** Page count of the exhibit the snippet belongs to. */
+  exhibitPages: number
   /** Page currently shown. Its own value, not the snippet's: the participant
-      may page away from the cited page to check the surrounding document, and
-      whether they did is exactly the behaviour the study measures. */
+   *  may page away from the cited page to check the surrounding document, and
+   *  whether they did is exactly the behaviour the study measures. */
   page: number
   zoom: LightboxZoom
   crumb: React.ReactNode
   onZoom: (z: LightboxZoom) => void
   onClose: () => void
   onPage: (page: number) => void
+  onScroll: (scrollTop: number) => void
 }
 
 const LINES_ABOVE = [90, 82, 88]
 const LINES_BELOW = [94, 78, 86, 91, 72, 88, 80]
+/** Scroll reports are throttled: a wheel gesture is dozens of events and the
+ *  analysis needs the trajectory, not every pixel of it. */
+const SCROLL_THROTTLE_MS = 300
 
-export function Lightbox({ open, snippet, page, zoom, crumb, onZoom, onClose, onPage }: Props) {
+export function Lightbox({
+  open, snippet, exhibitPages, page, zoom, crumb, onZoom, onClose, onPage, onScroll,
+}: Props) {
   const { t } = useTranslation()
+  const lastScroll = useRef(0)
 
   useEffect(() => {
     if (!open || !snippet) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
       if (e.key === 'ArrowLeft') onPage(Math.max(1, page - 1))
-      if (e.key === 'ArrowRight') onPage(Math.min(snippet.pages, page + 1))
+      if (e.key === 'ArrowRight') onPage(Math.min(exhibitPages, page + 1))
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, snippet, page, onClose, onPage])
+  }, [open, snippet, page, exhibitPages, onClose, onPage])
 
   if (!open || !snippet) return null
 
@@ -104,18 +118,26 @@ export function Lightbox({ open, snippet, page, zoom, crumb, onZoom, onClose, on
           </div>
         </div>
 
-        <div className="scroll bg-slate-200 p-8">
+        <div
+          className="scroll bg-slate-200 p-8"
+          onScroll={(e) => {
+            const now = performance.now()
+            if (now - lastScroll.current < SCROLL_THROTTLE_MS) return
+            lastScroll.current = now
+            onScroll(Math.round(e.currentTarget.scrollTop))
+          }}
+        >
           <div id="lbPage" className="bg-white mx-auto shadow-xl p-10" style={{ width: 300 * zoom }}>
             <div className="text-[12px] text-slate-300 mb-4">{t('ref.page', { i: page })}</div>
-            <p className="text-[16px] font-bold text-slate-700 text-center">{snippet.docTitle}</p>
-            <p className="text-[12px] text-slate-400 text-center mb-7">{snippet.docSubtitle}</p>
+            <p className="text-[16px] font-bold text-slate-700 text-center">{snippet.doc_title}</p>
+            <p className="text-[12px] text-slate-400 text-center mb-7">{snippet.doc_subtitle}</p>
             {LINES_ABOVE.map((w, i) => (
               <div key={i} className="lbline" style={{ width: `${w}%` }} />
             ))}
             {onCitedPage ? (
               <div className="border-[3px] border-dashed border-blue-500 bg-blue-50/70 rounded-lg px-5 py-4 my-5 relative">
                 <span className="absolute -top-3 left-4 px-2 py-0.5 rounded bg-blue-600 text-white text-[10.5px] font-bold mono">
-                  {t('ref.exPageTag', { ex: snippet.ex, i: snippet.page })}
+                  {t('ref.exPageTag', { ex: snippet.exhibit, i: snippet.page })}
                 </span>
                 <p className="text-[15px] text-slate-900 leading-[1.75]">{snippet.text}</p>
               </div>
@@ -145,11 +167,11 @@ export function Lightbox({ open, snippet, page, zoom, crumb, onZoom, onClose, on
             {t('pager.prev')}
           </button>
           <span className="mono text-[12.5px] text-slate-500">
-            {t('lightbox.nav', { ex: snippet.ex, i: page, n: snippet.pages })}
+            {t('lightbox.nav', { ex: snippet.exhibit, i: page, n: exhibitPages })}
           </span>
           <button
             className="px-3 py-1.5 rounded-lg border border-slate-200 text-[12.5px] text-slate-600 hover:bg-slate-50"
-            disabled={page >= snippet.pages}
+            disabled={page >= exhibitPages}
             onClick={() => onPage(page + 1)}
           >
             {t('pager.next')}

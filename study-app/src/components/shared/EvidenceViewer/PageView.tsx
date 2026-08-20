@@ -12,13 +12,21 @@
  */
 import { useTranslation } from 'react-i18next'
 
-import { PAGE_BODY_FIXTURE } from '../../../data/fixtures'
 import type { Linkage } from './index'
 
 interface Props {
   page: number
   zoom: number
   linkage?: Linkage
+  /** Document header, from the material rather than hard-coded. Both
+   *  conditions print the same header for the same page -- the difference
+   *  between them is the highlight, not the document. */
+  docTitle: string
+  docSubtitle: string
+  /** Page body shown when there is no linkage (condition B, or a page the
+   *  focused snippet does not live on). The same passage is present either
+   *  way; only the pointing differs (B-03). */
+  bodyText: string
   onOpenLightbox?: () => void
 }
 
@@ -27,7 +35,7 @@ const BARS_ABOVE = [88, 76]
 const BARS_BELOW = [92, 80, 86, 70, 84]
 const NEXT_PAGE_BARS = [84, 90, 72]
 
-export function PageView({ page, zoom, linkage, onOpenLightbox }: Props) {
+export function PageView({ page, zoom, linkage, docTitle, docSubtitle, bodyText, onOpenLightbox }: Props) {
   const { t } = useTranslation()
   const snippet = linkage?.snippet
 
@@ -47,12 +55,8 @@ export function PageView({ page, zoom, linkage, onOpenLightbox }: Props) {
           </button>
         )}
         <div className="text-[10px] text-slate-300 mb-2">{t('ref.page', { i: page })}</div>
-        <p className="text-[12px] font-bold text-slate-600 text-center">
-          {snippet?.docTitle ?? 'NORTHWIND DATA SYSTEMS'}
-        </p>
-        <p className="text-[10px] text-slate-400 text-center mb-3.5">
-          {snippet?.docSubtitle ?? 'Organizational Chart · R&D'}
-        </p>
+        <p className="text-[12px] font-bold text-slate-600 text-center">{docTitle}</p>
+        <p className="text-[10px] text-slate-400 text-center mb-3.5">{docSubtitle}</p>
         {BARS_ABOVE.map((w, i) => (
           <div key={i} className="pagebar" style={{ width: `${w}%` }} />
         ))}
@@ -70,7 +74,7 @@ export function PageView({ page, zoom, linkage, onOpenLightbox }: Props) {
         ) : (
           // Condition B: the same passage is on the page as ordinary text --
           // equally available, just not pointed at.
-          <p className="text-[12px] text-slate-800 leading-relaxed my-2.5">{PAGE_BODY_FIXTURE}</p>
+          <p className="text-[12px] text-slate-800 leading-relaxed my-2.5">{bodyText}</p>
         )}
 
         {BARS_BELOW.map((w, i) => (

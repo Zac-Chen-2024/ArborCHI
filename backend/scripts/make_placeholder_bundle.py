@@ -49,6 +49,12 @@ EXHIBITS = [
 # bbox is NORMALISED to a 1000x1000 space (红线 #8). Never pixels: the same
 # snippet has to land correctly at every zoom level and render width, and the
 # page dimensions that pixels would need are not in the OCR output.
+# `doc_title` / `doc_subtitle` are what the page header prints; `rel` are the
+# factual triples the relations panel shows (C-07). The triples are STATEMENTS
+# extracted from the document -- subject / predicate / object -- and carry no
+# evaluative field. There is deliberately nowhere here to put "this looks
+# weak": the panel states what the document says and the judgement stays with
+# the participant.
 SNIPPETS = {
     "c1": dict(ex="B2", page=5, label="Revenue $320M - 1,800 employees",
                text="Global revenue reached $320M in FY2023, with 1,800 employees across eleven offices.",
@@ -175,6 +181,19 @@ PREGEN = {
 }
 
 
+# doc header + factual triples, keyed by snippet id
+DOC_META = {'c1': ('NORTHWIND DATA SYSTEMS', 'Annual Report 2023', [['Northwind Data Systems', 'annual revenue', '$320M'], ['Northwind Data Systems', 'employees', '1,800'], ['Northwind Data Systems', 'offices', '11']]),
+    'c2': ('DATA INFRASTRUCTURE REVIEW', 'Vendor of the Year - 2023', [['Northwind Data Systems', 'named', 'Data Infrastructure Vendor of the Year'], ['Awarded by', 'is', 'Data Infrastructure Review']]),
+    'c3': ('DATA INFRASTRUCTURE REVIEW', 'Market Coverage', [['Northwind Data Systems', 'serves', '13 of the 20 largest North American retailers']]),
+    'c4': ('NORTHWIND DATA SYSTEMS', 'Organizational Chart - Research & Development', [['Dr. Wei Li', 'holds title', 'Director of AI Research'], ['AI Research division', 'reports to', 'Marcus Reed - CTO'], ['Dr. Wei Li', 'manages', '4 teams - 47 researchers']]),
+    'c5': ('NORTHWIND DATA SYSTEMS', 'Delegation of Authority', [['Dr. Wei Li', 'approval authority over', '$12M annual division budget']]),
+    'c6': ('LETTER OF RECOMMENDATION', 'Marcus Reed - Chief Technology Officer', [['Dr. Wei Li', 'led', 'retrieval infrastructure rebuild'], ['That project', 'resulted in', '60% lower median query latency'], ['Recommender', 'is', 'Marcus Reed - CTO']]),
+    'c7': ('INTERNAL MEMORANDUM', 'Project Atlas - Delivery Review', [['Dr. Wei Li', 'initiated and led', 'Project Atlas'], ['Project Atlas', 'delivered', '2022 Q3']]),
+    'c8': ('ACM SIGMOD', 'Best Paper Award - 2022', [['Dr. Wei Li', 'received', 'SIGMOD 2022 Best Paper Award'], ['Awarded by', 'is', 'ACM SIGMOD']]),
+    'c9': ('VLDB 2023', 'Program Committee Invitation', [['Dr. Wei Li', 'invited to serve on', 'VLDB 2023 Program Committee']]),
+    'c10': ('VLDB 2023', 'Registration Summary', [['2023 meeting', 'registered attendees', '2,140']])}
+
+
 def cite(snippet_ids):
     return " ".join(
         f"[Exhibit {SNIPPETS[s]['ex']}, p.{SNIPPETS[s]['page']}]" for s in snippet_ids
@@ -197,8 +216,25 @@ def main() -> int:
         "exhibits": EXHIBITS,
         "snippets": {
             sid: {"snippet_id": sid, "exhibit": s["ex"], "page": s["page"],
-                  "bbox": s["bbox"], "label": s["label"], "text": s["text"]}
+                  "bbox": s["bbox"], "label": s["label"], "text": s["text"],
+                  "doc_title": DOC_META[sid][0], "doc_subtitle": DOC_META[sid][1]}
             for sid, s in SNIPPETS.items()
+        },
+    })
+
+    # relations.json: facts only. C-07 forbids any warning or evaluative state,
+    # and the way to make that hold is to have no field it could live in.
+    write(OUT / "relations.json", {
+        "schema_version": 1,
+        "focus_entity": "Dr. Wei Li",
+        "relations": {sid: [{"subject": a, "predicate": p, "object": o}
+                            for a, p, o in DOC_META[sid][2]]
+                      for sid in SNIPPETS},
+        "other_mentions": {
+            "Dr. Wei Li": [
+                {"exhibit": "A3", "page": 1}, {"exhibit": "C1", "page": 1},
+                {"exhibit": "C2", "page": 3}, {"exhibit": "E2", "page": 2},
+            ],
         },
     })
 

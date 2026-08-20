@@ -1,7 +1,7 @@
 /** Exhibit chip row, 42px (FS-05). Manual navigation -- identical in C and B. */
 import { useTranslation } from 'react-i18next'
 
-import type { Exhibit } from '../../../data/fixtures'
+import type { Exhibit } from '../../../lib/material'
 
 interface Props {
   exhibits: Exhibit[]

@@ -91,6 +91,11 @@ C_EVENTS = frozenset({
     "bbox_hover",         # pointer over the located passage
     "lightbox_open",
     "lightbox_close",     # carries dwell_ms
+    # Scrolling INSIDE the magnifier. Recorded because reading around a cited
+    # passage is verification behaviour, and a participant who opened the
+    # magnifier and scrolled the page did something different from one who
+    # opened it and closed it (日志手册 §1 item 2b).
+    "lightbox_scroll",
     "tree_op",            # rename / split / merge / move / promote / remove / create
     "node_state",         # proposed -> accepted / edited / removed
     "assign",             # snippet assigned to a node

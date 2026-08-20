@@ -6,12 +6,12 @@
  *   click  -> `is-focus`, solid. The focus is committed: left panel locates,
  *             right panel highlights the paragraph, breadcrumb updates.
  *
- * The analysis separates "looked" from "chose to look", so these must stay two
- * distinct events, not one debounced blur (日志手册 §4).
+ * The analysis separates "looked" from "chose to look", so these stay two
+ * distinct events rather than one debounced blur (日志手册 §4).
  */
 import { useTranslation } from 'react-i18next'
 
-import type { Snippet } from '../../data/fixtures'
+import type { Snippet } from '../../lib/material'
 
 interface Props {
   snippet: Snippet
@@ -46,7 +46,7 @@ export function SnippetChip({
       }}
     >
       <span className={`mono text-[10.5px] font-semibold ${committed ? 'text-blue-600' : 'text-blue-500'}`}>
-        {t('ref.exPage', { ex: snippet.ex, i: snippet.page })}
+        {t('ref.exPage', { ex: snippet.exhibit, i: snippet.page })}
       </span>{' '}
       {snippet.label}
       <span

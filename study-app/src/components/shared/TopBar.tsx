@@ -17,6 +17,10 @@ interface Props {
   phaseLabel: string
   /** ms, or null when the participant may not see a clock. */
   remainingMs: number | null
+  /** The protocol allows the participant to end this phase themselves.
+    *  Drives whether the submit button is live -- and nothing else: it must
+    *  not become a proxy for "time is nearly up" (红线 #4). */
+  canSubmit: boolean
   onHelp: () => void
   onSubmit: () => void
 }
@@ -28,7 +32,7 @@ function formatClock(ms: number): string {
   return `${m}:${String(s).padStart(2, '0')}`
 }
 
-export function TopBar({ condition, track, phaseLabel, remainingMs, onHelp, onSubmit }: Props) {
+export function TopBar({ condition, track, phaseLabel, remainingMs, canSubmit, onHelp, onSubmit }: Props) {
   const { t } = useTranslation()
 
   return (
@@ -73,7 +77,8 @@ export function TopBar({ condition, track, phaseLabel, remainingMs, onHelp, onSu
         </button>
         <button
           onClick={onSubmit}
-          className="px-4 py-2 rounded-lg bg-slate-900 text-white text-[13px] font-semibold hover:bg-slate-800"
+          disabled={!canSubmit}
+          className="px-4 py-2 rounded-lg bg-slate-900 text-white text-[13px] font-semibold hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-slate-900"
         >
           {condition === 'c' ? t('topbar.submitFinal') : t('topbar.submitDraft')}
         </button>

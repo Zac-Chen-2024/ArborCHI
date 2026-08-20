@@ -13,7 +13,7 @@
  */
 import { useTranslation } from 'react-i18next'
 
-import type { Exhibit, Snippet } from '../../../data/fixtures'
+import type { Exhibit, Snippet } from '../../../lib/material'
 import { logger } from '../../../lib/logger'
 import { ExhibitStrip } from './ExhibitStrip'
 import { PageView } from './PageView'
@@ -42,6 +42,11 @@ interface Props {
   onPageChange: (page: number, via: 'click' | 'scroll' | 'linkage') => void
   onZoom: (zoom: number) => void
   headerBadge?: React.ReactNode
+  /** Page content. Supplied by the condition so the shared viewer never has to
+   *  know which one it is rendering for. */
+  docTitle?: string
+  docSubtitle?: string
+  bodyText?: string
 }
 
 export function EvidenceViewer({
@@ -57,6 +62,9 @@ export function EvidenceViewer({
   onPageChange,
   onZoom,
   headerBadge,
+  docTitle,
+  docSubtitle,
+  bodyText,
 }: Props) {
   const { t } = useTranslation()
   const current = exhibits.find((e) => e.id === activeExhibit) ?? exhibits[0]
@@ -80,7 +88,15 @@ export function EvidenceViewer({
 
       <ExhibitStrip exhibits={exhibits} active={activeExhibit} onClick={onExhibitClick} />
 
-      <PageView page={page} zoom={zoom} linkage={linkage} onOpenLightbox={onOpenLightbox} />
+      <PageView
+        page={page}
+        zoom={zoom}
+        linkage={linkage}
+        docTitle={docTitle ?? current.title}
+        docSubtitle={docSubtitle ?? t('doc.page', { i: page })}
+        bodyText={bodyText ?? ''}
+        onOpenLightbox={onOpenLightbox}
+      />
 
       <PagerBar
         exhibit={current.id}

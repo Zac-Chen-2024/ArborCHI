@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "focus_entity": "Dr. Wei Li",
+  "relations": {
+    "c1": [
+      {
+        "subject": "Northwind Data Systems",
+        "predicate": "annual revenue",
+        "object": "$320M"
+      },
+      {
+        "subject": "Northwind Data Systems",
+        "predicate": "employees",
+        "object": "1,800"
+      },
+      {
+        "subject": "Northwind Data Systems",
+        "predicate": "offices",
+        "object": "11"
+      }
+    ],
+    "c2": [
+      {
+        "subject": "Northwind Data Systems",
+        "predicate": "named",
+        "object": "Data Infrastructure Vendor of the Year"
+      },
+      {
+        "subject": "Awarded by",
+        "predicate": "is",
+        "object": "Data Infrastructure Review"
+      }
+    ],
+    "c3": [
+      {
+        "subject": "Northwind Data Systems",
+        "predicate": "serves",
+        "object": "13 of the 20 largest North American retailers"
+      }
+    ],
+    "c4": [
+      {
+        "subject": "Dr. Wei Li",
+        "predicate": "holds title",
+        "object": "Director of AI Research"
+      },
+      {
+        "subject": "AI Research division",
+        "predicate": "reports to",
+        "object": "Marcus Reed - CTO"
+      },
+      {
+        "subject": "Dr. Wei Li",
+        "predicate": "manages",
+        "object": "4 teams - 47 researchers"
+      }
+    ],
+    "c5": [
+      {
+        "subject": "Dr. Wei Li",
+        "predicate": "approval authority over",
+        "object": "$12M annual division budget"
+      }
+    ],
+    "c6": [
+      {
+        "subject": "Dr. Wei Li",
+        "predicate": "led",
+        "object": "retrieval infrastructure rebuild"
+      },
+      {
+        "subject": "That project",
+        "predicate": "resulted in",
+        "object": "60% lower median query latency"
+      },
+      {
+        "subject": "Recommender",
+        "predicate": "is",
+        "object": "Marcus Reed - CTO"
+      }
+    ],
+    "c7": [
+      {
+        "subject": "Dr. Wei Li",
+        "predicate": "initiated and led",
+        "object": "Project Atlas"
+      },
+      {
+        "subject": "Project Atlas",
+        "predicate": "delivered",
+        "object": "2022 Q3"
+      }
+    ],
+    "c8": [
+      {
+        "subject": "Dr. Wei Li",
+        "predicate": "received",
+        "object": "SIGMOD 2022 Best Paper Award"
+      },
+      {
+        "subject": "Awarded by",
+        "predicate": "is",
+        "object": "ACM SIGMOD"
+      }
+    ],
+    "c9": [
+      {
+        "subject": "Dr. Wei Li",
+        "predicate": "invited to serve on",
+        "object": "VLDB 2023 Program Committee"
+      }
+    ],
+    "c10": [
+      {
+        "subject": "2023 meeting",
+        "predicate": "registered attendees",
+        "object": "2,140"
+      }
+    ]
+  },
+  "other_mentions": {
+    "Dr. Wei Li": [
+      {
+        "exhibit": "A3",
+        "page": 1
+      },
+      {
+        "exhibit": "C1",
+        "page": 1
+      },
+      {
+        "exhibit": "C2",
+        "page": 3
+      },
+      {
+        "exhibit": "E2",
+        "page": 2
+      }
+    ]
+  }
+}

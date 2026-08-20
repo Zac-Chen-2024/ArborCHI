@@ -42,10 +42,13 @@
   },
   "crumb": {
     "label": "当前查看",
-    "preview": "悬停预览"
+    "preview": "悬停预览",
+    "unassigned": "未挂到任何分论点",
+    "nothing": "尚未选择证据"
   },
   "doc": {
-    "current": "当前文档"
+    "current": "当前文档",
+    "page": "第 {{i}} 页"
   },
   "pager": {
     "prev": "‹ 上一页",
@@ -78,7 +81,8 @@
       "moveTo": "移到…之下",
       "promote": "升为主论点",
       "remove": "移除"
-    }
+    },
+    "untitled": "未命名分论点"
   },
   "pool": {
     "title": "未使用的证据 · {{n}} 条"
@@ -93,7 +97,10 @@
     "stale": "结构已修改,{{n}} 段落尚未同步",
     "regen": "重新生成该段",
     "regenAll": "重新生成",
-    "cite": "[Exhibit {{ex}}, p.{{i}}]"
+    "cite": "[Exhibit {{ex}}, p.{{i}}]",
+    "notYet": "生成结构后,申请信会显示在这里。",
+    "editHint": "双击正文即可编辑。",
+    "generateFailed": "生成不可用,请告知主试。"
   },
   "chat": {
     "title": "写作助手",

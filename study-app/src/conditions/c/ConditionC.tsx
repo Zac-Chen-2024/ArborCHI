@@ -1,28 +1,38 @@
 /**
  * Condition C -- Arbor. Layout mirrors mockups/arbor-write-mode-v5.html.
  *
- * The linkage state machine lives here so that all four panels move together
- * in one place:
+ * ## The linkage state machine
  *
- *   committedChip   set by a click; survives mouse-out; drives everything
- *   previewChip     set by hover; reverts on mouse-out; drives the left panel
- *                   and the "Hover preview" tag only
+ *   committedChip   set by a click; survives mouse-out; drives all four panels
+ *   previewChip     set by hover; reverts on mouse-out; moves the view only
  *
- * `effective` is what the evidence panel shows: the preview when there is one,
- * otherwise the committed choice. That single line is the difference between
- * "looked at" and "chose", and the log distinguishes them (C-05).
+ * `viewExhibit`/`viewPage` are where the evidence panel is pointed. A hover
+ * PREVIEW takes the panel somewhere without writing that state, so letting go
+ * returns you exactly where you were -- which is what makes a preview a look
+ * rather than a move, and why the log keeps two separate events for it (C-05).
+ *
+ * ## Generation
+ *
+ * Fires once on entering the generation phase, and after that only when the
+ * participant asks. Never as a side effect of a render: the server writes the
+ * initial snapshot on every call (红线 #1), so an unrequested generation would
+ * put a second baseline in the record with no event explaining it.
  */
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { EvidenceViewer } from '../../components/shared/EvidenceViewer'
 import { Lightbox, type LightboxZoom } from '../../components/shared/Lightbox'
 import { TopBar } from '../../components/shared/TopBar'
-import { EXHIBITS, SNIPPETS, TREE, type Argument } from '../../data/fixtures'
 import type { StudyState } from '../../lib/api'
 import { CRUMB_SEP } from '../../lib/glyphs'
 import { logger, startDwell } from '../../lib/logger'
+import {
+  fetchMaterial, generateLetter, submitFinal,
+  type GeneratedLetter, type Material,
+} from '../../lib/material'
 import { visibleRemainingMs } from '../../lib/session'
+import { useTree } from '../../lib/treeStore'
 import { HelpDrawer } from '../common/HelpDrawer'
 import { LetterPanel } from './LetterPanel'
 import { RelationsPanel } from './RelationsPanel'
@@ -35,125 +45,179 @@ interface Props {
 
 export function ConditionC({ state }: Props) {
   const { t } = useTranslation()
+  const tree = useTree()
 
-  const [tree, setTree] = useState<Argument[]>(TREE)
-  const [committedChip, setCommittedChip] = useState<string>('c4')
+  const [material, setMaterial] = useState<Material | null>(null)
+  const [letter, setLetter] = useState<GeneratedLetter | null>(null)
+  const [editedText, setEditedText] = useState<string | null>(null)
+  const [generating, setGenerating] = useState(false)
+  const [generateFailed, setGenerateFailed] = useState(false)
+
+  const [committedChip, setCommittedChip] = useState<string | null>(null)
   const [previewChip, setPreviewChip] = useState<string | null>(null)
-  // Where the viewer is actually pointed. This is its OWN state, not something
-  // derived from the focused snippet: the participant can navigate away by
-  // hand (exhibit chips, pager) while the focus stays where it was, and the
-  // analysis needs those to be two separate facts.
-  const [exhibit, setExhibit] = useState('B1')
-  const [page, setPage] = useState(2)
+  const [exhibit, setExhibit] = useState<string>('')
+  const [page, setPage] = useState(1)
   const [zoom, setZoom] = useState(1)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxZoom, setLightboxZoom] = useState<LightboxZoom>(3)
-  // The magnifier keeps its own page so the participant can read around the
-  // citation without moving the panel behind it.
-  const [lightboxPage, setLightboxPage] = useState(2)
+  const [lightboxPage, setLightboxPage] = useState(1)
   const [helpOpen, setHelpOpen] = useState(false)
 
   const subRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const paraRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const closeDwell = useRef<(() => void) | null>(null)
   const hoverDwell = useRef<(() => void) | null>(null)
-  const paraRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const generatedOnce = useRef(false)
 
+  // --- material ------------------------------------------------------------
+  useEffect(() => {
+    void (async () => {
+      const m = await fetchMaterial()
+      setMaterial(m)
+      useTree.getState().load(m.tree)
+      if (m.exhibits[0]) setExhibit(m.exhibits[0].id)
+    })()
+  }, [])
+
+  // Memoised: `material?.snippets ?? {}` builds a fresh object on every
+  // render, which would make every memo and callback below re-create itself
+  // each time and re-render the whole tree.
+  const snippets = useMemo(() => material?.snippets ?? {}, [material])
   const effectiveChip = previewChip ?? committedChip
-  const snippet = SNIPPETS[effectiveChip]
-  const focusedSub = SNIPPETS[committedChip]?.sub ?? null
+  const snippet = effectiveChip ? snippets[effectiveChip] ?? null : null
 
-  // Where the viewer is pointed right now. A hover PREVIEW takes the panel to
-  // the previewed passage without disturbing `exhibit`/`page`, so letting go
-  // returns you exactly where you were -- that is what makes preview a look
-  // rather than a move (C-05). Manual navigation and committed clicks write to
-  // the state; hover never does.
-  const viewExhibit = previewChip ? snippet.ex : exhibit
-  const viewPage = previewChip ? snippet.page : page
-  const showLinkage = viewExhibit === snippet.ex && viewPage === snippet.page
+  const viewExhibit = previewChip && snippet ? snippet.exhibit : exhibit
+  const viewPage = previewChip && snippet ? snippet.page : page
+  const showLinkage = !!snippet && viewExhibit === snippet.exhibit && viewPage === snippet.page
 
-  const subTitle = useMemo(() => {
-    const flat = tree.flatMap((a) => a.subs.map((s) => [s.id, s.title] as const))
-    return Object.fromEntries(flat)
-  }, [tree])
+  const ownerOf = useCallback(
+    (snippetId: string) =>
+      tree.args.flatMap((a) => a.subs).find((s) => s.snippet_ids.includes(snippetId)) ?? null,
+    [tree.args],
+  )
 
-  const argOf = useMemo(() => {
-    const pairs = tree.flatMap((a) => a.subs.map((s) => [s.id, `${a.index} ${a.title}`] as const))
-    return Object.fromEntries(pairs)
-  }, [tree])
+  const focusedSub = useMemo(
+    () => (committedChip ? ownerOf(committedChip)?.id ?? null : null),
+    [committedChip, ownerOf],
+  )
 
-  /** Commit a focus: the four-step trace-back (C-08). */
+  const argumentTitles = useMemo(
+    () => Object.fromEntries(tree.args.map((a) => [a.id, { index: a.index, title: a.title }])),
+    [tree.args],
+  )
+  const nodeTitles = useMemo(
+    () => Object.fromEntries(tree.args.flatMap((a) => a.subs.map((s) => [s.id, s.title]))),
+    [tree.args],
+  )
+  const parentTitles = useMemo(
+    () => Object.fromEntries(
+      tree.args.flatMap((a) => a.subs.map((s) => [s.id, `${a.index} ${a.title}`])),
+    ),
+    [tree.args],
+  )
+
+  const unusedSnippetIds = useMemo(() => {
+    const used = new Set(tree.args.flatMap((a) => a.subs.flatMap((s) => s.snippet_ids)))
+    return Object.keys(snippets).filter((id) => !used.has(id))
+  }, [snippets, tree.args])
+
+  /** Nodes with no paragraph in the current letter (C-09). */
+  const staleNodeIds = useMemo(() => {
+    if (!letter) return []
+    const rendered = new Set(letter.sentences.map((s) => s.subargument_id))
+    return tree.args
+      .flatMap((a) => a.subs)
+      .filter((s) => s.state !== 'removed' && !rendered.has(s.id))
+      .map((s) => s.id)
+  }, [letter, tree.args])
+
+  // --- generation ----------------------------------------------------------
+  const runGeneration = useCallback(async (trigger: string) => {
+    setGenerating(true)
+    setGenerateFailed(false)
+    logger.log('generate_trigger', { scope: 'letter', trigger })
+    try {
+      const built = await generateLetter(useTree.getState().nodeStates())
+      setLetter(built)
+      // Back to the rendered view, not a textarea: the participant has to be
+      // able to click a citation before they can be said to have checked one.
+      setEditedText(null)
+    } catch {
+      setGenerateFailed(true)
+    } finally {
+      setGenerating(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!material || generatedOnce.current) return
+    if (state.phase !== 'generation' && state.phase !== 'verification') return
+    generatedOnce.current = true
+    void runGeneration('phase_enter')
+  }, [material, state.phase, runGeneration])
+
+  // --- linkage -------------------------------------------------------------
   const commitChip = useCallback((chipId: string, via: 'click' | 'linkage') => {
-    const target = SNIPPETS[chipId]
+    const target = snippets[chipId]
     if (!target) return
     logger.log(via === 'linkage' ? 'cite_click' : 'chip_click', {
       snippet_id: chipId,
-      exhibit: target.ex,
+      exhibit: target.exhibit,
       page: target.page,
       label: target.label,
-      node_id: target.sub,
+      node_id: ownerOf(chipId)?.id,
+      node_title: ownerOf(chipId)?.title,
       via,
     })
     logger.log('page_change', {
-      exhibit: target.ex,
-      page: target.page,
-      via: 'linkage',
+      exhibit: target.exhibit, page: target.page, via: 'linkage',
       reason: via === 'linkage' ? 'citation' : 'evidence chip',
     })
     setCommittedChip(chipId)
     setPreviewChip(null)
-    setExhibit(target.ex)
+    setExhibit(target.exhibit)
     setPage(target.page)
     setLightboxPage(target.page)
-    // Scroll the matching letter paragraph into view; the sub-argument card and
-    // the breadcrumb follow from `committedChip` on the next render.
-    paraRefs.current[target.sub]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-    if (via === 'linkage') subRefs.current[target.sub]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-  }, [])
+
+    const owner = ownerOf(chipId)
+    if (owner) {
+      paraRefs.current[owner.id]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+      if (via === 'linkage') {
+        subRefs.current[owner.id]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+      }
+    }
+  }, [snippets, ownerOf])
 
   const focusSub = useCallback((subId: string) => {
-    const first = Object.values(SNIPPETS).find((s) => s.sub === subId)
-    if (first) commitChip(first.id, 'click')
-  }, [commitChip])
+    const sub = tree.args.flatMap((a) => a.subs).find((s) => s.id === subId)
+    if (sub?.snippet_ids.length) commitChip(sub.snippet_ids[0], 'click')
+  }, [tree.args, commitChip])
 
-  const accept = (subId: string) => {
-    const before = tree.flatMap((a) => a.subs).find((s) => s.id === subId)
-    logger.log('node_state', {
-      node_id: subId,
-      node_title: before?.title,
-      from: before?.state,
-      to: 'accepted',
-      via: 'button',
+  const openLightbox = useCallback((atPage: number, via: string) => {
+    if (!committedChip) return
+    const s = snippets[committedChip]
+    if (!s) return
+    logger.log('lightbox_open', {
+      snippet_id: committedChip, exhibit: s.exhibit, page: atPage,
+      cited_page: s.page, label: s.label, via,
     })
-    setTree((prev) =>
-      prev.map((a) => ({
-        ...a,
-        subs: a.subs.map((s) => (s.id === subId ? { ...s, state: 'accepted' as const } : s)),
-      })),
-    )
-  }
+    closeDwell.current = startDwell('lightbox_close', {
+      snippet_id: committedChip, exhibit: s.exhibit, page: atPage,
+    })
+    setLightboxPage(atPage)
+    setLightboxOpen(true)
+  }, [committedChip, snippets])
 
-  const acceptAll = () => {
-    // Logged per node, not as one "accept all": the analysis asks how many
-    // nodes a participant accepted without ever looking at them, and a single
-    // aggregate event would erase that.
-    tree.flatMap((a) => a.subs)
-      .filter((s) => s.state === 'proposed')
-      .forEach((s) =>
-        logger.log('node_state', {
-          node_id: s.id,
-          node_title: s.title,
-          from: s.state,
-          to: 'accepted',
-          via: 'accept_all',
-        }),
-      )
-    setTree((prev) => prev.map((a) => ({ ...a, subs: a.subs.map((s) => ({ ...s, state: 'accepted' as const })) })))
-  }
+  const closeLightbox = useCallback(() => {
+    closeDwell.current?.()
+    closeDwell.current = null
+    setLightboxOpen(false)
+  }, [])
 
-  // Keyboard: arrows move focus, Enter accepts, v opens the magnifier (C-12).
+  // --- keyboard (C-12) -----------------------------------------------------
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (lightboxOpen) return
-    const flat = tree.flatMap((a) => a.subs)
+    const flat = tree.args.flatMap((a) => a.subs).filter((s) => s.state !== 'removed')
     const i = flat.findIndex((s) => s.id === focusedSub)
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault()
@@ -165,55 +229,53 @@ export function ConditionC({ state }: Props) {
     }
     if (e.key === 'Enter' && focusedSub && flat[i]?.state === 'proposed') {
       e.preventDefault()
-      accept(focusedSub)
+      tree.setState(focusedSub, 'accepted', 'keyboard')
     }
-    if (e.key.toLowerCase() === 'v' && focusedSub) {
+    if (e.key.toLowerCase() === 'v' && committedChip) {
       e.preventDefault()
-      openLightbox(SNIPPETS[committedChip].page, 'keyboard')
+      openLightbox(snippets[committedChip]?.page ?? 1, 'keyboard')
     }
   }
 
-  /** Single entry point for the magnifier so that open/close always pair and
-      the dwell time is always measured (C-11). */
-  const openLightbox = useCallback((atPage: number, via: string) => {
-    const s = SNIPPETS[committedChip]
-    logger.log('lightbox_open', {
-      snippet_id: committedChip,
-      exhibit: s.ex,
-      page: atPage,
-      cited_page: s.page,
-      label: s.label,
-      via,
-    })
-    closeDwell.current = startDwell('lightbox_close', {
-      snippet_id: committedChip,
-      exhibit: s.ex,
-      page: atPage,
-    })
-    setLightboxPage(atPage)
-    setLightboxOpen(true)
-  }, [committedChip])
+  // --- submit --------------------------------------------------------------
+  const onSubmit = async () => {
+    const text = editedText ?? letter?.sentences.map((s) => s.text).join(' ') ?? ''
+    logger.log('declare_done', { condition: 'c', char_count: text.length })
+    // The declaration has to be in the log before the session locks, or the
+    // moment they decided to stop is the one event that did not make it.
+    await logger.flush()
+    await submitFinal(text)
+  }
 
-  const closeLightbox = useCallback(() => {
-    closeDwell.current?.()
-    closeDwell.current = null
-    setLightboxOpen(false)
-  }, [])
+  if (!material) return null
 
-  const crumb = (
+  const crumb = snippet ? (
     <>
-      <span className="px-1.5 py-0.5 rounded bg-slate-100">{argOf[snippet.sub]}</span>
+      <span className="px-1.5 py-0.5 rounded bg-slate-100">
+        {parentTitles[focusedSub ?? ''] ?? t('app.criterion')}
+      </span>
       <span className="text-slate-300">{CRUMB_SEP}</span>
-      <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-medium">{subTitle[snippet.sub]}</span>
+      <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-medium">
+        {nodeTitles[focusedSub ?? ''] || t('crumb.unassigned')}
+      </span>
       <span className="text-slate-300">{CRUMB_SEP}</span>
       <span className="mono px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold">
-        {t('ref.exPage', { ex: snippet.ex, i: snippet.page })}
+        {t('ref.exPage', { ex: snippet.exhibit, i: snippet.page })}
       </span>
     </>
+  ) : (
+    <span className="text-slate-400">{t('crumb.nothing')}</span>
   )
 
   const phaseLabel =
-    state.phase === 'organization' ? t('phase.organization') : t('phase.verify')
+    state.phase === 'organization'
+      ? t('phase.organization')
+      : state.phase === 'generation'
+        ? t('phase.generation')
+        : t('phase.verify')
+
+  const activeExhibitPages =
+    material.exhibits.find((e) => e.id === (snippet?.exhibit ?? viewExhibit))?.pages ?? 1
 
   return (
     <div id="app" onKeyDown={onKeyDown}>
@@ -222,11 +284,12 @@ export function ConditionC({ state }: Props) {
         track={state.track}
         phaseLabel={phaseLabel}
         remainingMs={visibleRemainingMs(state)}
+        canSubmit={state.can_submit}
         onHelp={() => {
           logger.log('panel_focus', { panel: 'topbar', target: 'help' })
           setHelpOpen((v) => !v)
         }}
-        onSubmit={() => logger.log('declare_done', { condition: 'c' })}
+        onSubmit={() => void onSubmit()}
       />
 
       <div id="main">
@@ -235,15 +298,11 @@ export function ConditionC({ state }: Props) {
           style={{ gridTemplateRows: 'auto auto auto minmax(0,1fr) auto auto' }}
         >
           <EvidenceViewer
-            exhibits={EXHIBITS}
+            exhibits={material.exhibits}
             activeExhibit={viewExhibit}
             page={viewPage}
             zoom={zoom}
-            // The highlight belongs to a place, not to a selection: once the
-            // participant has navigated somewhere else by hand, drawing the
-            // focused snippet's box on THIS page would be pointing at the
-            // wrong text. Show it only where it actually lives.
-            linkage={showLinkage ? { snippet, preview: previewChip !== null } : undefined}
+            linkage={showLinkage && snippet ? { snippet, preview: previewChip !== null } : undefined}
             title={t('evidence.titleC')}
             headerBadge={
               previewChip !== null ? (
@@ -254,7 +313,9 @@ export function ConditionC({ state }: Props) {
             }
             contextStrip={
               <div className="ctxstrip">
-                <p className="text-[10px] font-bold text-slate-400 tracking-widest flex-shrink-0">{t('crumb.label')}</p>
+                <p className="text-[10px] font-bold text-slate-400 tracking-widest flex-shrink-0">
+                  {t('crumb.label')}
+                </p>
                 <div className="flex items-center gap-1.5 text-[11px] text-slate-600 flex-nowrap overflow-hidden whitespace-nowrap min-w-0">
                   {crumb}
                 </div>
@@ -276,28 +337,41 @@ export function ConditionC({ state }: Props) {
               setZoom(z)
             }}
           />
-          <RelationsPanel snippet={snippet} onMentionClick={() => undefined} />
+          {snippet && (
+            <RelationsPanel
+              snippet={snippet}
+              relations={material.relations}
+              onMentionClick={(ex, pg) => {
+                logger.log('doc_open', { exhibit: ex, from_exhibit: exhibit, via: 'relations' })
+                logger.log('page_change', {
+                  exhibit: ex, page: pg, via: 'linkage', reason: 'other mention',
+                })
+                setExhibit(ex)
+                setPage(pg)
+              }}
+            />
+          )}
         </aside>
 
         <TreePanel
-          tree={tree}
+          snippets={snippets}
+          unusedSnippetIds={unusedSnippetIds}
           focusedSub={focusedSub}
           committedChip={committedChip}
           previewChip={previewChip}
           onFocusSub={focusSub}
-          onAccept={accept}
-          onAcceptAll={acceptAll}
           onChipHoverStart={(id) => {
             if (id === committedChip) return
-            const s = SNIPPETS[id]
+            const s = snippets[id]
+            if (!s) return
             // hover_start / hover_end are a LOOK; chip_click is a CHOICE. The
-            // whole point of the pair is that the analysis can tell how much
-            // evidence a participant inspected but did not act on (C-05).
+            // pair is what lets the analysis count evidence a participant
+            // inspected but did not act on (C-05).
             logger.log('hover_start', {
-              snippet_id: id, exhibit: s.ex, page: s.page, label: s.label, node_id: s.sub,
+              snippet_id: id, exhibit: s.exhibit, page: s.page, label: s.label,
             })
             hoverDwell.current = startDwell('hover_end', {
-              snippet_id: id, exhibit: s.ex, page: s.page, label: s.label,
+              snippet_id: id, exhibit: s.exhibit, page: s.page, label: s.label,
             })
             setPreviewChip(id)
           }}
@@ -309,7 +383,7 @@ export function ConditionC({ state }: Props) {
           onChipClick={(id) => commitChip(id, 'click')}
           onChipZoom={(id) => {
             commitChip(id, 'click')
-            openLightbox(SNIPPETS[id].page, 'chip_magnifier')
+            openLightbox(snippets[id]?.page ?? 1, 'chip_magnifier')
           }}
           registerSubRef={(id, el) => {
             subRefs.current[id] = el
@@ -317,22 +391,34 @@ export function ConditionC({ state }: Props) {
         />
 
         <LetterPanel
+          sentences={letter?.sentences ?? []}
+          editedText={editedText}
           focusedSub={focusedSub}
-          staleCount={1}
+          argumentTitles={argumentTitles}
+          staleNodeIds={staleNodeIds}
+          generating={generating}
           onCiteClick={(id) => {
             commitChip(id, 'linkage')
-            openLightbox(SNIPPETS[id].page, 'citation')
+            openLightbox(snippets[id]?.page ?? 1, 'citation')
           }}
-          onRegenerate={() => logger.log('generate_trigger', { scope: 'paragraph' })}
+          onRegenerate={() => void runGeneration('participant')}
+          onEdit={setEditedText}
           registerParaRef={(sub, el) => {
             paraRefs.current[sub] = el
           }}
         />
       </div>
 
+      {generateFailed && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[95] px-4 py-2 rounded-lg bg-rose-600 text-white text-[12.5px] shadow-lg">
+          {t('letter.generateFailed')}
+        </div>
+      )}
+
       <Lightbox
         open={lightboxOpen}
-        snippet={SNIPPETS[committedChip]}
+        snippet={committedChip ? snippets[committedChip] ?? null : null}
+        exhibitPages={activeExhibitPages}
         page={lightboxPage}
         zoom={lightboxZoom}
         crumb={crumb}
@@ -340,14 +426,12 @@ export function ConditionC({ state }: Props) {
         onClose={closeLightbox}
         onPage={(p) => {
           logger.log('page_change', {
-            exhibit: SNIPPETS[committedChip].ex,
-            page: p,
-            from_page: lightboxPage,
-            via: 'click',
-            surface: 'lightbox',
+            exhibit: snippet?.exhibit, page: p, from_page: lightboxPage,
+            via: 'click', surface: 'lightbox',
           })
           setLightboxPage(p)
         }}
+        onScroll={(top) => logger.log('lightbox_scroll', { scroll_top: top })}
       />
 
       <HelpDrawer open={helpOpen} condition="c" onClose={() => setHelpOpen(false)} />

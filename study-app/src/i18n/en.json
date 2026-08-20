@@ -42,10 +42,13 @@
   },
   "crumb": {
     "label": "Now viewing",
-    "preview": "Hover preview"
+    "preview": "Hover preview",
+    "unassigned": "Not attached to a sub-argument",
+    "nothing": "Nothing selected yet"
   },
   "doc": {
-    "current": "Current document"
+    "current": "Current document",
+    "page": "Page {{i}}"
   },
   "pager": {
     "prev": "‹ Prev",
@@ -78,7 +81,8 @@
       "moveTo": "Move under…",
       "promote": "Promote to argument",
       "remove": "Remove"
-    }
+    },
+    "untitled": "Untitled sub-argument"
   },
   "pool": {
     "title": "Unused evidence · {{n}}"
@@ -93,7 +97,10 @@
     "stale": "Structure changed — {{n}} paragraph(s) out of sync",
     "regen": "Regenerate this paragraph",
     "regenAll": "Regenerate",
-    "cite": "[Exhibit {{ex}}, p.{{i}}]"
+    "cite": "[Exhibit {{ex}}, p.{{i}}]",
+    "notYet": "The letter appears here once the structure is generated.",
+    "editHint": "Double-click the text to edit it.",
+    "generateFailed": "Generation is unavailable. Please tell the researcher."
   },
   "chat": {
     "title": "Writing Assistant",
