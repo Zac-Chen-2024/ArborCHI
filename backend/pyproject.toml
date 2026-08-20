@@ -20,3 +20,9 @@ ignore = [
 testpaths = ["tests"]
 asyncio_mode = "auto"
 filterwarnings = ["ignore::DeprecationWarning:pydantic"]
+# `python -m pytest` puts the working directory on sys.path; the bare `pytest`
+# console script does not. tests/ has no __init__.py, so under bare `pytest`
+# every `from app...` import failed to collect (exit code 2) -- which is what
+# CI runs, and why it was red while local runs were green. Pinning the path
+# here makes both invocations behave the same.
+pythonpath = ["."]
