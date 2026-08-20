@@ -36,6 +36,17 @@ http://localhost:5174/join?token=<token>
 
 条件由 token 决定,不由 URL 决定 —— 拿 B 的 token 手动访问 `/c` 会被弹回 `/b`。
 
+**开跑之前:假实验**
+
+```bash
+# 后端跑着的情况下
+cd backend && ./.venv/Scripts/python.exe scripts/dry_run.py
+```
+
+自动走完一场条件 C(**test 轨**,不碰正式目录),逐项对着功能清单的编号打绿红。
+浏览器那半(hover、关标签页、拔网线、克制审计)照 `docs/假实验脚本_v1_draft.md`
+的 B 部分人工走。**两部分都过才进 pilot。**
+
 **校验命令**
 
 ```bash
