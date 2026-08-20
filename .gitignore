@@ -76,3 +76,6 @@ backend/server.log
 Thumbs.db
 desktop.ini
 nul
+
+# build artifacts relocated to D:\ArborCHI-build via junction (F: is full)
+backend/.venv/

@@ -51,6 +51,18 @@ class Settings(BaseSettings):
     # Set by the test suite; skips the fail-fast LLM key check at startup.
     skip_llm_config_check: bool = False
 
+    # ---- Study platform (开发手册 §4.1) --------------------------------
+    # Phase budgets, in seconds. Settings rather than constants so a pilot can
+    # be re-timed without a code change; pinned at the M5 freeze.
+    # NOTE: placeholders until the numbers are read off 实验方案 v2.1.
+    study_org_seconds: int = 25 * 60      # organisation phase (visible clock)
+    study_verify_seconds: int = 20 * 60   # verification / work (silent clock)
+    # Grace after a silently-timed phase's budget before the soft lock drops,
+    # so nobody is cut off mid-keystroke at the buzzer.
+    study_softlock_grace_seconds: int = 10
+    # Base URL the moderator panel builds join links against.
+    study_join_base_url: str = "http://localhost:5174"
+
     @property
     def cors_origin_list(self) -> List[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

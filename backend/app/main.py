@@ -16,6 +16,7 @@ from app.routers.extraction import router as extraction_router
 from app.routers.jobs import router as jobs_router
 from app.routers.logs import router as logs_router
 from app.routers.projects import router as projects_router
+from app.routers.study import router as study_router
 from app.routers.writing import router as writing_router
 
 # Application-wide logging. Without this, every `logger.debug/info` in the
@@ -80,6 +81,8 @@ app.include_router(extraction_router)
 app.include_router(documents_router)
 app.include_router(logs_router)
 app.include_router(jobs_router)
+# Study subsystem (/api/study). Product routers above are untouched.
+app.include_router(study_router)
 
 
 @app.exception_handler(AppError)
@@ -120,7 +123,7 @@ def root():
         "version": "2.0.0",
         "routers": [
             "projects", "documents", "extraction",
-            "arguments", "writing-v3", "logs", "jobs"
+            "arguments", "writing-v3", "logs", "jobs", "study"
         ]
     }
 
