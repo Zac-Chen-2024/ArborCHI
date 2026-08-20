@@ -57,4 +57,8 @@ jobs:
       # No warning budget: the i18n rule (FS-03) is an error, and a clean lint
       # is a release gate, not a nice-to-have.
       - run: npm run lint
+      # Proves the browser's sentence segmentation still matches the Python
+      # one the analysis pipeline uses. A silent divergence here would only
+      # surface during analysis, after the sessions are gone.
+      - run: npm test
       - run: npm run build

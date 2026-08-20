@@ -14,6 +14,7 @@
 import { useTranslation } from 'react-i18next'
 
 import type { Exhibit, Snippet } from '../../../data/fixtures'
+import { logger } from '../../../lib/logger'
 import { ExhibitStrip } from './ExhibitStrip'
 import { PageView } from './PageView'
 import { PagerBar } from './PagerBar'
@@ -61,7 +62,12 @@ export function EvidenceViewer({
   const current = exhibits.find((e) => e.id === activeExhibit) ?? exhibits[0]
 
   return (
-    <>
+    // Focus reporting lives on the shared component so both conditions emit
+    // the identical event (B-05: same event stream, different affordances).
+    <div
+      className="contents"
+      onMouseDown={() => logger.log('panel_focus', { panel: 'evidence' })}
+    >
       <div className="phead">
         <span className="text-[13.5px] font-bold text-slate-700">{title}</span>
         {headerBadge}
@@ -84,6 +90,6 @@ export function EvidenceViewer({
         onPage={(p) => onPageChange(p, 'click')}
         onZoom={onZoom}
       />
-    </>
+    </div>
   )
 }

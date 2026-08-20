@@ -21,6 +21,7 @@ import { TopBar } from '../../components/shared/TopBar'
 import { EXHIBITS, SNIPPETS, TREE, type Argument } from '../../data/fixtures'
 import type { StudyState } from '../../lib/api'
 import { CRUMB_SEP } from '../../lib/glyphs'
+import { logger, startDwell } from '../../lib/logger'
 import { visibleRemainingMs } from '../../lib/session'
 import { HelpDrawer } from '../common/HelpDrawer'
 import { LetterPanel } from './LetterPanel'
@@ -53,6 +54,8 @@ export function ConditionC({ state }: Props) {
   const [helpOpen, setHelpOpen] = useState(false)
 
   const subRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const closeDwell = useRef<(() => void) | null>(null)
+  const hoverDwell = useRef<(() => void) | null>(null)
   const paraRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   const effectiveChip = previewChip ?? committedChip
@@ -82,6 +85,20 @@ export function ConditionC({ state }: Props) {
   const commitChip = useCallback((chipId: string, via: 'click' | 'linkage') => {
     const target = SNIPPETS[chipId]
     if (!target) return
+    logger.log(via === 'linkage' ? 'cite_click' : 'chip_click', {
+      snippet_id: chipId,
+      exhibit: target.ex,
+      page: target.page,
+      label: target.label,
+      node_id: target.sub,
+      via,
+    })
+    logger.log('page_change', {
+      exhibit: target.ex,
+      page: target.page,
+      via: 'linkage',
+      reason: via === 'linkage' ? 'citation' : 'evidence chip',
+    })
     setCommittedChip(chipId)
     setPreviewChip(null)
     setExhibit(target.ex)
@@ -98,16 +115,40 @@ export function ConditionC({ state }: Props) {
     if (first) commitChip(first.id, 'click')
   }, [commitChip])
 
-  const accept = (subId: string) =>
+  const accept = (subId: string) => {
+    const before = tree.flatMap((a) => a.subs).find((s) => s.id === subId)
+    logger.log('node_state', {
+      node_id: subId,
+      node_title: before?.title,
+      from: before?.state,
+      to: 'accepted',
+      via: 'button',
+    })
     setTree((prev) =>
       prev.map((a) => ({
         ...a,
         subs: a.subs.map((s) => (s.id === subId ? { ...s, state: 'accepted' as const } : s)),
       })),
     )
+  }
 
-  const acceptAll = () =>
+  const acceptAll = () => {
+    // Logged per node, not as one "accept all": the analysis asks how many
+    // nodes a participant accepted without ever looking at them, and a single
+    // aggregate event would erase that.
+    tree.flatMap((a) => a.subs)
+      .filter((s) => s.state === 'proposed')
+      .forEach((s) =>
+        logger.log('node_state', {
+          node_id: s.id,
+          node_title: s.title,
+          from: s.state,
+          to: 'accepted',
+          via: 'accept_all',
+        }),
+      )
     setTree((prev) => prev.map((a) => ({ ...a, subs: a.subs.map((s) => ({ ...s, state: 'accepted' as const })) })))
+  }
 
   // Keyboard: arrows move focus, Enter accepts, v opens the magnifier (C-12).
   const onKeyDown = (e: React.KeyboardEvent) => {
@@ -128,10 +169,36 @@ export function ConditionC({ state }: Props) {
     }
     if (e.key.toLowerCase() === 'v' && focusedSub) {
       e.preventDefault()
-      setLightboxPage(SNIPPETS[committedChip].page)
-      setLightboxOpen(true)
+      openLightbox(SNIPPETS[committedChip].page, 'keyboard')
     }
   }
+
+  /** Single entry point for the magnifier so that open/close always pair and
+      the dwell time is always measured (C-11). */
+  const openLightbox = useCallback((atPage: number, via: string) => {
+    const s = SNIPPETS[committedChip]
+    logger.log('lightbox_open', {
+      snippet_id: committedChip,
+      exhibit: s.ex,
+      page: atPage,
+      cited_page: s.page,
+      label: s.label,
+      via,
+    })
+    closeDwell.current = startDwell('lightbox_close', {
+      snippet_id: committedChip,
+      exhibit: s.ex,
+      page: atPage,
+    })
+    setLightboxPage(atPage)
+    setLightboxOpen(true)
+  }, [committedChip])
+
+  const closeLightbox = useCallback(() => {
+    closeDwell.current?.()
+    closeDwell.current = null
+    setLightboxOpen(false)
+  }, [])
 
   const crumb = (
     <>
@@ -155,8 +222,11 @@ export function ConditionC({ state }: Props) {
         track={state.track}
         phaseLabel={phaseLabel}
         remainingMs={visibleRemainingMs(state)}
-        onHelp={() => setHelpOpen((v) => !v)}
-        onSubmit={() => undefined}
+        onHelp={() => {
+          logger.log('panel_focus', { panel: 'topbar', target: 'help' })
+          setHelpOpen((v) => !v)
+        }}
+        onSubmit={() => logger.log('declare_done', { condition: 'c' })}
       />
 
       <div id="main">
@@ -190,16 +260,21 @@ export function ConditionC({ state }: Props) {
                 </div>
               </div>
             }
-            onOpenLightbox={() => {
-              setLightboxPage(viewPage)
-              setLightboxOpen(true)
-            }}
+            onOpenLightbox={() => openLightbox(viewPage, 'page_button')}
             onExhibitClick={(id) => {
+              logger.log('doc_open', { exhibit: id, from_exhibit: exhibit, via: 'chip' })
+              logger.log('page_change', { exhibit: id, page: 1, via: 'click', reason: 'exhibit chip' })
               setExhibit(id)
               setPage(1)
             }}
-            onPageChange={(p) => setPage(p)}
-            onZoom={setZoom}
+            onPageChange={(p, via) => {
+              logger.log('page_change', { exhibit, page: p, from_page: page, via })
+              setPage(p)
+            }}
+            onZoom={(z) => {
+              logger.log('zoom', { panel: 'evidence', from: zoom, to: z })
+              setZoom(z)
+            }}
           />
           <RelationsPanel snippet={snippet} onMentionClick={() => undefined} />
         </aside>
@@ -212,12 +287,29 @@ export function ConditionC({ state }: Props) {
           onFocusSub={focusSub}
           onAccept={accept}
           onAcceptAll={acceptAll}
-          onChipHoverStart={(id) => id !== committedChip && setPreviewChip(id)}
-          onChipHoverEnd={() => setPreviewChip(null)}
+          onChipHoverStart={(id) => {
+            if (id === committedChip) return
+            const s = SNIPPETS[id]
+            // hover_start / hover_end are a LOOK; chip_click is a CHOICE. The
+            // whole point of the pair is that the analysis can tell how much
+            // evidence a participant inspected but did not act on (C-05).
+            logger.log('hover_start', {
+              snippet_id: id, exhibit: s.ex, page: s.page, label: s.label, node_id: s.sub,
+            })
+            hoverDwell.current = startDwell('hover_end', {
+              snippet_id: id, exhibit: s.ex, page: s.page, label: s.label,
+            })
+            setPreviewChip(id)
+          }}
+          onChipHoverEnd={() => {
+            hoverDwell.current?.()
+            hoverDwell.current = null
+            setPreviewChip(null)
+          }}
           onChipClick={(id) => commitChip(id, 'click')}
           onChipZoom={(id) => {
             commitChip(id, 'click')
-            setLightboxOpen(true)
+            openLightbox(SNIPPETS[id].page, 'chip_magnifier')
           }}
           registerSubRef={(id, el) => {
             subRefs.current[id] = el
@@ -229,9 +321,9 @@ export function ConditionC({ state }: Props) {
           staleCount={1}
           onCiteClick={(id) => {
             commitChip(id, 'linkage')
-            setLightboxOpen(true)
+            openLightbox(SNIPPETS[id].page, 'citation')
           }}
-          onRegenerate={() => undefined}
+          onRegenerate={() => logger.log('generate_trigger', { scope: 'paragraph' })}
           registerParaRef={(sub, el) => {
             paraRefs.current[sub] = el
           }}
@@ -245,8 +337,17 @@ export function ConditionC({ state }: Props) {
         zoom={lightboxZoom}
         crumb={crumb}
         onZoom={setLightboxZoom}
-        onClose={() => setLightboxOpen(false)}
-        onPage={setLightboxPage}
+        onClose={closeLightbox}
+        onPage={(p) => {
+          logger.log('page_change', {
+            exhibit: SNIPPETS[committedChip].ex,
+            page: p,
+            from_page: lightboxPage,
+            via: 'click',
+            surface: 'lightbox',
+          })
+          setLightboxPage(p)
+        }}
       />
 
       <HelpDrawer open={helpOpen} condition="c" onClose={() => setHelpOpen(false)} />

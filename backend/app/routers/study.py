@@ -21,15 +21,16 @@ instead of a silent no-op.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from app.core import study
+from app.core import study, study_log
+from app.core.atomic_io import append_jsonl_many
 from app.core.config import settings
 from app.core.ids import validate_path_params
-from app.core.study_events import write_server_event
+from app.core.study_events import events_path, write_server_event
 from app.core.workspace import (
     current_role,
     current_session_id,
@@ -106,6 +107,10 @@ class NoteBody(BaseModel):
     text: str = Field(..., min_length=1, max_length=4000)
 
 
+class LogBatchBody(BaseModel):
+    events: List[Dict[str, Any]] = Field(..., max_length=study_log.MAX_BATCH)
+
+
 # ---------------------------------------------------------------------------
 # Moderator: build a session (BE-01, MOD-02/07)
 # ---------------------------------------------------------------------------
@@ -180,6 +185,84 @@ def get_state() -> Dict[str, Any]:
     study.update_session(session["session_id"], _seen)
 
     return study.public_state(session, now)
+
+
+@router.post("/log/batch")
+async def log_batch(request: Request) -> Dict[str, Any]:
+    """Ingest a batch of client events (BE-06).
+
+    Three behaviours worth stating outright, because each is a decision:
+
+    * A malformed event is rejected individually and counted; the rest of the
+      batch is still stored. Losing nineteen good events because the twentieth
+      had a bad field would be self-inflicted data loss.
+    * A gap in `seq` is recorded, not refused. The participant who unplugged
+      the network still finishes the session, and the analysis is told exactly
+      which stretch is missing rather than being handed a log that looks whole.
+    * `phase` is taken from the session record, not from the client. A client
+      one poll behind would otherwise file events under the previous phase; its
+      own claim is kept as `phase_client` so a disagreement stays visible.
+
+    The response's `acked_seq` is what the client's queue drains against, so it
+    must reflect what is actually on disk.
+    """
+    session = _participant_session()
+    if session.get("submitted"):
+        # After submit the record is closed (BE-11).
+        raise HTTPException(status_code=409, detail="Session already submitted")
+
+    # Read the body raw rather than through a pydantic model: the final flush
+    # uses navigator.sendBeacon, which can only send a text/plain Blob, and
+    # that flush is the one carrying the last events of the session. Same
+    # reasoning as the product's /api/logs endpoint.
+    try:
+        body = LogBatchBody.model_validate_json(await request.body())
+    except Exception:
+        raise HTTPException(status_code=400, detail="Malformed batch")
+
+    received_at = study.now_iso()
+    path = events_path(session)
+
+    accepted: List[Dict[str, Any]] = []
+    rejected: List[Dict[str, str]] = []
+    for raw in body.events:
+        try:
+            accepted.append(study_log.normalise(
+                raw, session=session, received_at=received_at))
+        except study_log.RejectedEvent as e:
+            rejected.append({
+                "seq": str(raw.get("seq")) if isinstance(raw, dict) else "?",
+                "reason": e.reason,
+            })
+
+    previous_max = int(session.get("seq_acked", 0))
+    gaps = study_log.find_gaps(previous_max, [r["seq"] for r in accepted])
+
+    append_jsonl_many(path, accepted)
+
+    highest = max([previous_max] + [r["seq"] for r in accepted])
+
+    def _bump(rec):
+        rec["seq_acked"] = max(rec.get("seq_acked", 0), highest)
+        rec["event_count"] = rec.get("event_count", 0) + len(accepted)
+        if gaps:
+            # Registered, not fatal -- integrity.json reports these at close.
+            rec.setdefault("seq_gaps", []).extend([list(g) for g in gaps])
+        return rec
+
+    study.update_session(session["session_id"], _bump)
+
+    if rejected:
+        logger.warning("session %s rejected %d event(s): %s",
+                       session["session_id"], len(rejected), rejected[:5])
+
+    return {
+        "acked_seq": highest,
+        "accepted": len(accepted),
+        "rejected": len(rejected),
+        "rejections": rejected[:20],
+        "gaps": [list(g) for g in gaps],
+    }
 
 
 @router.post("/start")

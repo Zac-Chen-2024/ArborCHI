@@ -11,6 +11,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { CHAT_FIXTURE } from '../../data/fixtures'
+import { logger } from '../../lib/logger'
 
 interface Props {
   onCopyToDraft: (text: string) => void
@@ -21,7 +22,11 @@ export function ChatPanel({ onCopyToDraft }: Props) {
   const [input, setInput] = useState('')
 
   return (
-    <section className="panel bg-slate-100" style={{ gridTemplateRows: 'auto minmax(0,1fr) auto' }}>
+    <section
+      className="panel bg-slate-100"
+      style={{ gridTemplateRows: 'auto minmax(0,1fr) auto' }}
+      onFocus={() => logger.log('panel_focus', { panel: 'chat' })}
+    >
       <div className="phead" style={{ padding: '0 20px' }}>
         <span className="text-[13.5px] font-bold text-slate-700 flex-shrink-0">{t('chat.title')}</span>
         <span className="text-[10.5px] px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 font-medium">
@@ -75,6 +80,14 @@ export function ChatPanel({ onCopyToDraft }: Props) {
           />
           <button
             aria-label={t('chat.send')}
+            onClick={() => {
+              if (!input.trim()) return
+              // The full text, not a length: what a participant asked the
+              // assistant for is one of the richest signals in condition B,
+              // and it is what the post-task interview quotes back.
+              logger.log('msg_send', { text: input, char_count: input.length })
+              setInput('')
+            }}
             className="w-8 h-8 rounded-lg bg-slate-900 hover:bg-slate-700 text-white flex items-center justify-center flex-shrink-0"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

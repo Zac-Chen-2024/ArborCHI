@@ -10,6 +10,7 @@
 import { create } from 'zustand'
 
 import { api, type StudyState } from './api'
+import { logger } from './logger'
 import { applySessionLang } from '../i18n'
 
 const POLL_MS = 2000
@@ -31,6 +32,15 @@ export const useSession = create<SessionStore>((set, get) => ({
     try {
       const next = await api.get<StudyState>('/state')
       applySessionLang(next.lang)
+      // The logger reads phase/practice/cond/track from here rather than from
+      // call sites, so every event is labelled with the server's view of the
+      // session and no component can label one wrongly (FS-04).
+      logger.setContext({
+        phase: next.phase,
+        practice: next.phase === 'practice',
+        cond: next.condition,
+        track: next.track,
+      })
       set({ state: next, error: null, loading: false })
     } catch (e) {
       set({ error: e instanceof Error ? e.message : 'error', loading: false })

@@ -11,27 +11,33 @@
  * both from the submitted text with the same regex the product's LetterPanel
  * uses, so the two never disagree.
  */
+import { useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-/** Matches "[Exhibit B1, p.2]" including multi-citation brackets. */
-const CITE_RE = /\[Exhibit\s+[^\]]+\]/g
+import { logger } from '../../lib/logger'
+import { countCitations, countSentences } from '../../lib/sentences'
+import { EditReporter } from '../../lib/textEdit'
 
 interface Props {
   value: string
   onChange: (value: string) => void
 }
 
-function countSentences(text: string): number {
-  return text
-    .replace(CITE_RE, '')
-    .split(/[.!?]+\s/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0).length
-}
-
 export function DraftEditor({ value, onChange }: Props) {
   const { t } = useTranslation()
-  const citations = value.match(CITE_RE)?.length ?? 0
+  const citations = countCitations(value)
+
+  // One reporter for the lifetime of the editor: it holds the sentence list
+  // that lineage is computed against, so recreating it would break the chain
+  // (红线 #2).
+  const reporter = useMemo(
+    () => new EditReporter('draft', (payload) => logger.log('text_edit', payload), value),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  )
+  // Any pending edit must reach the log before the component goes away --
+  // otherwise the last thing the participant typed is the thing that is missing.
+  useEffect(() => () => reporter.flushNow(), [reporter])
 
   return (
     <aside className="panel bg-white border-l border-slate-200" style={{ gridTemplateRows: 'auto minmax(0,1fr) auto' }}>
@@ -45,7 +51,12 @@ export function DraftEditor({ value, onChange }: Props) {
           id="editor"
           spellCheck={false}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            onChange(e.target.value)
+            reporter.onChange(e.target.value)
+          }}
+          onBlur={() => reporter.flushNow()}
+          onFocus={() => logger.log('panel_focus', { panel: 'draft' })}
         />
       </div>
 

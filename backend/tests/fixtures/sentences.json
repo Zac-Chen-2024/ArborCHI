@@ -1,0 +1,100 @@
+{
+  "_comment": "Shared contract between backend/app/core/sentences.py and study-app/src/lib/sentences.ts. Both must produce exactly these splits. Add a case here first, then make both implementations pass it.",
+  "cases": [
+    {
+      "why": "the bug that started this: an abbreviated title is not a sentence end",
+      "text": "Dr. Li reported to the CTO [Exhibit B1, p.2]. He led four teams.",
+      "expect": [
+        "Dr. Li reported to the CTO [Exhibit B1, p.2].",
+        "He led four teams."
+      ]
+    },
+    {
+      "why": "a citation bracket contains a period that must not split",
+      "text": "Revenue reached $320M [Exhibit B2, p.5].",
+      "expect": ["Revenue reached $320M [Exhibit B2, p.5]."]
+    },
+    {
+      "why": "multi-citation bracket stays whole",
+      "text": "Both hold [Exhibit B1, p.2; Exhibit C1, p.1]. The next one follows.",
+      "expect": [
+        "Both hold [Exhibit B1, p.2; Exhibit C1, p.1].",
+        "The next one follows."
+      ]
+    },
+    {
+      "why": "single-letter initials are not sentence ends",
+      "text": "The award went to Dr. W. Li and colleagues. It was announced later.",
+      "expect": [
+        "The award went to Dr. W. Li and colleagues.",
+        "It was announced later."
+      ]
+    },
+    {
+      "why": "company suffixes",
+      "text": "Northwind Data Systems Inc. employs 1,800 people. It has eleven offices.",
+      "expect": [
+        "Northwind Data Systems Inc. employs 1,800 people.",
+        "It has eleven offices."
+      ]
+    },
+    {
+      "why": "et al. mid-sentence",
+      "text": "The paper by Li et al. won the award. The committee cited its impact.",
+      "expect": [
+        "The paper by Li et al. won the award.",
+        "The committee cited its impact."
+      ]
+    },
+    {
+      "why": "U.S. style dotted acronyms",
+      "text": "He relocated to the U.S. in 2019. He has led the division since.",
+      "expect": [
+        "He relocated to the U.S. in 2019.",
+        "He has led the division since."
+      ]
+    },
+    {
+      "why": "question and exclamation marks end sentences",
+      "text": "Does the evidence support it? It does. Clearly!",
+      "expect": ["Does the evidence support it?", "It does.", "Clearly!"]
+    },
+    {
+      "why": "a closing quote after the period belongs to the sentence it closes",
+      "text": "The memo said “Atlas shipped in Q3.” The review followed.",
+      "expect": [
+        "The memo said “Atlas shipped in Q3.”",
+        "The review followed."
+      ]
+    },
+    {
+      "why": "no trailing punctuation still yields one sentence",
+      "text": "A draft with no final period",
+      "expect": ["A draft with no final period"]
+    },
+    {
+      "why": "blank input yields nothing rather than one empty sentence",
+      "text": "   \n  ",
+      "expect": []
+    },
+    {
+      "why": "paragraph breaks are whitespace like any other",
+      "text": "First paragraph ends here.\n\nSecond one starts.",
+      "expect": ["First paragraph ends here.", "Second one starts."]
+    },
+    {
+      "why": "a lower-case start is not treated as a new sentence",
+      "text": "The figure is 60% vs. baseline. Latency fell.",
+      "expect": ["The figure is 60% vs. baseline.", "Latency fell."]
+    },
+    {
+      "why": "the realistic paragraph the study actually produces",
+      "text": "As Director of AI Research at Northwind Data Systems, Dr. Li reported directly to the Chief Technology Officer and oversaw four research teams comprising 47 researchers [Exhibit B1, p.2]. The retrieval infrastructure rebuild that Dr. Li led reduced median query latency by 60% [Exhibit C1, p.1]. Dr. Li's SIGMOD 2022 Best Paper Award [Exhibit A3, p.1] further underscores his standing.",
+      "expect": [
+        "As Director of AI Research at Northwind Data Systems, Dr. Li reported directly to the Chief Technology Officer and oversaw four research teams comprising 47 researchers [Exhibit B1, p.2].",
+        "The retrieval infrastructure rebuild that Dr. Li led reduced median query latency by 60% [Exhibit C1, p.1].",
+        "Dr. Li's SIGMOD 2022 Best Paper Award [Exhibit A3, p.1] further underscores his standing."
+      ]
+    }
+  ]
+}

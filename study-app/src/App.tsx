@@ -17,7 +17,8 @@ import { ConditionB } from './conditions/b/ConditionB'
 import { ConditionC } from './conditions/c/ConditionC'
 import { Join } from './routes/Join'
 import { Moderator } from './routes/Moderator'
-import { useSession } from './lib/session'
+import { BUILD_HASH, useSession } from './lib/session'
+import { logger } from './lib/logger'
 import type { Condition } from './lib/api'
 
 function SoftLockOverlay() {
@@ -38,6 +39,7 @@ function ConditionRoute({ want }: { want: Condition }) {
   const navigate = useNavigate()
 
   useEffect(() => {
+    logger.start(BUILD_HASH)
     const stop = useSession.getState().startPolling()
     return stop
   }, [])

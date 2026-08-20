@@ -31,7 +31,7 @@ import os
 import threading
 import weakref
 from pathlib import Path
-from typing import Any, Callable, Union
+from typing import Any, Callable, Iterable, Union
 
 import portalocker
 
@@ -181,14 +181,31 @@ def update_json(path: PathLike, mutator: Callable[[Any], Any], default: Any = No
 def append_jsonl(path: PathLike, record: Any) -> None:
     """Append one JSON record as a line. O_APPEND is atomic per write for
     reasonably sized lines; fsync makes it durable."""
+    append_jsonl_many(path, [record])
+
+
+def append_jsonl_many(path: PathLike, records: Iterable[Any]) -> int:
+    """Append several records with ONE fsync at the end. Returns the count.
+
+    A batch of twenty events written one at a time costs twenty fsyncs, and
+    fsync is the expensive part -- on a session logging continuously that is
+    the difference between the ingest endpoint being free and being felt. The
+    durability guarantee is unchanged for the batch as a whole: either the
+    whole batch is on disk after the call returns, or the caller saw an
+    exception and the client will resend (its queue drains on acked_seq).
+    """
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
-    line = json.dumps(record, ensure_ascii=False) + "\n"
+    lines = [json.dumps(r, ensure_ascii=False) + "\n" for r in records]
+    if not lines:
+        return 0
     with _thread_lock(p):
         with open(p, "a", encoding="utf-8") as f:
-            f.write(line)
+            f.writelines(lines)
             f.flush()
             os.fsync(f.fileno())
+    return len(lines)
 
 
-__all__ = ["read_json", "write_json", "update_json", "append_jsonl"]
+__all__ = ["read_json", "write_json", "update_json", "append_jsonl",
+           "append_jsonl_many"]

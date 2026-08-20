@@ -20,6 +20,7 @@ import { EvidenceViewer } from '../../components/shared/EvidenceViewer'
 import { TopBar } from '../../components/shared/TopBar'
 import { DRAFT_FIXTURE, EXHIBITS } from '../../data/fixtures'
 import type { StudyState } from '../../lib/api'
+import { logger } from '../../lib/logger'
 import { HelpDrawer } from '../common/HelpDrawer'
 import { ChatPanel } from './ChatPanel'
 import { DraftEditor } from './DraftEditor'
@@ -48,8 +49,11 @@ export function ConditionB({ state }: Props) {
         // B never shows a clock, in any phase. This is not a conditional --
         // the value is null at the call site (B-04).
         remainingMs={null}
-        onHelp={() => setHelpOpen((v) => !v)}
-        onSubmit={() => undefined}
+        onHelp={() => {
+          logger.log('panel_focus', { panel: 'topbar', target: 'help' })
+          setHelpOpen((v) => !v)
+        }}
+        onSubmit={() => logger.log('declare_done', { condition: 'b' })}
       />
 
       <div id="main">
@@ -74,15 +78,31 @@ export function ConditionB({ state }: Props) {
               </div>
             }
             onExhibitClick={(id) => {
+              logger.log('doc_open', { exhibit: id, from_exhibit: exhibit, via: 'chip' })
+              logger.log('page_change', { exhibit: id, page: 1, via: 'click', reason: 'exhibit chip' })
               setExhibit(id)
               setPage(1)
             }}
-            onPageChange={(p) => setPage(p)}
-            onZoom={setZoom}
+            onPageChange={(p, via) => {
+              logger.log('page_change', { exhibit, page: p, from_page: page, via })
+              setPage(p)
+            }}
+            onZoom={(z) => {
+              logger.log('zoom', { panel: 'evidence', from: zoom, to: z })
+              setZoom(z)
+            }}
           />
         </aside>
 
-        <ChatPanel onCopyToDraft={(text) => setDraft((d) => `${d}\n\n${text}`)} />
+        <ChatPanel
+          onCopyToDraft={(text) => {
+            logger.log('copy_to_draft', {
+              char_count: text.length,
+              preview: text.slice(0, 200),
+            })
+            setDraft((d) => `${d}\n\n${text}`)
+          }}
+        />
 
         <DraftEditor value={draft} onChange={setDraft} />
       </div>
