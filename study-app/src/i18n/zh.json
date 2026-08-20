@@ -1,0 +1,174 @@
+{
+  "app": {
+    "titleC": "Arbor",
+    "titleB": "DraftDesk",
+    "case": "EB-1A · 李维博士",
+    "criterion": "Leading or Critical Role",
+    "cfr": "8 C.F.R. §204.5(h)(3)(viii)",
+    "build": "构建 {{hash}}"
+  },
+  "join": {
+    "checking": "正在验证链接……",
+    "invalid": "链接无效,请向主试索取新的链接。",
+    "noSession": "该 token 未绑定任何场次。",
+    "ready": "准备好了就开始。",
+    "start": "开始 Start",
+    "startHint": "点击「开始」后任务即刻计入。"
+  },
+  "topbar": {
+    "help": "说明",
+    "submitFinal": "提交定稿",
+    "submitDraft": "提交草稿",
+    "test": "TEST"
+  },
+  "phase": {
+    "verify": "核验与修改 · 完成后即可提交",
+    "work": "写作与核对 · 完成后即可提交",
+    "organization": "整理论证结构",
+    "setup": "准备中",
+    "tutorial": "操作讲解",
+    "practice": "练习",
+    "generation": "生成中……",
+    "confidence": "两个小问题",
+    "probe": "逐句核对",
+    "done": "已结束 —— 感谢参与",
+    "softlock": "本环节时间已到,请稍候主试。",
+    "waiting": "请稍候主试。"
+  },
+  "evidence": {
+    "titleC": "证据原文",
+    "titleB": "证据库",
+    "meta": "{{n}} 个 exhibit · 已 OCR"
+  },
+  "crumb": {
+    "label": "当前查看",
+    "preview": "悬停预览"
+  },
+  "doc": {
+    "current": "当前文档"
+  },
+  "pager": {
+    "prev": "‹ 上一页",
+    "next": "下一页 ›",
+    "pos": "{{ex}} · 第 {{i}} / {{n}} 页",
+    "zoomOut": "缩小",
+    "zoomIn": "放大"
+  },
+  "tree": {
+    "title": "论证结构",
+    "stats": "{{a}} 个主论点 · {{s}} 个分论点 · {{e}} 条证据",
+    "pending": "{{n}} 待确认",
+    "accepted": "{{n}} 已确认",
+    "acceptAll": "全部采用",
+    "newArgument": "＋ 新建主论点",
+    "subCount": "{{n}} 个分论点"
+  },
+  "node": {
+    "aiPill": "AI 建议",
+    "accept": "采用",
+    "renamed": "已改名",
+    "addSub": "＋ 在 {{arg}} 下添加分论点",
+    "menuArgument": "主论点操作",
+    "menuSub": "分论点操作",
+    "drag": "拖拽排序",
+    "menu": {
+      "rename": "重命名",
+      "split": "拆分为两个",
+      "mergeUp": "与上一个合并",
+      "moveTo": "移到…之下",
+      "promote": "升为主论点",
+      "remove": "移除"
+    }
+  },
+  "pool": {
+    "title": "未使用的证据 · {{n}} 条"
+  },
+  "relations": {
+    "title": "这条证据说的是谁",
+    "src": "关系抽取自文档",
+    "mentions": "「{{name}}」在本案中的其他出处"
+  },
+  "letter": {
+    "title": "申请信 · {{criterion}}",
+    "stale": "结构已修改,{{n}} 段落尚未同步",
+    "regen": "重新生成该段",
+    "regenAll": "重新生成",
+    "cite": "[Exhibit {{ex}}, p.{{i}}]"
+  },
+  "chat": {
+    "title": "写作助手",
+    "badge": "写作指引已加载 · 证据文件已挂载",
+    "copy": "复制到草稿 →",
+    "regen": "重新生成",
+    "placeholder": "向助手提出修改要求,或让它解释某条证据……",
+    "send": "发送"
+  },
+  "draft": {
+    "title": "我的草稿",
+    "hint": "这是你将提交的版本 · 可自由编辑",
+    "stats": "{{s}} 句 · {{c}} 条引证",
+    "saved": "自动保存 · 刚刚"
+  },
+  "lightbox": {
+    "nav": "Exhibit {{ex}} · 第 {{i}} 页 / 共 {{n}} 页",
+    "hint": "Esc 关闭 · ←/→ 翻页",
+    "close": "关闭",
+    "open": "放大查看",
+    "title": "证据原文放大"
+  },
+  "help": {
+    "title": "说明",
+    "close": "关闭",
+    "hierarchy": "层级",
+    "hierarchyBody": "法律标准在顶栏;外层容器 = 主论点(两层结构);内层卡片 = 分论点;蓝色小卡 = 证据。",
+    "linkage": "联动",
+    "linkageBody": "悬停证据卡 = 左栏预览定位;点击 = 提交焦点,右栏对应段落高亮;点放大镜或引证 = 3× 全页核验。",
+    "manual": "查找证据",
+    "manualBody": "用 exhibit 芯片条与翻页栏浏览文档。"
+  },
+  "probe": {
+    "q": "被引证据是否支撑这句话?",
+    "supported": "撑得住",
+    "notSupported": "撑不住",
+    "unsure": "不确定",
+    "viewSource": "查看原文"
+  },
+  "conf": {
+    "likert": "我确信每句都有证据支持",
+    "count": "你估计有几句的引证是有问题的?",
+    "submit": "继续"
+  },
+  "mod": {
+    "title": "主试面板",
+    "test": "Test",
+    "testHint": "一键签发 test 轨 token 并打开 join 链接",
+    "experiment": "Experiment",
+    "experimentHint": "正式场次 —— 填写条件、语言与被试编号",
+    "condition": "条件",
+    "conditionC": "C · Arbor",
+    "conditionB": "B · DraftDesk",
+    "lang": "语言",
+    "participantCode": "被试编号",
+    "create": "建场",
+    "joinLink": "Join 链接",
+    "copy": "复制",
+    "sessions": "场次",
+    "advance": "推进阶段",
+    "phase": "当前阶段",
+    "next": "下一阶段",
+    "heartbeat": "心跳",
+    "remaining": "剩余",
+    "note": "场记",
+    "noteSave": "保存场记",
+    "noSessions": "暂无场次。",
+    "unauthorized": "这不是主试 token。",
+    "token": "主试 token",
+    "seqLabel": "seq {{n}}"
+  },
+  "ref": {
+    "exPage": "{{ex}} 第 {{i}} 页",
+    "exPageTag": "{{ex}} · 第 {{i}} 页",
+    "page": "第 {{i}} 页",
+    "pages": "{{n}}页"
+  }
+}

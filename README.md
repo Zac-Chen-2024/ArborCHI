@@ -8,6 +8,45 @@
 
 ---
 
+## 跑起来
+
+```bash
+# 后端
+cd backend
+python -m venv .venv && ./.venv/Scripts/python.exe -m pip install -r requirements-dev.txt
+cp .env.example .env          # 把 AUTH_DISABLED 设为 false,SKIP_LLM_CONFIG_CHECK 设为 true
+#                               CORS_ORIGINS 要含 http://localhost:5174
+./.venv/Scripts/python.exe -m uvicorn app.main:app --port 8000
+
+# 前端(另开一个终端)
+cd study-app
+npm install
+npm run dev                   # http://localhost:5174
+
+# 签一个主试 token,然后开 http://localhost:5174/mod
+cd backend
+./.venv/Scripts/python.exe scripts/mint_token.py --label mod --role moderator
+```
+
+`/mod` 里两个入口:**Test** 一键建 test 轨场次并直接打开 join 链接;**Experiment** 填条件/语言/被试编号建正式场。被试拿到的 join 链接长这样:
+
+```
+http://localhost:5174/join?token=<token>
+```
+
+条件由 token 决定,不由 URL 决定 —— 拿 B 的 token 手动访问 `/c` 会被弹回 `/b`。
+
+**校验命令**
+
+```bash
+cd backend    && ./.venv/Scripts/python.exe -m pytest -q && ./.venv/Scripts/python.exe -m ruff check app scripts tests
+cd study-app  && npm run typecheck && npm run lint && npm run build
+```
+
+`npm run lint` 里挂了 `i18next/no-literal-string`:JSX 里出现裸 UI 字符串直接报错(FS-03)。
+
+---
+
 ## 目录
 
 ```
@@ -19,7 +58,16 @@ ArborCHI/
 │   ├── scripts/mint_token.py # token 签发(待加 --role / --track)
 │   └── tests/                # 13 个测试文件,study 新模块照这个盘子加
 ├── study-app/                # 实验前端(Vite + React + TS),两条件共用一个 app
-│   └── src/tokens.css        # ★ 两条件唯一样式真源(红线 #9)
+│   └── src/
+│       ├── tokens.css        # ★ 两条件唯一样式真源(红线 #9)
+│       ├── i18n/{en,zh}.json # 默认 en;被试端无切换控件
+│       ├── lib/              # api · session(条件与阶段的唯一来源)· glyphs
+│       ├── data/fixtures.ts  # M0 静态数据,M5 换成材料包后删除
+│       ├── components/shared/# TopBar · EvidenceViewer · Lightbox
+│       ├── conditions/c/     # TreePanel · SubArgCard · SnippetChip
+│       │                     #   LetterPanel · RelationsPanel
+│       ├── conditions/b/     # ChatPanel · DraftEditor
+│       └── routes/           # Join(被试入口)· Moderator(/mod)
 ├── mockups/                  # ★ 视觉唯一真源,像素级照抄
 │   ├── arbor-write-mode-v5.html    # 条件 C
 │   └── baseline-shell-b-v3.html    # 条件 B
@@ -73,7 +121,7 @@ ArborCHI/
 
 | | 内容 | 状态 |
 |---|---|---|
-| **M0** | 脚手架:study-app、tokens.css、i18n 骨架、/join 条件路由、/api/study 空壳 + 阶段机 | 进行中 |
+| **M0** | 脚手架:study-app、tokens.css、i18n 骨架、/join 条件路由、/api/study 阶段机 | **完成** |
 | **M1** | 日志 SDK 全量事件、log/batch、**generate + draft_snapshot**、submit + 终稿 snapshot | |
 | **M2** | 条件 C 完整(树交互、联动、放大镜、行内编辑、pager、关系面板、锁定) | |
 | **M3** | 条件 B 完整(聊天 + bootstrap + frozen_draft_marked + 草稿编辑) | |

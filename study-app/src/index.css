@@ -1,0 +1,8 @@
+/* Tailwind's utility vocabulary. tokens.css is NOT imported here: a CSS
+   @import is hoisted above everything, which would put Tailwind's preflight
+   *after* the tokens and let the reset win. main.tsx imports tokens.css after
+   this file instead, so the shared dimensions always have the last word
+   (红线 #9). */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

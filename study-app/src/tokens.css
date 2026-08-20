@@ -27,6 +27,12 @@ body{
   background:var(--c-bg);
   color:var(--c-ink);
 }
+/* The mockups are single documents, so #app hangs off <body> directly. React
+   inserts #root in between, and without a height here every `h-full` inside it
+   collapses -- the three-column grid still works (it sets 100dvh itself) but
+   the centred pages do not. */
+#root{height:100%}
+
 .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
 .num{font-variant-numeric:tabular-nums}
 .grab{cursor:grab}

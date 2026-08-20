@@ -1,0 +1,174 @@
+{
+  "app": {
+    "titleC": "Arbor",
+    "titleB": "DraftDesk",
+    "case": "EB-1A · Dr. Wei Li",
+    "criterion": "Leading or Critical Role",
+    "cfr": "8 C.F.R. §204.5(h)(3)(viii)",
+    "build": "build {{hash}}"
+  },
+  "join": {
+    "checking": "Checking your link…",
+    "invalid": "This link is not valid. Please ask the researcher for a new one.",
+    "noSession": "This token is not bound to a session.",
+    "ready": "Ready when you are.",
+    "start": "Start",
+    "startHint": "The task begins as soon as you press Start."
+  },
+  "topbar": {
+    "help": "Help",
+    "submitFinal": "Submit final",
+    "submitDraft": "Submit draft",
+    "test": "TEST"
+  },
+  "phase": {
+    "verify": "Review & revise · Submit when ready",
+    "work": "Write & review · Submit when ready",
+    "organization": "Organise the argument structure",
+    "setup": "Setting up",
+    "tutorial": "Walkthrough",
+    "practice": "Practice",
+    "generation": "Generating…",
+    "confidence": "A couple of questions",
+    "probe": "Sentence check",
+    "done": "Finished — thank you",
+    "softlock": "Time is up for this step. Please wait for the researcher.",
+    "waiting": "Please wait for the researcher."
+  },
+  "evidence": {
+    "titleC": "Source Evidence",
+    "titleB": "Evidence Library",
+    "meta": "{{n}} exhibits · OCR-processed"
+  },
+  "crumb": {
+    "label": "Now viewing",
+    "preview": "Hover preview"
+  },
+  "doc": {
+    "current": "Current document"
+  },
+  "pager": {
+    "prev": "‹ Prev",
+    "next": "Next ›",
+    "pos": "{{ex}} · Page {{i}} / {{n}}",
+    "zoomOut": "Zoom out",
+    "zoomIn": "Zoom in"
+  },
+  "tree": {
+    "title": "Argument Structure",
+    "stats": "{{a}} arguments · {{s}} sub-arguments · {{e}} evidence items",
+    "pending": "{{n}} to review",
+    "accepted": "{{n}} accepted",
+    "acceptAll": "Accept all",
+    "newArgument": "+ New argument",
+    "subCount": "{{n}} sub-arguments"
+  },
+  "node": {
+    "aiPill": "AI suggested",
+    "accept": "Accept",
+    "renamed": "Renamed",
+    "addSub": "+ Add sub-argument under {{arg}}",
+    "menuArgument": "Argument actions",
+    "menuSub": "Sub-argument actions",
+    "drag": "Drag to reorder",
+    "menu": {
+      "rename": "Rename",
+      "split": "Split into two",
+      "mergeUp": "Merge with previous",
+      "moveTo": "Move under…",
+      "promote": "Promote to argument",
+      "remove": "Remove"
+    }
+  },
+  "pool": {
+    "title": "Unused evidence · {{n}}"
+  },
+  "relations": {
+    "title": "Who this evidence is about",
+    "src": "Relations extracted from documents",
+    "mentions": "Other mentions of \"{{name}}\" in this case"
+  },
+  "letter": {
+    "title": "Petition Letter · {{criterion}}",
+    "stale": "Structure changed — {{n}} paragraph(s) out of sync",
+    "regen": "Regenerate this paragraph",
+    "regenAll": "Regenerate",
+    "cite": "[Exhibit {{ex}}, p.{{i}}]"
+  },
+  "chat": {
+    "title": "Writing Assistant",
+    "badge": "Writing guide loaded · Evidence files attached",
+    "copy": "Copy to draft →",
+    "regen": "Regenerate",
+    "placeholder": "Ask for changes, or ask about any piece of evidence…",
+    "send": "Send"
+  },
+  "draft": {
+    "title": "My Draft",
+    "hint": "This is the version you will submit · Edit freely",
+    "stats": "{{s}} sentences · {{c}} citations",
+    "saved": "Autosaved · just now"
+  },
+  "lightbox": {
+    "nav": "Exhibit {{ex}} · Page {{i}} of {{n}}",
+    "hint": "Esc to close · ←/→ pages",
+    "close": "Close",
+    "open": "Open magnifier",
+    "title": "Evidence page, magnified"
+  },
+  "help": {
+    "title": "Help",
+    "close": "Close",
+    "hierarchy": "Hierarchy",
+    "hierarchyBody": "The legal standard sits in the top bar; the outer container is an argument; the inner cards are sub-arguments; the blue cards are evidence.",
+    "linkage": "Linkage",
+    "linkageBody": "Hovering an evidence card previews it on the left; clicking commits the focus and highlights the matching paragraph on the right; the magnifier or a citation opens the full page at 3×.",
+    "manual": "Finding evidence",
+    "manualBody": "Use the exhibit chips and the pager to move through the documents."
+  },
+  "probe": {
+    "q": "Does the cited evidence support this sentence?",
+    "supported": "Supported",
+    "notSupported": "Not supported",
+    "unsure": "Unsure",
+    "viewSource": "View source"
+  },
+  "conf": {
+    "likert": "I am confident every sentence is supported by evidence",
+    "count": "How many sentences do you think have citation problems?",
+    "submit": "Continue"
+  },
+  "mod": {
+    "title": "Moderator",
+    "test": "Test",
+    "testHint": "One click: mints a test-track token and opens the join link",
+    "experiment": "Experiment",
+    "experimentHint": "Formal run — fill in condition, language and participant code",
+    "condition": "Condition",
+    "conditionC": "C · Arbor",
+    "conditionB": "B · DraftDesk",
+    "lang": "Language",
+    "participantCode": "Participant code",
+    "create": "Create session",
+    "joinLink": "Join link",
+    "copy": "Copy",
+    "sessions": "Sessions",
+    "advance": "Advance",
+    "phase": "Phase",
+    "next": "Next",
+    "heartbeat": "Heartbeat",
+    "remaining": "Remaining",
+    "note": "Field note",
+    "noteSave": "Save note",
+    "noSessions": "No sessions yet.",
+    "unauthorized": "This token is not a moderator token.",
+    "token": "Moderator token",
+    "seqLabel": "seq {{n}}"
+  },
+  "ref": {
+    "exPage": "{{ex}} p.{{i}}",
+    "exPageTag": "{{ex}} · p.{{i}}",
+    "page": "p.{{i}}",
+    "pages": "{{n}}p"
+  }
+}

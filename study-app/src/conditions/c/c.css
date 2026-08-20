@@ -1,0 +1,46 @@
+/* =============================================================================
+ * Condition C only. Copied verbatim from mockups/arbor-write-mode-v5.html --
+ * the mockup is the visual source of truth (像素级照抄).
+ *
+ * Shared dimensions are NOT here: they live in tokens.css, which both
+ * conditions import (红线 #9). What follows is the tree/letter/lightbox
+ * vocabulary that condition B has no counterpart for.
+ * ========================================================================== */
+
+.sub{border:1px solid #e2e8f0;border-left-width:5px;border-left-color:#10b981;border-radius:8px;background:#fff;padding:12px 16px;transition:box-shadow .12s,border-color .12s;cursor:pointer}
+.sub[data-state="proposed"]{border-color:#fcd34d;border-style:dashed;border-left-style:solid;border-left-color:#fbbf24;background:#fffbeb}
+.sub:focus-visible{outline:none}
+.sub.is-focus{border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.22),0 2px 8px rgba(0,0,0,.06)}
+.sub[data-state="proposed"].is-focus{border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.22),0 2px 8px rgba(0,0,0,.06)}
+.sub[data-state="accepted"] .accept-row{display:none}
+.sub[data-state="accepted"] .ai-pill{display:none}
+.sub[data-state="proposed"] .done-dot{display:none}
+.sub[data-state="proposed"] .menu-solo{display:none}
+.accept-row{display:flex}
+
+.chip{position:relative;display:inline-flex;align-items:center;gap:8px;padding:6px 30px 6px 10px;border-radius:6px;border:1px solid #bfdbfe;background:#eff6ff;font-size:12.5px;color:#1e3a8a;text-align:left;cursor:pointer;transition:border-color .12s,background .12s}
+.chip:hover{border-color:#60a5fa}
+.chip.is-focus{background:#dbeafe;border-color:#2563eb;border-width:2px;padding:5px 29px 5px 9px;font-weight:500}
+.chip.is-preview{border-color:#93c5fd;border-style:dashed}
+.chip:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+.zoom{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#3b82f6;opacity:.55;transition:opacity .12s,background .12s}
+.chip:hover .zoom,.chip.is-focus .zoom{opacity:1;background:rgba(59,130,246,.14)}
+
+.para{border-left:3px solid transparent;border-radius:0 4px 4px 0;padding:2px 0;transition:background .15s,border-color .15s,padding .15s}
+.para.is-focus{background:#fef9c3;border-left-color:#facc15;padding:14px 16px}
+.cite{color:#2563eb;font-weight:600;cursor:pointer;border-bottom:1px dashed #93c5fd}
+.cite:hover{background:#dbeafe;border-radius:3px}
+
+.bar{height:9px;background:#e2e8f0;border-radius:4px;margin-bottom:9px}
+.pagebar{height:4px;background:#e2e8f0;border-radius:3px;margin-bottom:10px}
+
+#drawer{transform:translateY(100%);transition:transform .22s ease}
+#drawer.open{transform:translateY(0)}
+
+/* ---------- lightbox ---------- */
+#lb{position:fixed;inset:0;z-index:100;display:none;background:rgba(15,23,42,.74);backdrop-filter:blur(3px)}
+#lb.open{display:grid;place-items:center}
+#lbCard{width:min(1080px,86vw);height:min(880px,90vh);display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.45)}
+#lbPage{transform-origin:top center;transition:transform .16s ease}
+.lbline{height:7px;background:#e2e8f0;border-radius:4px;margin-bottom:13px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
