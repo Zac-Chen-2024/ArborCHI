@@ -289,7 +289,13 @@ def summarise(record: Dict[str, Any]) -> Optional[str]:
     if ev == "unassign":
         return f"detached {p.get('exhibit')} p.{p.get('page')} from “{p.get('node_title')}”"
     if ev == "text_edit":
-        return f"edited {p.get('sentence_count', '?')} sentence(s) in the draft"
+        # The number of sentences TOUCHED, not the length of the draft. The
+        # earlier version reported sentence_count, so a one-word fix in a long
+        # letter read as "edited 11 sentences".
+        touched = len(p.get("affected_sent_ids") or [])
+        splits = p.get("splits") or 0
+        note = f" (split {splits})" if splits else ""
+        return f"edited {touched} sentence(s) in the draft{note}"
     if ev == "copy_to_draft":
         return f"copied {p.get('char_count', '?')} characters from the assistant into the draft"
     if ev == "msg_send":

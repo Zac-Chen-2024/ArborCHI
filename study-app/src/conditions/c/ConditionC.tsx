@@ -69,6 +69,9 @@ export function ConditionC({ state }: Props) {
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxZoom, setLightboxZoom] = useState<LightboxZoom>(3)
   const [lightboxPage, setLightboxPage] = useState(1)
+  // Which snippet the magnifier is showing. Its own state, set at open time,
+  // so the dialog and the log can never disagree about it.
+  const [lightboxChip, setLightboxChip] = useState<string | null>(null)
   const [helpOpen, setHelpOpen] = useState(false)
 
   const subRefs = useRef<Record<string, HTMLDivElement | null>>({})
@@ -204,17 +207,30 @@ export function ConditionC({ state }: Props) {
     if (sub?.snippet_ids.length) commitChip(sub.snippet_ids[0], 'click')
   }, [tree.args, commitChip])
 
-  const openLightbox = useCallback((atPage: number, via: string) => {
-    if (!committedChip) return
-    const s = snippets[committedChip]
+  /**
+   * Open the magnifier on a NAMED snippet.
+   *
+   * The snippet id is a parameter rather than read from `committedChip`,
+   * because every caller commits a focus and opens the magnifier in the same
+   * breath -- and React has not applied that state by the time this runs. The
+   * earlier version read the stale value and logged the PREVIOUSLY selected
+   * exhibit while the dialog on screen showed the new one. The picture was
+   * right and the data was wrong, which is the worse way round: it would have
+   * recorded participants checking sources they never opened.
+   */
+  const openLightbox = useCallback((snippetId: string | null, atPage: number, via: string) => {
+    const id = snippetId ?? committedChip
+    if (!id) return
+    const s = snippets[id]
     if (!s) return
     logger.log('lightbox_open', {
-      snippet_id: committedChip, exhibit: s.exhibit, page: atPage,
+      snippet_id: id, exhibit: s.exhibit, page: atPage,
       cited_page: s.page, label: s.label, via,
     })
     closeDwell.current = startDwell('lightbox_close', {
-      snippet_id: committedChip, exhibit: s.exhibit, page: atPage,
+      snippet_id: id, exhibit: s.exhibit, page: atPage,
     })
+    setLightboxChip(id)
     setLightboxPage(atPage)
     setLightboxOpen(true)
     void usePractice.getState().clear('lightbox')
@@ -245,7 +261,7 @@ export function ConditionC({ state }: Props) {
     }
     if (e.key.toLowerCase() === 'v' && committedChip) {
       e.preventDefault()
-      openLightbox(snippets[committedChip]?.page ?? 1, 'keyboard')
+      openLightbox(committedChip, snippets[committedChip]?.page ?? 1, 'keyboard')
     }
   }
 
@@ -286,8 +302,9 @@ export function ConditionC({ state }: Props) {
         ? t('phase.generation')
         : t('phase.verify')
 
-  const activeExhibitPages =
-    material.exhibits.find((e) => e.id === (snippet?.exhibit ?? viewExhibit))?.pages ?? 1
+  const lightboxExhibit = lightboxChip ? snippets[lightboxChip]?.exhibit : viewExhibit
+  const lightboxPages =
+    material.exhibits.find((e) => e.id === lightboxExhibit)?.pages ?? 1
 
   return (
     <div
@@ -349,7 +366,7 @@ export function ConditionC({ state }: Props) {
                 </div>
               </div>
             }
-            onOpenLightbox={() => openLightbox(viewPage, 'page_button')}
+            onOpenLightbox={() => openLightbox(effectiveChip, viewPage, 'page_button')}
             onExhibitClick={(id) => {
               logger.log('doc_open', { exhibit: id, from_exhibit: exhibit, via: 'chip' })
               logger.log('page_change', { exhibit: id, page: 1, via: 'click', reason: 'exhibit chip' })
@@ -414,7 +431,7 @@ export function ConditionC({ state }: Props) {
           }}
           onChipZoom={(id) => {
             commitChip(id, 'click')
-            openLightbox(snippets[id]?.page ?? 1, 'chip_magnifier')
+            openLightbox(id, snippets[id]?.page ?? 1, 'chip_magnifier')
           }}
           registerSubRef={(id, el) => {
             subRefs.current[id] = el
@@ -430,7 +447,7 @@ export function ConditionC({ state }: Props) {
           generating={generating}
           onCiteClick={(id) => {
             commitChip(id, 'linkage')
-            openLightbox(snippets[id]?.page ?? 1, 'citation')
+            openLightbox(id, snippets[id]?.page ?? 1, 'citation')
             void usePractice.getState().clear('linkage')
           }}
           onRegenerate={() => void runGeneration('participant')}
@@ -449,8 +466,8 @@ export function ConditionC({ state }: Props) {
 
       <Lightbox
         open={lightboxOpen}
-        snippet={committedChip ? snippets[committedChip] ?? null : null}
-        exhibitPages={activeExhibitPages}
+        snippet={lightboxChip ? snippets[lightboxChip] ?? null : null}
+        exhibitPages={lightboxPages}
         page={lightboxPage}
         zoom={lightboxZoom}
         crumb={crumb}
@@ -458,8 +475,8 @@ export function ConditionC({ state }: Props) {
         onClose={closeLightbox}
         onPage={(p) => {
           logger.log('page_change', {
-            exhibit: snippet?.exhibit, page: p, from_page: lightboxPage,
-            via: 'click', surface: 'lightbox',
+            exhibit: lightboxChip ? snippets[lightboxChip]?.exhibit : undefined,
+            page: p, from_page: lightboxPage, via: 'click', surface: 'lightbox',
           })
           setLightboxPage(p)
         }}

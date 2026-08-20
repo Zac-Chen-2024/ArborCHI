@@ -224,6 +224,20 @@ def test_summaries_read_as_sentences():
     assert study_log.summarise({"event": "heartbeat", "payload": {}}) is None
 
 
+def test_text_edit_summary_counts_what_changed_not_the_whole_draft():
+    """A one-word fix in a long letter must not read as "edited 11 sentences" --
+    the post-task interview quotes these lines back at the participant."""
+    edit = {"event": "text_edit", "payload": {
+        "affected_sent_ids": ["s_a", "s_b"],
+        "sentence_count": 11,
+        "splits": 1,
+    }}
+    line = study_log.summarise(edit)
+    assert "2 sentence(s)" in line
+    assert "11" not in line
+    assert "split 1" in line
+
+
 # ---------------------------------------------------------------------------
 # Snapshots
 # ---------------------------------------------------------------------------
