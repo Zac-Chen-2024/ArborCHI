@@ -12,11 +12,12 @@
  * that way. An "AI confidence" or "strength" prop would leak the judgement the
  * study exists to measure.
  */
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { Snippet } from '../../lib/material'
 import { GRAB_HANDLE } from '../../lib/glyphs'
-import type { WorkingSub } from '../../lib/treeStore'
+import { useTree, type WorkingSub } from '../../lib/treeStore'
 import { NodeMenu } from './NodeMenu'
 import { SnippetChip } from './SnippetChip'
 
@@ -54,6 +55,32 @@ export function SubArgCard({
   registerRef,
 }: Props) {
   const { t } = useTranslation()
+  const tree = useTree()
+  const [renaming, setRenaming] = useState(false)
+  const [draftTitle, setDraftTitle] = useState(sub.title)
+  const inputRef = useRef<HTMLInputElement | null>(null)
+
+  useEffect(() => {
+    if (renaming) inputRef.current?.select()
+  }, [renaming])
+
+  const commitRename = () => {
+    setRenaming(false)
+    // The store decides whether this is a change at all; a rename to the same
+    // string must not produce a tree_op saying something happened.
+    tree.rename(sub.id, draftTitle.trim())
+  }
+
+  // A newly created node arrives with an empty title and opens straight into
+  // the editor -- otherwise the participant has to find the menu to name the
+  // thing they just made.
+  useEffect(() => {
+    if (sub.title === '') {
+      setDraftTitle('')
+      setRenaming(true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sub.id])
 
   // A removed node stays in the tree data (the server must be told it was
   // removed) but leaves the screen.
@@ -76,9 +103,37 @@ export function SubArgCard({
           {GRAB_HANDLE}
         </span>
         <span className="done-dot w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0" />
-        <p className="text-[13.5px] font-semibold truncate">
-          {sub.title || t('node.untitled')}
-        </p>
+        {renaming ? (
+          <input
+            ref={inputRef}
+            value={draftTitle}
+            autoFocus
+            onChange={(e) => setDraftTitle(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+            onBlur={commitRename}
+            onKeyDown={(e) => {
+              e.stopPropagation()
+              if (e.key === 'Enter') commitRename()
+              if (e.key === 'Escape') {
+                setDraftTitle(sub.title)
+                setRenaming(false)
+              }
+            }}
+            placeholder={t('node.untitled')}
+            className="text-[13.5px] font-semibold flex-1 min-w-0 px-1.5 py-0.5 rounded border border-emerald-400 outline-none"
+          />
+        ) : (
+          <p
+            className="text-[13.5px] font-semibold truncate"
+            onDoubleClick={(e) => {
+              e.stopPropagation()
+              setDraftTitle(sub.title)
+              setRenaming(true)
+            }}
+          >
+            {sub.title || t('node.untitled')}
+          </p>
+        )}
         {sub.renamed && (
           <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 flex-shrink-0">
             {t('node.renamed')}
@@ -97,10 +152,26 @@ export function SubArgCard({
           >
             {t('node.accept')}
           </button>
-          <NodeMenu nodeId={sub.id} parentId={parentId} canMergeUp={canMergeUp} />
+          <NodeMenu
+            nodeId={sub.id}
+            parentId={parentId}
+            canMergeUp={canMergeUp}
+            onStartRename={() => {
+              setDraftTitle(sub.title)
+              setRenaming(true)
+            }}
+          />
         </div>
         <div className="menu-solo ml-auto flex-shrink-0">
-          <NodeMenu nodeId={sub.id} parentId={parentId} canMergeUp={canMergeUp} />
+          <NodeMenu
+            nodeId={sub.id}
+            parentId={parentId}
+            canMergeUp={canMergeUp}
+            onStartRename={() => {
+              setDraftTitle(sub.title)
+              setRenaming(true)
+            }}
+          />
         </div>
       </div>
 

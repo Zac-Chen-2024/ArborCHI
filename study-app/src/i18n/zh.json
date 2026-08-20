@@ -138,12 +138,16 @@
     "supported": "撑得住",
     "notSupported": "撑不住",
     "unsure": "不确定",
-    "viewSource": "查看原文"
+    "viewSource": "查看原文",
+    "progress": "第 {{i}} / {{n}} 句",
+    "sourceUnavailable": "原文段落不可用。"
   },
   "conf": {
     "likert": "我确信每句都有证据支持",
     "count": "你估计有几句的引证是有问题的?",
-    "submit": "继续"
+    "submit": "继续",
+    "scaleLow": "非常不同意",
+    "scaleHigh": "非常同意"
   },
   "mod": {
     "title": "主试面板",

@@ -26,7 +26,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from app.core import materials, study, study_log, study_snapshots
+from app.core import materials, probe, study, study_log, study_snapshots
 from app.core.atomic_io import append_jsonl_many
 from app.core.config import settings
 from app.core.ids import validate_path_params
@@ -34,6 +34,7 @@ from app.core.study_events import events_path, write_server_event
 from app.core.workspace import (
     current_role,
     current_session_id,
+    current_token,
     current_track,
     current_workspace,
     mint_token,
@@ -135,6 +136,18 @@ class SubmitBody(BaseModel):
     """
     text: str = Field(..., max_length=200_000)
     final_text_hash: str = Field(..., pattern="^[0-9a-f]{64}$")
+
+
+class ConfidenceBody(BaseModel):
+    likert_1_7: int = Field(..., ge=1, le=7)
+    est_problem_count: int = Field(..., ge=0, le=500)
+
+
+class ProbeAnswerBody(BaseModel):
+    probe_index: int = Field(..., ge=0)
+    judgment: str = Field(..., pattern="^(supported|not_supported|unsure)$")
+    rt_ms: int = Field(..., ge=0)
+    source_opened: bool = False
 
 
 def _live_generator():
@@ -460,6 +473,121 @@ def submit(body: SubmitBody) -> Dict[str, Any]:
     write_server_event(session, "submit", meta)
 
     return {"success": True, **study.public_state(session)}
+
+
+@router.post("/confidence")
+def confidence(body: ConfidenceBody) -> Dict[str, Any]:
+    """The two confidence questions (BE-12).
+
+    Must come before the probe. Asking someone how confident they are AFTER
+    walking them through their own sentences one at a time would measure the
+    probe's effect on them, not the interface's -- so the order is enforced
+    here rather than trusted to the client (红线 #6).
+    """
+    session = _participant_session()
+    if session.get("confidence"):
+        raise HTTPException(status_code=409, detail="Confidence already submitted")
+
+    def _record(rec):
+        rec["confidence"] = {
+            "likert_1_7": body.likert_1_7,
+            "est_problem_count": body.est_problem_count,
+            "at": study.now_iso(),
+        }
+        return rec
+
+    session = study.update_session(session["session_id"], _record)
+    write_server_event(session, "confidence_submit", session["confidence"])
+    return {"success": True}
+
+
+@router.post("/probe/start")
+def probe_start() -> Dict[str, Any]:
+    """Draw this participant's probe items (BE-13, PR-2).
+
+    Three guards, all server-side:
+
+    * confidence must already be in (see above) -- 409 otherwise
+    * the session must be submitted, because the items are sampled from the
+      FINAL text and there is no final text before that
+    * the draw is idempotent: a reload must show the same items, so the sample
+      is stored the first time and replayed afterwards
+
+    The stored record keeps `planted_id` on every item; the response does not.
+    """
+    session = _participant_session()
+
+    if not session.get("submitted"):
+        raise HTTPException(status_code=409, detail="Nothing submitted yet")
+    if not session.get("confidence"):
+        raise HTTPException(status_code=409, detail="Confidence must be submitted first")
+
+    existing = session.get("probe")
+    if existing:
+        return {
+            "items": [probe.public_item(i) for i in existing["items"]],
+            "answered": existing.get("answers", {}),
+        }
+
+    final = study_snapshots.read_snapshot(session, "final")
+    initial = study_snapshots.read_snapshot(session, "initial")
+    if final is None:
+        raise HTTPException(status_code=409, detail="No final snapshot")
+
+    drawn = probe.select_items(
+        final["text"],
+        (initial or {}).get("sentences", []),
+        token=current_token(),
+        session_id=session["session_id"],
+    )
+
+    def _store(rec):
+        rec["probe"] = {"items": drawn["items"], "stats": drawn["stats"], "answers": {}}
+        return rec
+
+    session = study.update_session(session["session_id"], _store)
+    # The stats say how the sample was drawn -- which rule fired, how many
+    # planted survived, what the final ratio was. Without them a reviewer
+    # cannot check the draw against PR-2 without re-running it.
+    write_server_event(session, "probe_start", drawn["stats"])
+
+    return {"items": [probe.public_item(i) for i in drawn["items"]], "answered": {}}
+
+
+@router.post("/probe/answer")
+def probe_answer(body: ProbeAnswerBody) -> Dict[str, Any]:
+    """One probe judgement. Idempotent per item: a re-answer replaces the
+    previous one and both are in the log."""
+    session = _participant_session()
+    stored = session.get("probe")
+    if not stored:
+        raise HTTPException(status_code=409, detail="Probe has not started")
+    if body.probe_index >= len(stored["items"]):
+        raise HTTPException(status_code=404, detail="No such probe item")
+
+    item = stored["items"][body.probe_index]
+
+    def _record(rec):
+        rec["probe"]["answers"][str(body.probe_index)] = {
+            "judgment": body.judgment,
+            "rt_ms": body.rt_ms,
+            "source_opened": body.source_opened,
+            "at": study.now_iso(),
+        }
+        return rec
+
+    session = study.update_session(session["session_id"], _record)
+    write_server_event(session, "probe_item", {
+        "probe_index": body.probe_index,
+        "sent_id": item.get("sent_id"),
+        "judgment": body.judgment,
+        "rt_ms": body.rt_ms,
+        "source_opened": body.source_opened,
+        # Ground truth goes in the LOG, never in the response.
+        "planted_id": item.get("planted_id"),
+        "subargument_id": item.get("subargument_id"),
+    })
+    return {"success": True}
 
 
 # ---------------------------------------------------------------------------

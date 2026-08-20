@@ -18,9 +18,14 @@ interface Props {
   nodeId: string
   parentId: string
   canMergeUp: boolean
+  /** Renaming happens inline on the card, not here. `window.prompt` was the
+   *  first version and was wrong twice over: a native dialog looks nothing
+   *  like the rest of the interface, and it blocks the page, which makes the
+   *  whole flow untestable in a browser harness. */
+  onStartRename: () => void
 }
 
-export function NodeMenu({ nodeId, parentId, canMergeUp }: Props) {
+export function NodeMenu({ nodeId, parentId, canMergeUp, onStartRename }: Props) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [moving, setMoving] = useState(false)
@@ -66,13 +71,7 @@ export function NodeMenu({ nodeId, parentId, canMergeUp }: Props) {
         <div className="absolute right-0 top-6 z-30 w-[200px] rounded-lg border border-slate-200 bg-white shadow-lg py-1">
           {!moving ? (
             <>
-              <button
-                className={item}
-                onClick={run(() => {
-                  const next = window.prompt(t('node.menu.rename'))
-                  if (next && next.trim()) tree.rename(nodeId, next.trim())
-                })}
-              >
+              <button className={item} onClick={run(onStartRename)}>
                 {t('node.menu.rename')}
               </button>
               <button className={item} onClick={run(() => tree.splitNode(nodeId))}>

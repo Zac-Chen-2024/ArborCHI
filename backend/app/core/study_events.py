@@ -50,6 +50,7 @@ SERVER_EVENTS = {
     "submit_declared",
     "moderator_note",
     "submit",
+    "probe_start",
 }
 
 

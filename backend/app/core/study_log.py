@@ -66,6 +66,11 @@ SERVER_EVENTS = frozenset({
     "draft_snapshot",
     "moderator_note",
     "submit",
+    # How the probe sample was drawn: which PR-2 rule fired, how many planted
+    # sentences survived, what ratio the items ended up at. Without it a
+    # reviewer cannot check a draw against the pre-registration without
+    # re-running the sampler.
+    "probe_start",
 })
 
 # Client-authored, both conditions.

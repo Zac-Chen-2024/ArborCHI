@@ -92,6 +92,18 @@ def current_track() -> str:
     return track if track in TRACKS else DEFAULT_TRACK
 
 
+def current_token() -> str:
+    """The raw bearer token for this request.
+
+    Needed by the probe sampler, whose seed PR-2 defines as token-derived so
+    the draw is reproducible from the archive. The token is hashed into the
+    seed and never stored, so nothing here puts a credential into the data --
+    and it is already in the request headers, so holding it for the duration
+    of the request exposes nothing new.
+    """
+    return _current_entry.get().get("_token", "")
+
+
 def current_session_id() -> Optional[str]:
     """The study session this token is bound to, if any (participants)."""
     sid = _current_entry.get().get("session_id")
@@ -223,7 +235,9 @@ class WorkspaceMiddleware:
                 return
 
         ctx_token = _current_workspace.set(ws)
-        ctx_entry = _current_entry.set(entry or {})
+        # Carry the raw token alongside the entry, under a private key so it
+        # cannot be confused with a stored field (see current_token()).
+        ctx_entry = _current_entry.set({**(entry or {}), "_token": token})
         try:
             await self.app(scope, receive, send)
         finally:

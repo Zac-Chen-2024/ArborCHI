@@ -138,12 +138,16 @@
     "supported": "Supported",
     "notSupported": "Not supported",
     "unsure": "Unsure",
-    "viewSource": "View source"
+    "viewSource": "View source",
+    "progress": "Sentence {{i}} of {{n}}",
+    "sourceUnavailable": "The source passage is not available."
   },
   "conf": {
     "likert": "I am confident every sentence is supported by evidence",
     "count": "How many sentences do you think have citation problems?",
-    "submit": "Continue"
+    "submit": "Continue",
+    "scaleLow": "Strongly disagree",
+    "scaleHigh": "Strongly agree"
   },
   "mod": {
     "title": "Moderator",
