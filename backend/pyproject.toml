@@ -1,0 +1,22 @@
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+extend-exclude = ["scripts/import_project.py"]
+
+[tool.ruff.lint]
+# E/W: pycodestyle, F: pyflakes, I: isort. Kept deliberately small so that
+# CI failures mean "this is broken", not "this is styled differently".
+select = ["E", "F", "W", "I"]
+ignore = [
+    "E501",  # line length -- long prompt strings and Chinese comments
+    "E402",  # module-level import not at top -- routers import lazily on purpose
+    "E731",  # lambda assignment
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E402"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = ["ignore::DeprecationWarning:pydantic"]

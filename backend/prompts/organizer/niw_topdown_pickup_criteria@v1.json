@@ -1,0 +1,64 @@
+{
+  "prong1_merit": {
+    "include_direct": [
+      "Description of the applicant's proposed endeavor: specific research direction, methodology, technology, product, or business plan",
+      "Evidence of substantial merit: the endeavor's value to its field (advances knowledge, solves important problems, creates economic value)",
+      "Evidence of national importance: the endeavor's potential impact beyond a particular locality (policy alignment, field-wide adoption, societal benefit)",
+      "Field-level context: the significance of the problem the endeavor addresses, industry trends, market need"
+    ],
+    "include_supporting": [
+      "Expert recommendation letters that describe and endorse the significance of the ENDEAVOR (not just the person)",
+      "Quantitative impact data demonstrating the endeavor's reach or potential (adoption metrics, revenue, citations, users)",
+      "Government policy documents, industry reports, or news articles showing alignment between the endeavor and national priorities",
+      "Media coverage or published material about the applicant's work and its field-level importance"
+    ],
+    "exclude": [
+      "Personal biographical details with NO connection to the proposed endeavor (e.g., hobbies, unrelated work history)",
+      "Purely administrative documents (visa stamps, passport pages, address records)",
+      "Evidence that ONLY describes the applicant's qualifications without linking them to the endeavor's merit or importance — belongs in Prong 2"
+    ],
+    "subject_rule": "Subject may be: the applicant's proposed endeavor, the field/industry the endeavor impacts, experts endorsing the endeavor's significance, or policy/market context supporting national importance. Focus is on WHAT the applicant proposes to do, not WHO the applicant is."
+  },
+  "prong2_positioned": {
+    "include_direct": [
+      "Education: degrees, universities, specialized training, certifications",
+      "Skills and knowledge: domain expertise, technical competencies, language abilities",
+      "Record of success: publications, patents, awards, honors, citation metrics, industry recognition",
+      "Track record in related or similar efforts: prior projects, previous positions, measurable achievements"
+    ],
+    "include_supporting": [
+      "Expert recommendation letters that attest to the applicant's qualifications, expertise, and track record",
+      "A model or plan for future activities: research proposals, business plans, collaboration agreements",
+      "Progress towards achieving the proposed endeavor: current position, ongoing projects, milestones reached",
+      "Interest of potential customers, users, investors, or relevant entities: adoption data, letters of intent, partnerships",
+      "Recommender credentials that establish authority to evaluate the applicant (credibility proof)"
+    ],
+    "exclude": [
+      "Evidence about the endeavor's merit/importance without connection to the applicant's ability to advance it — belongs in Prong 1",
+      "Purely administrative documents (visa stamps, passport pages, address records)"
+    ],
+    "subject_rule": "Subject may be: the applicant (education, skills, achievements), experts evaluating the applicant's qualifications, institutions where the applicant has worked or studied, or entities showing interest in the applicant's work. Focus is on WHO the applicant is and WHY they can succeed."
+  },
+  "prong3_balance": {
+    "include_direct": [
+      "Evidence that labor certification is impractical: self-directed research, entrepreneurial ventures, multi-institutional collaborations, work that cannot be captured in a PERM job description",
+      "Evidence that the U.S. would benefit even if qualified U.S. workers are available: unique expertise, irreplaceable contributions, specialized knowledge that others lack",
+      "Evidence that benefits extend beyond a single employer: field-wide impact, public interest, multi-sector applications, open-source or publicly available work",
+      "Evidence of urgency: time-sensitive national priorities, critical workforce shortages, government policy alignment"
+    ],
+    "include_supporting": [
+      "Government policy initiatives aligned with the applicant's work (executive orders, legislation, federal funding programs)",
+      "Industry demand data or workforce shortage reports in the applicant's field",
+      "Expert statements that EXPLICITLY address why the applicant's contributions serve the NATIONAL INTEREST or why waiver is justified",
+      "Evidence of the applicant's work benefiting MULTIPLE institutions, organizations, or the public (not just one employer)"
+    ],
+    "exclude": [
+      "Generic statements about immigration benefits without specific connection to this applicant",
+      "Evidence that only shows the applicant is qualified (Prong 2) without linking to why waiver serves national interest",
+      "General biographical details, routine education records, or employment history that do not speak to waiver justification",
+      "Recommendation letters that only praise the applicant's skills without addressing national interest or waiver — these belong in Prong 2",
+      "Publication lists, citation counts, or award names without context connecting them to the waiver argument"
+    ],
+    "subject_rule": "Subject may be: the applicant's work and its BROADER societal impact, government/policy context supporting urgency, industry demand for the applicant's expertise, or institutions that benefit from the applicant's contributions. Focus is on WHY the national interest is better served by waiving labor certification. Be SELECTIVE — only include evidence with a clear connection to the waiver argument."
+  }
+}

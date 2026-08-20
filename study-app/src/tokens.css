@@ -1,0 +1,59 @@
+/* =============================================================================
+ * tokens.css — 两条件唯一的样式真源(红线 #9)
+ *
+ * 逐字节提取自 mockups/arbor-write-mode-v5.html 与 mockups/baseline-shell-b-v3.html
+ * 的 "shared design tokens" 段。两文件该段 sha256 一致(d6847dedcdda…),已核实。
+ *
+ * 规则:
+ *   - 任何高度/颜色/圆角/阴影的改动**只发生在这个文件**,不许在组件里目测调数值
+ *   - 改一个 token,C 与 B 两条件必须同步变(验收项 FS-01)
+ *   - 高度节奏:56 / 44 / 42 / 42 / 48 / 40
+ * ========================================================================== */
+
+/* ---------- design tokens (identical in B & C) ---------- */
+:root{
+  --h-topbar:56px; --h-phead:44px; --h-ctx:42px; --h-exstrip:42px; --h-pager:48px; --h-status:40px;
+  --c-ink:#0f172a; --c-muted:#64748b; --c-line:#e2e8f0; --c-bg:#f1f5f9;
+  --c-ev:#2563eb; --c-ev-bg:#eff6ff; --c-ev-line:#bfdbfe;
+  --r-card:8px; --r-box:12px;
+  --shadow-card:0 1px 2px rgba(15,23,42,.05),0 4px 16px rgba(15,23,42,.05);
+}
+
+/* ---------- base (shared shell) ---------- */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',system-ui,sans-serif;
+  background:var(--c-bg);
+  color:var(--c-ink);
+}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+.num{font-variant-numeric:tabular-nums}
+.grab{cursor:grab}
+
+/* 三栏骨架:证据 / 中栏(C=树, B=聊天) / 右栏(C=信件, B=草稿) */
+#app{height:100dvh;display:grid;grid-template-rows:var(--h-topbar) minmax(0,1fr);overflow:hidden}
+#main{display:grid;grid-template-columns:clamp(300px,22vw,400px) minmax(0,1fr) clamp(380px,27vw,520px);overflow:hidden}
+.panel{display:grid;overflow:hidden;min-width:0}
+.scroll{overflow:auto;min-height:0;overscroll-behavior:contain}
+
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:6px;border:3px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:#94a3b8;background-clip:content-box}
+
+/* ---------- shared components (EvidenceViewer chrome) ---------- */
+.phead{height:var(--h-phead);display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid var(--c-line);background:#fff;flex-shrink:0}
+.ctxstrip{height:var(--h-ctx);display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid var(--c-line);background:#fff;min-width:0}
+.exstrip{height:var(--h-exstrip);display:flex;align-items:center;gap:6px;padding:0 12px;border-bottom:1px solid var(--c-line);background:#fff;overflow-x:auto;scrollbar-width:none}
+.exstrip::-webkit-scrollbar{display:none}
+.exchip{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:7px;border:1px solid var(--c-line);background:#fff;font-size:11.5px;color:#475569;cursor:pointer;transition:border-color .12s,background .12s}
+.exchip:hover{border-color:#94a3b8}
+.exchip.active{background:var(--c-ev-bg);border-color:var(--c-ev);color:#1e3a8a;font-weight:600}
+.exchip .pgs{font-size:10px;color:#94a3b8;font-weight:400}
+.pager{height:var(--h-pager);display:flex;align-items:center;gap:8px;padding:0 12px;border-top:1px solid var(--c-line);background:#fff;flex-shrink:0}
+.pgbtn{height:28px;padding:0 10px;border-radius:7px;border:1px solid var(--c-line);background:#fff;font-size:11.5px;color:#475569;cursor:pointer;transition:border-color .12s}
+.pgbtn:hover{border-color:#94a3b8}
+.paper{background:#fff;border:1px solid var(--c-line);border-radius:6px;box-shadow:var(--shadow-card);padding:16px}
+.pagebar{height:4px;background:#e2e8f0;border-radius:3px;margin-bottom:10px}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}

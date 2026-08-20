@@ -1,0 +1,182 @@
+{
+  "awards": {
+    "include_direct": [
+      "Snippets where subject IS the applicant AND describes a specific award/prize received",
+      "Award name, year, and the applicant's specific honor"
+    ],
+    "include_supporting": [
+      "Awarding body's background, authority, and reputation",
+      "Selection process details: jury, methodology, acceptance rate",
+      "Other distinguished recipients of the SAME award (peer comparison)"
+    ],
+    "exclude": [
+      "Certifications earned by passing an exam — the regulation requires 'prizes or awards for excellence', not test-based credentials",
+      "Awards received by other people for DIFFERENT awards (only same-award recipients are relevant as peer comparison)"
+    ],
+    "subject_rule": "Subject must be the applicant OR the awarding organization OR a peer comparison recipient of the SAME award"
+  },
+  "membership": {
+    "include_direct": [
+      "Snippets about the applicant's membership or election into an association",
+      "Applicant's membership application, admission, or election records"
+    ],
+    "include_supporting": [
+      "Association's founding, history, mission, and distinguished reputation",
+      "Membership criteria: what outstanding achievements are required for admission",
+      "Admission/review process rigor (judged by recognized experts)",
+      "Other notable members of the SAME association (peer comparison)"
+    ],
+    "exclude": [
+      "Membership/certification where admission does NOT require outstanding achievements as judged by recognized experts",
+      "Members of OTHER associations not relevant to applicant's membership"
+    ],
+    "subject_rule": "Subject must be the applicant, the qualifying association, or a distinguished member of the SAME association"
+  },
+  "published_material": {
+    "include_direct": [
+      "Articles/reports ABOUT the applicant and the applicant's work",
+      "Interview or feature content where applicant is the subject of coverage"
+    ],
+    "include_supporting": [
+      "Media outlet's credibility: circulation, history, awards, editorial standards",
+      "Media outlet's ownership group or parent company reputation",
+      "Publication date, title, author of the article about the applicant"
+    ],
+    "exclude": [
+      "Articles written BY the applicant -- belongs to standard (vi) scholarly_articles",
+      "Media coverage about other people (unless the applicant is also featured)",
+      "Social media posts or non-professional publications"
+    ],
+    "subject_rule": "Subject must be the applicant (for coverage) OR the media outlet (for credibility linked to coverage about the applicant)"
+  },
+  "judging": {
+    "include_direct": [
+      "Snippets about the applicant serving as judge, reviewer, evaluator, or examiner",
+      "Invitation or appointment letters for judging roles"
+    ],
+    "include_supporting": [
+      "The organization/event where applicant judged: prestige, scale, authority",
+      "Scope of judging: number of submissions, jury size, review rounds",
+      "Other distinguished co-judges or panelists (peer comparison)"
+    ],
+    "exclude": [
+      "Teaching or training activities -- being a trainer is NOT judging",
+      "Mentoring students -- unless formally judging/examining their work",
+      "The applicant being judged by others"
+    ],
+    "subject_rule": "Subject must be the applicant (as judge) OR the judging organization/event OR co-judges for peer comparison"
+  },
+  "original_contribution": {
+    "include_direct": [
+      "Description of the applicant's original contribution (methodology, system, product)",
+      "Evidence of originality: what is new/novel about the contribution",
+      "Evidence of major significance: widespread adoption, industry change"
+    ],
+    "include_supporting": [
+      "Quantified impact data: adoption rate, user count, revenue, citations",
+      "Independent expert recommendation letters praising the specific contribution",
+      "Institutional or industry adoption of the applicant's work"
+    ],
+    "exclude": [
+      "General professional experience not tied to an original contribution",
+      "Routine business operations without innovation element",
+      "Other people's contributions or inventions"
+    ],
+    "subject_rule": "Subject must be the applicant OR an expert/institution commenting on the applicant's contribution"
+  },
+  "scholarly_articles": {
+    "include_direct": [
+      "Articles, books, papers, or educational content authored BY the applicant",
+      "Publication details: title, year, venue, authorship role"
+    ],
+    "include_supporting": [
+      "Publication venue's prestige: impact factor, ranking, editorial standards",
+      "Citation data and impact metrics of the applicant's publications"
+    ],
+    "exclude": [
+      "Articles written ABOUT the applicant -- belongs to standard (iii)",
+      "Content created by others"
+    ],
+    "subject_rule": "Subject must be the applicant (as author) OR the publication venue"
+  },
+  "display": {
+    "include_direct": [
+      "The applicant's work being displayed, exhibited, demonstrated, or showcased",
+      "Event details: name, date, location, type of display"
+    ],
+    "include_supporting": [
+      "Exhibition/showcase's prestige, scale, and professional standing",
+      "Audience reach, attendance figures, industry recognition of the event"
+    ],
+    "exclude": [
+      "Attending an event as a visitor (not displaying work)",
+      "Sponsoring or funding an event without displaying work"
+    ],
+    "subject_rule": "Subject must be the applicant (as exhibitor) OR the exhibition/event"
+  },
+  "leading_role": {
+    "include_direct": [
+      "The applicant's title, position, founding role, ownership, or executive authority within an organization",
+      "Evidence of decision-making authority, management scope, and day-to-day leadership responsibilities",
+      "Company letters or testimonials confirming the applicant's critical role and leadership impact"
+    ],
+    "include_supporting": [
+      "Organization's founding, history, scale, industry standing, and notable achievements",
+      "Government or national authority endorsements, approval letters, or official replies directed at the organization",
+      "The organization's charter, articles of incorporation, or official registration demonstrating formal standing",
+      "Press releases or media coverage about the organization's events, competitions, or milestones (attendance figures, participant counts, geographic reach)",
+      "Partnerships with nationally/internationally recognized bodies (e.g., national sports associations, government agencies, industry federations)",
+      "Third-party listings, profiles, or websites describing the organization as a recognized entity or business partner",
+      "Recommendation letters that describe BOTH the applicant's leadership AND the organization's significance"
+    ],
+    "exclude": [
+      "Entry-level or routine positions without leadership function",
+      "Other people's roles at unrelated organizations"
+    ],
+    "subject_rule": "Subject may be: (1) the applicant in a leadership capacity, (2) the organization where the applicant serves, (3) a government/industry authority that endorses or partners with the organization, or (4) third-party sources documenting the organization's reputation. NOTE: evidence about the organization's distinguished reputation is equally important as evidence about the applicant's role — do NOT skip it."
+  },
+  "high_salary": {
+    "include_direct": [
+      "The applicant's salary, compensation, contract amounts, consulting fees",
+      "Employment contracts, pay stubs, tax records showing remuneration"
+    ],
+    "include_supporting": [
+      "Industry salary benchmarks from authoritative sources",
+      "Comparison data showing applicant earns significantly above average"
+    ],
+    "exclude": [
+      "Company revenue not tied to applicant's personal remuneration",
+      "Other people's salaries (unless used as industry comparison)",
+      "Projected/future earnings without current documentation"
+    ],
+    "subject_rule": "Subject must be the applicant (for compensation) OR an industry benchmark source"
+  },
+  "commercial_success": {
+    "include_direct": [
+      "Sales data, revenue figures, attendance for applicant's work",
+      "Business metrics directly tied to applicant's professional output"
+    ],
+    "include_supporting": [
+      "Industry benchmarks for commercial performance comparison",
+      "Media or industry recognition of commercial success"
+    ],
+    "exclude": [
+      "General company financials not tied to applicant's specific work",
+      "Other people's commercial achievements"
+    ],
+    "subject_rule": "Subject must be the applicant OR the applicant's business/venture"
+  },
+  "overall_merits": {
+    "include_direct": [
+      "Cross-criteria evidence demonstrating overall extraordinary ability",
+      "Expert testimonials spanning multiple criteria"
+    ],
+    "include_supporting": [
+      "Industry-wide recognition not fitting neatly into other categories"
+    ],
+    "exclude": [
+      "Evidence that clearly belongs to a specific standard (i)-(x)"
+    ],
+    "subject_rule": "Subject must be the applicant"
+  }
+}

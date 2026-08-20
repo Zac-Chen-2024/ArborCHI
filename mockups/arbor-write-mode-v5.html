@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arbor · Write Mode</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',system-ui,sans-serif;background:#f1f5f9;color:#0f172a}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+  .num{font-variant-numeric:tabular-nums}
+  .grab{cursor:grab}
+
+  #app{height:100dvh;display:grid;grid-template-rows:56px minmax(0,1fr);overflow:hidden}
+  #main{display:grid;grid-template-columns:clamp(300px,22vw,400px) minmax(0,1fr) clamp(380px,27vw,520px);overflow:hidden}
+  .panel{display:grid;overflow:hidden;min-width:0}
+  .scroll{overflow:auto;min-height:0;overscroll-behavior:contain}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:6px;border:3px solid transparent;background-clip:content-box}
+  ::-webkit-scrollbar-thumb:hover{background:#94a3b8;background-clip:content-box}
+
+  /* ---------- shared design tokens (identical in B & C) ---------- */
+  :root{
+    --h-topbar:56px; --h-phead:44px; --h-ctx:42px; --h-exstrip:42px; --h-pager:48px; --h-status:40px;
+    --c-ink:#0f172a; --c-muted:#64748b; --c-line:#e2e8f0; --c-bg:#f1f5f9;
+    --c-ev:#2563eb; --c-ev-bg:#eff6ff; --c-ev-line:#bfdbfe;
+    --r-card:8px; --r-box:12px;
+    --shadow-card:0 1px 2px rgba(15,23,42,.05),0 4px 16px rgba(15,23,42,.05);
+  }
+  .phead{height:var(--h-phead);display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid var(--c-line);background:#fff;flex-shrink:0}
+  .ctxstrip{height:var(--h-ctx);display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid var(--c-line);background:#fff;min-width:0}
+  .exstrip{height:var(--h-exstrip);display:flex;align-items:center;gap:6px;padding:0 12px;border-bottom:1px solid var(--c-line);background:#fff;overflow-x:auto;scrollbar-width:none}
+  .exstrip::-webkit-scrollbar{display:none}
+  .exchip{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:7px;border:1px solid var(--c-line);background:#fff;font-size:11.5px;color:#475569;cursor:pointer;transition:border-color .12s,background .12s}
+  .exchip:hover{border-color:#94a3b8}
+  .exchip.active{background:var(--c-ev-bg);border-color:var(--c-ev);color:#1e3a8a;font-weight:600}
+  .exchip .pgs{font-size:10px;color:#94a3b8;font-weight:400}
+  .pager{height:var(--h-pager);display:flex;align-items:center;gap:8px;padding:0 12px;border-top:1px solid var(--c-line);background:#fff;flex-shrink:0}
+  .pgbtn{height:28px;padding:0 10px;border-radius:7px;border:1px solid var(--c-line);background:#fff;font-size:11.5px;color:#475569;cursor:pointer;transition:border-color .12s}
+  .pgbtn:hover{border-color:#94a3b8}
+  .paper{background:#fff;border:1px solid var(--c-line);border-radius:6px;box-shadow:var(--shadow-card);padding:16px}
+
+  .sub{border:1px solid #e2e8f0;border-left-width:5px;border-left-color:#10b981;border-radius:8px;background:#fff;padding:12px 16px;transition:box-shadow .12s,border-color .12s;cursor:pointer}
+  .sub[data-state="proposed"]{border-color:#fcd34d;border-style:dashed;border-left-style:solid;border-left-color:#fbbf24;background:#fffbeb}
+  .sub:focus-visible{outline:none}
+  .sub.is-focus{border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.22),0 2px 8px rgba(0,0,0,.06)}
+  .sub[data-state="proposed"].is-focus{border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.22),0 2px 8px rgba(0,0,0,.06)}
+  .sub[data-state="accepted"] .accept-row{display:none}
+  .sub[data-state="accepted"] .ai-pill{display:none}
+  .sub[data-state="proposed"] .done-dot{display:none}
+  .sub[data-state="proposed"] .menu-solo{display:none}
+  .accept-row{display:flex}
+
+  .chip{position:relative;display:inline-flex;align-items:center;gap:8px;padding:6px 30px 6px 10px;border-radius:6px;border:1px solid #bfdbfe;background:#eff6ff;font-size:12.5px;color:#1e3a8a;text-align:left;cursor:pointer;transition:border-color .12s,background .12s}
+  .chip:hover{border-color:#60a5fa}
+  .chip.is-focus{background:#dbeafe;border-color:#2563eb;border-width:2px;padding:5px 29px 5px 9px;font-weight:500}
+  .chip.is-preview{border-color:#93c5fd;border-style:dashed}
+  .chip:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+  .zoom{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#3b82f6;opacity:.55;transition:opacity .12s,background .12s}
+  .chip:hover .zoom,.chip.is-focus .zoom{opacity:1;background:rgba(59,130,246,.14)}
+
+  .para{border-left:3px solid transparent;border-radius:0 4px 4px 0;padding:2px 0;transition:background .15s,border-color .15s,padding .15s}
+  .para.is-focus{background:#fef9c3;border-left-color:#facc15;padding:14px 16px}
+  .cite{color:#2563eb;font-weight:600;cursor:pointer;border-bottom:1px dashed #93c5fd}
+  .cite:hover{background:#dbeafe;border-radius:3px}
+
+  .bar{height:9px;background:#e2e8f0;border-radius:4px;margin-bottom:9px}
+  .pagebar{height:4px;background:#e2e8f0;border-radius:3px;margin-bottom:10px}
+
+  #drawer{transform:translateY(100%);transition:transform .22s ease}
+  #drawer.open{transform:translateY(0)}
+
+  /* ---------- lightbox ---------- */
+  #lb{position:fixed;inset:0;z-index:100;display:none;background:rgba(15,23,42,.74);backdrop-filter:blur(3px)}
+  #lb.open{display:grid;place-items:center}
+  #lbCard{width:min(1080px,86vw);height:min(880px,90vh);display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.45)}
+  #lbPage{transform-origin:top center;transition:transform .16s ease}
+  .lbline{height:7px;background:#e2e8f0;border-radius:4px;margin-bottom:13px}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <header class="bg-white border-b border-slate-200 flex items-center px-5 gap-4 min-w-0">
+    <span class="text-[16px] font-bold tracking-tight flex-shrink-0">Arbor</span>
+    <span class="w-px h-5 bg-slate-200 flex-shrink-0"></span>
+    <span class="text-[13px] text-slate-500 truncate flex-shrink-0">EB-1A · 李维博士</span>
+    <span class="w-px h-5 bg-slate-200 flex-shrink-0"></span>
+    <div class="flex items-baseline gap-2 min-w-0">
+      <h1 class="text-[15px] font-bold truncate">Leading or Critical Role</h1>
+      <span class="mono text-[11.5px] text-slate-400 flex-shrink-0 hidden xl:inline">8 C.F.R. §204.5(h)(3)(viii)</span>
+    </div>
+    <div class="ml-auto flex items-center gap-3 flex-shrink-0">
+      <span class="text-[11.5px] px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-500 font-medium">核验与修改 · 完成后即可提交</span>
+      <button id="helpBtn" class="px-3 py-1.5 rounded-lg border border-slate-200 text-[12.5px] text-slate-600 font-medium hover:bg-slate-50">说明</button>
+      <button class="px-4 py-2 rounded-lg bg-slate-900 text-white text-[13px] font-semibold hover:bg-slate-800">提交定稿</button>
+    </div>
+  </header>
+
+  <div id="main">
+
+    <!-- ============ LEFT ============ -->
+    <aside class="panel bg-white border-r border-slate-200" style="grid-template-rows:auto auto auto minmax(0,1fr) auto auto">
+      <div class="phead">
+        <span class="text-[13.5px] font-bold text-slate-700">证据原文</span>
+        <span id="previewTag" class="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 font-semibold" style="display:none">悬停预览</span>
+        <span class="ml-auto text-[11px] text-slate-400">6 个 exhibit · 已 OCR</span>
+      </div>
+
+      <div class="ctxstrip">
+        <p class="text-[10px] font-bold text-slate-400 tracking-widest flex-shrink-0">当前查看</p>
+        <div id="crumb" class="flex items-center gap-1.5 text-[11px] text-slate-600 flex-nowrap overflow-hidden whitespace-nowrap min-w-0"></div>
+      </div>
+
+      <div class="exstrip">
+        <button class="exchip"><span class="mono">A3</span><span class="pgs">2页</span></button>
+        <button class="exchip active"><span class="mono">B1</span><span class="pgs">6页</span></button>
+        <button class="exchip"><span class="mono">B2</span><span class="pgs">8页</span></button>
+        <button class="exchip"><span class="mono">C1</span><span class="pgs">3页</span></button>
+        <button class="exchip"><span class="mono">C2</span><span class="pgs">5页</span></button>
+        <button class="exchip"><span class="mono">E2</span><span class="pgs">4页</span></button>
+      </div>
+
+      <div id="pdfScroll" class="scroll bg-slate-50 p-3">
+        <div class="paper relative">
+          <button class="absolute top-2 right-2 w-6 h-6 rounded border border-slate-200 bg-white text-slate-400 flex items-center justify-center hover:text-blue-600 hover:border-blue-300 openLb" aria-label="放大查看">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5M11 8v6M8 11h6"/></svg>
+          </button>
+          <div class="text-[10px] text-slate-300 mb-2">p.2</div>
+          <p class="text-[12px] font-bold text-slate-600 text-center">NORTHWIND DATA SYSTEMS</p>
+          <p class="text-[10px] text-slate-400 text-center mb-3.5">Organizational Chart · R&amp;D</p>
+          <div class="pagebar" style="width:88%"></div>
+          <div class="pagebar" style="width:76%"></div>
+          <div id="bbox" class="border-2 border-dashed border-blue-500 bg-blue-50/70 rounded px-3 py-2.5 my-2.5">
+            <p id="bboxText" class="text-[12px] text-slate-800 leading-relaxed"></p>
+          </div>
+          <div class="pagebar" style="width:92%"></div>
+          <div class="pagebar" style="width:80%"></div>
+          <div class="pagebar" style="width:86%"></div>
+          <div class="pagebar" style="width:70%"></div>
+          <div class="pagebar" style="width:84%;margin-bottom:0"></div>
+        </div>
+        <div class="paper mt-2.5 opacity-40">
+          <div class="text-[10px] text-slate-300 mb-2">p.3</div>
+          <div class="pagebar" style="width:84%"></div>
+          <div class="pagebar" style="width:90%"></div>
+          <div class="pagebar" style="width:72%;margin-bottom:0"></div>
+        </div>
+      </div>
+
+      <div class="pager">
+        <button class="pgbtn">‹ 上一页</button>
+        <span class="mono text-[11px] text-slate-500 flex-1 text-center" id="pagerLabel">B1 · 第 2 / 6 页</span>
+        <button class="pgbtn">下一页 ›</button>
+        <span class="w-px h-4 bg-slate-200 mx-0.5"></span>
+        <button class="pgbtn" style="padding:0 8px">−</button>
+        <span class="mono text-[10.5px] text-slate-400">100%</span>
+        <button class="pgbtn" style="padding:0 8px">＋</button>
+      </div>
+
+      <div class="border-t border-slate-200 bg-white">
+        <div class="flex items-center gap-2 px-4 border-b border-slate-100" style="height:var(--h-phead)">
+          <span class="text-[13px] font-bold text-slate-700">这条证据说的是谁</span>
+          <span class="ml-auto text-[10.5px] text-slate-400">关系抽取自文档</span>
+        </div>
+        <div id="relations" class="px-4 py-3 space-y-1.5" style="max-height:168px;overflow:auto"></div>
+        <div class="px-4 pb-3 pt-2 border-t border-slate-100">
+          <p class="text-[10.5px] font-bold text-slate-400 tracking-widest mb-1.5">「李维博士」在本案中的其他出处</p>
+          <div class="flex flex-wrap gap-1.5">
+            <button class="mono text-[11px] px-2 py-1 rounded bg-slate-50 border border-slate-200 text-slate-600 hover:border-slate-400">A3 p.1</button>
+            <button class="mono text-[11px] px-2 py-1 rounded bg-slate-50 border border-slate-200 text-slate-600 hover:border-slate-400">C1 p.1</button>
+            <button class="mono text-[11px] px-2 py-1 rounded bg-slate-50 border border-slate-200 text-slate-600 hover:border-slate-400">C2 p.3</button>
+            <button class="mono text-[11px] px-2 py-1 rounded bg-slate-50 border border-slate-200 text-slate-600 hover:border-slate-400">E2 p.2</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ============ CENTER ============ -->
+    <section class="panel bg-slate-100" style="grid-template-rows:auto minmax(0,1fr)">
+      <div class="phead" style="padding:0 20px">
+        <span class="text-[13.5px] font-bold text-slate-700 flex-shrink-0">论证结构</span>
+        <span class="text-[12px] text-slate-400 truncate hidden lg:inline">2 个主论点 · 6 个分论点 · 9 条证据</span>
+        <div class="ml-auto flex items-center gap-2 flex-shrink-0">
+          <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-[11.5px] font-medium">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span id="cntProposed" class="num">3</span> 待确认
+          </span>
+          <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11.5px] font-medium">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span id="cntAccepted" class="num">3</span> 已确认
+          </span>
+          <button id="acceptAll" class="px-2.5 py-1 rounded-md border border-slate-200 text-slate-500 text-[11.5px] font-medium hover:bg-slate-50">全部采用</button>
+        </div>
+      </div>
+
+      <div class="scroll p-4" role="tree" aria-label="论证结构">
+
+        <div class="rounded-xl border-2 border-emerald-500 bg-white overflow-hidden shadow-sm mb-3.5" role="treeitem" aria-level="1" aria-expanded="true">
+          <div class="px-4 py-2.5 flex items-center gap-2.5 bg-emerald-50 border-b border-emerald-200">
+            <span class="rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0" style="width:18px;height:18px">
+              <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" stroke-width="3.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+            </span>
+            <div class="min-w-0">
+              <p class="text-[14px] font-bold truncate">① 机构具有杰出声誉</p>
+              <p class="text-[11px] text-emerald-700/70 truncate">先确立组织地位,再论证个人角色</p>
+            </div>
+            <span class="ml-auto text-[11.5px] text-slate-400 flex-shrink-0">2 个分论点</span>
+            <span class="grab text-slate-300 text-[14px] select-none flex-shrink-0" aria-hidden="true">⠿</span>
+            <button class="text-slate-400 text-[14px] px-1 flex-shrink-0" aria-label="主论点操作">⋯</button>
+          </div>
+          <div class="p-2.5 space-y-2" role="group">
+
+            <div class="sub" data-sub="s1" data-state="accepted" role="treeitem" aria-level="2" tabindex="0">
+              <div class="flex items-center gap-2">
+                <span class="grab text-slate-300 text-[13px] select-none" aria-hidden="true">⠿</span>
+                <span class="done-dot w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                <p class="text-[13.5px] font-semibold truncate">组织规模与市场地位</p>
+                <span class="ai-pill text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">AI 建议</span>
+                <div class="accept-row ml-auto items-center gap-2">
+                  <button class="accept px-3 py-1.5 rounded-md bg-emerald-600 text-white text-[12px] font-semibold">采用</button>
+                  <button class="text-slate-400 text-[13px] px-1" aria-label="分论点操作">⋯</button>
+                </div>
+                <button class="menu-solo text-slate-400 text-[13px] px-1 flex-shrink-0 ml-auto" aria-label="分论点操作">⋯</button>
+              </div>
+              <div class="flex flex-wrap gap-2 mt-2.5 ml-5">
+                <button class="chip" data-chip="c1"><span class="mono text-[10.5px] text-blue-500 font-semibold">B2 p.5</span> 营收 $320M · 1,800 名员工<span class="zoom"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5M11 8v6M8 11h6"/></svg></span></button>
+                <button class="chip" data-chip="c2"><span class="mono text-[10.5px] text-blue-500 font-semibold">D1 p.1</span> 年度最佳数据基础设施供应商<span class="zoom"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5M11 8v6M8 11h6"/></svg></span></button>
+              </div>
+            </div>
+
+            <div class="sub" data-sub="s2" data-state="proposed" role="treeitem" aria-level="2" tabindex="0">
+              <div class="flex items-center gap-2">
+                <span class="grab text-slate-300 text-[13px] select-none" aria-hidden="true">⠿</span>
+                <span class="done-dot w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                <p class="text-[13.5px] font-semibold truncate">行业认可与客户覆盖</p>
+                <span class="ai-pill text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">AI 建议</span>
+                <div class="accept-row ml-auto items-center gap-2">
+                  <button class="accept px-3 py-1.5 rounded-md bg-emerald-600 text-white text-[12px] font-semibold">采用</button>
+                  <button class="text-slate-400 text-[13px] px-1" aria-label="分论点操作">⋯</button>
+                </div>
+                <button class="menu-solo text-slate-400 text-[13px] px-1 flex-shrink-0 ml-auto" aria-label="分论点操作">⋯</button>
+              </div>
+              <div class="flex flex-wrap gap-2 mt-2.5 ml-5">
+                <button class="chip" data-chip="c3"><span class="mono text-[10.5px] text-blue-500 font-semibold">D1 p.3</span> 北美前 20 大零售商中的 13 家<span class="zoom"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5M11 8v6M8 11h6"/></svg></span></button>
+              </div>
+            </div>
+
+            <button class="text-[12px] text-slate-500 font-medium ml-1 hover:text-slate-700">＋ 在 ① 下添加分论点</button>
+          </div>
+        </div>
+
+        <div class="rounded-xl border-2 border-emerald-500 bg-white overflow-hidden shadow-sm mb-3.5" role="treeitem" aria-level="1" aria-expanded="true">
+          <div class="px-4 py-2.5 flex items-center gap-2.5 bg-emerald-50 border-b border-emerald-200">
+            <span class="rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0" style="width:18px;height:18px">
+              <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" stroke-width="3.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+            </span>
+            <div class="min-w-0">
+              <p class="text-[14px] font-bold truncate">② 申请人在其中担任领导角色</p>
+              <p class="text-[11px] text-emerald-700/70 truncate">论证其层级位置、决定权与实际影响</p>
+            </div>
+            <span class="ml-auto text-[11.5px] text-slate-400 flex-shrink-0">4 个分论点</span>
+            <span class="grab text-slate-300 text-[14px] select-none flex-shrink-0" aria-hidden="true">⠿</span>
+            <button class="text-slate-400 text-[14px] px-1 flex-shrink-0" aria-label="主论点操作">⋯</button>
+          </div>
+          <div class="p-2.5 space-y-2" role="group">
+
+            <div class="sub is-focus" data-sub="s3" data-state="accepted" role="treeitem" aria-level="2" tabindex="0">
+              <div class="flex items-center gap-2">
+                <span class="grab text-slate-300 text-[13px] select-none" aria-hidden="true">⠿</span>
+                <span class="done-dot w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                <p class="text-[13.5px] font-semibold truncate">职务层级与汇报关系</p>
+                <span class="ai-pill text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">AI 建议</span>
+                <div class="accept-row ml-auto items-center gap-2">
+                  <button class="accept px-3 py-1.5 rounded-md bg-emerald-600 text-white text-[12px] font-semibold">采用</button>
+                  <button class="text-slate-400 text-[13px] px-1" aria-label="分论点操作">⋯</button>
+                </div>
+                <button class="menu-solo text-slate-400 text-[13px] px-1 flex-shrink-0 ml-auto" aria-label="分论点操作">⋯</button>
+              </div>
+              <div class="flex flex-wrap gap-2 mt-2.5 ml-5">
+                <button class="chip is-focus" data-chip="c4"><span class="mono text-[10.5px] text-blue-600 font-semibold">B1 p.2</span> 直接向 CTO 汇报 · 下辖 4 团队 47 人<span class="zoom"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5M11 8v6M8 11h6"/></svg></span></button>
+              </div>
+            </div>
+
+            <div class="sub" data-sub="s4" data-state="proposed" role="treeitem" aria-level="2" tabindex="0">
+              <div class="flex items-center gap-2">
+                <span class="grab text-slate-300 text-[13px] select-none" aria-hidden="true">⠿</span>
+                <span class="done-dot w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                <p class="text-[13.5px] font-semibold truncate">决策与资源权限</p>
+                <span class="ai-pill text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">AI 建议</span>
+                <div class="accept-row ml-auto items-center gap-2">
+                  <button class="accept px-3 py-1.5 rounded-md bg-emerald-600 text-white text-[12px] font-semibold">采用</button>
+                  <button class="text-slate-400 text-[13px] px-1" aria-label="分论点操作">⋯</button>
+                </div>
+                <button class="menu-solo text-slate-400 text-[13px] px-1 flex-shrink-0 ml-auto" aria-label="分论点操作">⋯</button>
+              </div>
+              <div class="flex flex-wrap gap-2 mt-2.5 ml-5">
+                <button class="chip" data-chip="c5"><span class="mono text-[10.5px] text-blue-500 font-semibold">B1 p.4</span> $12M 部门预算最终审批权<span class="zoom"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5M11 8v6M8 11h6"/></svg></span></button>
+              </div>
+            </div>
+
+            <div class="sub" data-sub="s5" data-state="accepted" role="treeitem" aria-level="2" tabindex="0">
+              <div class="flex items-center gap-2">
+                <span class="grab text-slate-300 text-[13px] select-none" aria-hidden="true">⠿</span>
+                <span class="done-dot w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                <p class="text-[13.5px] font-semibold truncate">领导成果的量化影响</p>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 flex-shrink-0">已改名</span>
+                <span class="ai-pill text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">AI 建议</span>
+                <div class="accept-row ml-auto items-center gap-2">
+                  <button class="accept px-3 py-1.5 rounded-md bg-emerald-600 text-white text-[12px] font-semibold">采用</button>
+                  <button class="text-slate-400 text-[13px] px-1" aria-label="分论点操作">⋯</button>
+                </div>
+                <button class="menu-solo text-slate-400 text-[13px] px-1 flex-shrink-0 ml-auto" aria-label="分论点操作">⋯</button>
+              </div>
+              <div class="flex flex-wrap gap-2 mt-2.5 ml-5">
+                <button class="chip" data-chip="c6"><span class="mono text-[10.5px] text-blue-500 font-semibold">C1 p.1</span> 检索系统重构使查询延迟下降 60%<span class="zoom"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5M11 8v6M8 11h6"/></svg></span></button>
+                <button class="chip" data-chip="c7"><span class="mono text-[10.5px] text-blue-500 font-semibold">C2 p.3</span> 项目 Atlas 牵头人 · 2022 Q3 交付<span class="zoom"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5M11 8v6M8 11h6"/></svg></span></button>
+              </div>
+            </div>
+
+            <div class="sub" data-sub="s6" data-state="proposed" role="treeitem" aria-level="2" tabindex="0">
+              <div class="flex items-center gap-2">
+                <span class="grab text-slate-300 text-[13px] select-none" aria-hidden="true">⠿</span>
+                <span class="done-dot w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                <p class="text-[13.5px] font-semibold truncate">学术荣誉佐证专业地位</p>
+                <span class="ai-pill text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">AI 建议</span>
+                <div class="accept-row ml-auto items-center gap-2">
+                  <button class="accept px-3 py-1.5 rounded-md bg-emerald-600 text-white text-[12px] font-semibold">采用</button>
+                  <button class="text-slate-400 text-[13px] px-1" aria-label="分论点操作">⋯</button>
+                </div>
+                <button class="menu-solo text-slate-400 text-[13px] px-1 flex-shrink-0 ml-auto" aria-label="分论点操作">⋯</button>
+              </div>
+              <div class="flex flex-wrap gap-2 mt-2.5 ml-5">
+                <button class="chip" data-chip="c8"><span class="mono text-[10.5px] text-blue-500 font-semibold">A3 p.1</span> SIGMOD 2022 最佳论文奖<span class="zoom"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5M11 8v6M8 11h6"/></svg></span></button>
+                <button class="chip" data-chip="c9"><span class="mono text-[10.5px] text-blue-500 font-semibold">E2 p.2</span> VLDB 2023 程序委员会邀请<span class="zoom"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5M11 8v6M8 11h6"/></svg></span></button>
+              </div>
+            </div>
+
+            <button class="text-[12px] text-slate-500 font-medium ml-1 hover:text-slate-700">＋ 在 ② 下添加分论点</button>
+          </div>
+        </div>
+
+        <div class="flex items-stretch gap-3">
+          <button class="flex-1 py-2.5 rounded-xl border-2 border-dashed border-slate-300 bg-white/60 text-[12.5px] text-slate-500 font-medium hover:border-slate-400">＋ 新建主论点</button>
+          <div class="w-[280px] rounded-xl border border-slate-200 bg-white px-3.5 py-2.5">
+            <p class="text-[11.5px] font-bold text-slate-500 mb-1.5">未使用的证据 · 1 条</p>
+            <button class="grab inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-slate-50 border border-slate-200 text-[11.5px] text-slate-600">
+              <span class="mono text-[10.5px] text-slate-400 font-semibold">E2 p.4</span> 会议注册人数统计表
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RIGHT ============ -->
+    <aside class="panel bg-white border-l border-slate-200" style="grid-template-rows:auto auto minmax(0,1fr)">
+      <div class="phead" style="justify-content:space-between">
+        <span class="text-[13.5px] font-bold text-slate-700">申请信 · Leading Role</span>
+        <button class="text-[12px] text-slate-400 flex items-center gap-1.5 hover:text-slate-600">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M16 9h5V4M3 15v5h5M4 9a8 8 0 0113-3l4 3M20 15a8 8 0 01-13 3l-4-3"/></svg>
+          重新生成
+        </button>
+      </div>
+
+      <div class="flex items-center gap-2 px-4 bg-amber-50 border-b border-amber-200" style="height:var(--h-status)">
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0"></span>
+        <span class="text-[12px] text-amber-800 truncate">结构已修改,1 段落尚未同步</span>
+        <button class="ml-auto text-[12px] text-amber-900 font-semibold underline underline-offset-2 flex-shrink-0">重新生成该段</button>
+      </div>
+
+      <div id="letter" class="scroll px-5 py-4">
+        <h2 class="text-[15px] font-semibold mb-2.5">① 机构具有杰出声誉</h2>
+
+        <div class="para mb-2.5" data-sub="s1">
+          <p class="text-[13px] leading-[1.8] text-slate-800">
+            Northwind Data Systems is a data-infrastructure firm reporting
+            $320M in revenue and 1,800 employees across eleven offices.
+            <span class="cite" data-chip="c1">[Exhibit B2, p.5]</span>
+          </p>
+        </div>
+        <div class="para mb-4" data-sub="s2">
+          <div class="bar" style="width:94%"></div>
+          <div class="bar" style="width:88%"></div>
+          <div class="bar" style="width:76%;margin-bottom:0"></div>
+        </div>
+
+        <h2 class="text-[15px] font-semibold mb-2.5">② 申请人在其中担任领导角色</h2>
+
+        <div class="para is-focus mb-2.5" data-sub="s3">
+          <p class="text-[13px] leading-[1.8] text-slate-800">
+            As Director of AI Research at Northwind Data Systems, Dr. Li
+            reported directly to the Chief Technology Officer and oversaw
+            four research teams comprising 47 researchers.
+            <span class="cite" data-chip="c4">[Exhibit B1, p.2]</span><sup class="text-emerald-600 text-[10px] ml-0.5">◆</sup><sup class="text-blue-500 text-[10px]">[1]</sup>
+          </p>
+        </div>
+
+        <div class="para mb-2.5" data-sub="s4">
+          <div class="bar" style="width:92%"></div>
+          <div class="bar" style="width:84%"></div>
+          <div class="bar" style="width:70%;margin-bottom:0"></div>
+        </div>
+        <div class="para mb-2.5" data-sub="s5">
+          <div class="bar" style="width:95%"></div>
+          <div class="bar" style="width:88%"></div>
+          <div class="bar" style="width:91%"></div>
+          <div class="bar" style="width:74%;margin-bottom:0"></div>
+        </div>
+        <div class="para mb-2.5" data-sub="s6">
+          <div class="bar" style="width:90%"></div>
+          <div class="bar" style="width:82%"></div>
+          <div class="bar" style="width:68%;margin-bottom:0"></div>
+        </div>
+        <div class="pt-2">
+          <div class="bar" style="width:88%"></div>
+          <div class="bar" style="width:93%"></div>
+          <div class="bar" style="width:76%"></div>
+          <div class="bar" style="width:86%;margin-bottom:0"></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- ============ LIGHTBOX (3× magnifier) ============ -->
+<div id="lb" role="dialog" aria-modal="true" aria-label="证据原文放大">
+  <div id="lbCard">
+    <div class="px-5 py-3 border-b border-slate-200 flex items-center gap-3 bg-white">
+      <div class="min-w-0">
+        <div id="lbCrumb" class="flex items-center gap-1.5 text-[11.5px] text-slate-600 flex-wrap"></div>
+      </div>
+      <div class="ml-auto flex items-center gap-2 flex-shrink-0">
+        <div class="flex items-center rounded-lg border border-slate-200 overflow-hidden">
+          <button class="lbz px-2.5 py-1.5 text-[12px] text-slate-600 hover:bg-slate-50" data-z="1">100%</button>
+          <span class="w-px h-4 bg-slate-200"></span>
+          <button class="lbz px-2.5 py-1.5 text-[12px] text-slate-600 hover:bg-slate-50" data-z="2">200%</button>
+          <span class="w-px h-4 bg-slate-200"></span>
+          <button class="lbz px-2.5 py-1.5 text-[12px] font-semibold bg-slate-900 text-white" data-z="3">300%</button>
+        </div>
+        <button id="lbClose" class="w-8 h-8 rounded-lg border border-slate-200 text-slate-500 flex items-center justify-center hover:bg-slate-50" aria-label="关闭">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="scroll bg-slate-200 p-8">
+      <div id="lbPage" class="bg-white mx-auto shadow-xl p-10" style="width:600px">
+        <div class="text-[12px] text-slate-300 mb-4" id="lbPageNo">p.2</div>
+        <p class="text-[16px] font-bold text-slate-700 text-center" id="lbDocTitle">NORTHWIND DATA SYSTEMS</p>
+        <p class="text-[12px] text-slate-400 text-center mb-7" id="lbDocSub">Organizational Chart · Research &amp; Development</p>
+        <div class="lbline" style="width:90%"></div>
+        <div class="lbline" style="width:82%"></div>
+        <div class="lbline" style="width:88%"></div>
+        <div class="border-[3px] border-dashed border-blue-500 bg-blue-50/70 rounded-lg px-5 py-4 my-5 relative">
+          <span class="absolute -top-3 left-4 px-2 py-0.5 rounded bg-blue-600 text-white text-[10.5px] font-bold mono" id="lbTag">B1 · p.2</span>
+          <p class="text-[15px] text-slate-900 leading-[1.75]" id="lbText"></p>
+        </div>
+        <div class="lbline" style="width:94%"></div>
+        <div class="lbline" style="width:78%"></div>
+        <div class="lbline" style="width:86%"></div>
+        <div class="lbline" style="width:91%"></div>
+        <div class="lbline" style="width:72%"></div>
+        <div class="lbline" style="width:88%"></div>
+        <div class="lbline" style="width:80%;margin-bottom:0"></div>
+      </div>
+    </div>
+
+    <div class="px-5 py-3 border-t border-slate-200 flex items-center gap-3 bg-white">
+      <button class="px-3 py-1.5 rounded-lg border border-slate-200 text-[12.5px] text-slate-600 hover:bg-slate-50">‹ 上一页</button>
+      <span class="mono text-[12.5px] text-slate-500" id="lbNav">Exhibit B1 · 第 2 页 / 共 6 页</span>
+      <button class="px-3 py-1.5 rounded-lg border border-slate-200 text-[12.5px] text-slate-600 hover:bg-slate-50">下一页 ›</button>
+      <span class="ml-auto text-[11.5px] text-slate-400">Esc 关闭 · ←/→ 翻页</span>
+    </div>
+  </div>
+</div>
+
+<div id="drawer" class="fixed left-0 right-0 bottom-0 bg-white border-t border-slate-300 shadow-2xl px-6 py-5" style="z-index:80">
+  <div class="flex items-start gap-8 max-w-[1600px] mx-auto">
+    <div class="flex-1">
+      <p class="text-[13px] font-bold mb-2">层级</p>
+      <p class="text-[12.5px] text-slate-600 leading-relaxed">法律标准在顶栏;外层容器 = 主论点(两层结构);内层卡片 = 分论点;蓝色小卡 = 证据。</p>
+    </div>
+    <div class="flex-1">
+      <p class="text-[13px] font-bold mb-2">联动</p>
+      <p class="text-[12.5px] text-slate-600 leading-relaxed">悬停证据卡 = 左栏预览定位;点击 = 提交焦点,右栏对应段落高亮;点放大镜或引证 = 3× 全页核验。</p>
+    </div>
+    <div class="flex-1">
+      <p class="text-[13px] font-bold mb-2">克制</p>
+      <p class="text-[12.5px] text-slate-600 leading-relaxed">跨 criterion 材料不给警告;关系图只陈述文档事实;放大镜只放大定位,不提示是否足以支撑。</p>
+    </div>
+    <button id="closeDrawer" class="px-3 py-1.5 rounded-lg border border-slate-200 text-[12px] text-slate-600">关闭</button>
+  </div>
+</div>
+
+<script>
+const CHIP = {
+  c1:{sub:'s1',ex:'B2',pg:'p.5',pages:8,title:'NORTHWIND DATA SYSTEMS',subtitle:'Annual Report 2023',
+      text:'Global revenue reached $320M in FY2023, with 1,800 employees across eleven offices.',
+      rel:[['Northwind Data Systems','年营收','$320M'],['Northwind Data Systems','全球员工','1,800 人'],['Northwind Data Systems','办公地点','11 处']]},
+  c2:{sub:'s1',ex:'D1',pg:'p.1',pages:4,title:'DATA INFRASTRUCTURE REVIEW',subtitle:'Vendor of the Year · 2023',
+      text:'Northwind Data Systems was named Data Infrastructure Vendor of the Year for 2023.',
+      rel:[['Northwind Data Systems','获评','年度最佳数据基础设施供应商'],['颁发方','为','Data Infrastructure Review']]},
+  c3:{sub:'s2',ex:'D1',pg:'p.3',pages:4,title:'DATA INFRASTRUCTURE REVIEW',subtitle:'Market Coverage',
+      text:'Its platform serves 13 of the 20 largest retailers in North America.',
+      rel:[['Northwind Data Systems','服务客户','北美前 20 大零售商中的 13 家']]},
+  c4:{sub:'s3',ex:'B1',pg:'p.2',pages:6,title:'NORTHWIND DATA SYSTEMS',subtitle:'Organizational Chart · Research & Development',
+      text:'The Director of AI Research reports directly to the Chief Technology Officer and oversees four research teams comprising 47 researchers.',
+      rel:[['李维博士','任职为','Director of AI Research'],['AI 研究部','汇报给','Marcus Reed · CTO'],['李维博士','管理','4 个团队 · 47 名研究员']]},
+  c5:{sub:'s4',ex:'B1',pg:'p.4',pages:6,title:'NORTHWIND DATA SYSTEMS',subtitle:'Delegation of Authority',
+      text:'Final approval authority over the division\u2019s $12M annual R&D budget rests with the Director of AI Research.',
+      rel:[['李维博士','拥有审批权','$12M 部门年度预算']]},
+  c6:{sub:'s5',ex:'C1',pg:'p.1',pages:3,title:'LETTER OF RECOMMENDATION',subtitle:'Marcus Reed · Chief Technology Officer',
+      text:'The retrieval infrastructure rebuild that Dr. Li led reduced median query latency by 60% across our platform.',
+      rel:[['李维博士','主导','检索基础设施重构'],['该项目','结果','中位查询延迟下降 60%'],['推荐人','为','Marcus Reed · CTO']]},
+  c7:{sub:'s5',ex:'C2',pg:'p.3',pages:5,title:'INTERNAL MEMORANDUM',subtitle:'Project Atlas · Delivery Review',
+      text:'Project Atlas was initiated and led by Dr. Li, and was delivered in Q3 2022.',
+      rel:[['李维博士','牵头','Project Atlas'],['Project Atlas','交付于','2022 Q3']]},
+  c8:{sub:'s6',ex:'A3',pg:'p.1',pages:2,title:'ACM SIGMOD',subtitle:'Best Paper Award · 2022',
+      text:'Best Paper Award presented to Dr. Wei Li et al. for \u201cEfficient Query Processing in Large-Scale Distributed Databases.\u201d',
+      rel:[['李维博士','获得','SIGMOD 2022 Best Paper Award'],['颁发方','为','ACM SIGMOD']]},
+  c9:{sub:'s6',ex:'E2',pg:'p.2',pages:3,title:'VLDB 2023',subtitle:'Program Committee Invitation',
+      text:'We invite Dr. Wei Li to serve on the Program Committee for VLDB 2023.',
+      rel:[['李维博士','受邀担任','VLDB 2023 程序委员会委员']]}
+};
+const SUB_TITLE={s1:'组织规模与市场地位',s2:'行业认可与客户覆盖',s3:'职务层级与汇报关系',s4:'决策与资源权限',s5:'领导成果的量化影响',s6:'学术荣誉佐证专业地位'};
+const SUB_ARG={s1:'① 机构具有杰出声誉',s2:'① 机构具有杰出声誉',s3:'② 申请人担任领导角色',s4:'② 申请人担任领导角色',s5:'② 申请人担任领导角色',s6:'② 申请人担任领导角色'};
+
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+let committedChip='c4';
+
+function crumbHTML(subId,chipId){const d=CHIP[chipId];return `
+  <span class="px-1.5 py-0.5 rounded bg-slate-100">${SUB_ARG[subId]}</span>
+  <span class="text-slate-300">›</span>
+  <span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-medium">${SUB_TITLE[subId]}</span>
+  <span class="text-slate-300">›</span>
+  <span class="mono px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold">${d.ex} ${d.pg}</span>`;}
+
+function paint(chipId){
+  const d=CHIP[chipId];
+  $('#crumb').innerHTML=crumbHTML(d.sub,chipId);
+  $('#bboxText').textContent=d.text;
+  $('#relations').innerHTML=d.rel.map(([s,p,o])=>`
+    <div class="flex items-center gap-2 min-w-0">
+      <span class="px-2 py-1 rounded-md bg-slate-900 text-white text-[11.5px] font-medium whitespace-nowrap">${s}</span>
+      <span class="mono text-[10.5px] text-slate-400 whitespace-nowrap">${p}</span>
+      <span class="px-2 py-1 rounded-md bg-white border border-slate-300 text-[11.5px] text-slate-700 truncate">${o}</span>
+    </div>`).join('')
+    +`<div class="pt-1.5"><span class="mono text-[10.5px] px-1.5 py-0.5 rounded bg-blue-50 border border-blue-200 text-blue-600 font-semibold">${d.ex} ${d.pg}</span></div>`;
+}
+
+function focusChip(chipId){
+  committedChip=chipId;
+  const subId=CHIP[chipId].sub;
+  $$('.chip').forEach(c=>{c.classList.toggle('is-focus',c.dataset.chip===chipId);c.classList.remove('is-preview');});
+  $$('.sub').forEach(s=>s.classList.toggle('is-focus',s.dataset.sub===subId));
+  $$('.para').forEach(p=>p.classList.toggle('is-focus',p.dataset.sub===subId));
+  const para=document.querySelector(`.para[data-sub="${subId}"]`);
+  if(para) para.scrollIntoView({block:'nearest',behavior:'smooth'});
+  $('#previewTag').style.display='none';
+  paint(chipId);
+}
+
+function focusSub(subId){
+  const first=Object.keys(CHIP).find(k=>CHIP[k].sub===subId);
+  if(first) focusChip(first);
+}
+
+function updateCounts(){
+  $('#cntProposed').textContent=$$('.sub[data-state="proposed"]').length;
+  $('#cntAccepted').textContent=$$('.sub[data-state="accepted"]').length;
+}
+
+/* ---- hover-to-locate ---- */
+document.addEventListener('mouseover',e=>{
+  const chip=e.target.closest('.chip'); if(!chip) return;
+  if(chip.dataset.chip===committedChip) return;
+  chip.classList.add('is-preview');
+  $('#previewTag').style.display='inline';
+  paint(chip.dataset.chip);
+});
+document.addEventListener('mouseout',e=>{
+  const chip=e.target.closest('.chip'); if(!chip) return;
+  if(chip.contains(e.relatedTarget)) return;
+  chip.classList.remove('is-preview');
+  $('#previewTag').style.display='none';
+  paint(committedChip);
+});
+
+/* ---- lightbox ---- */
+function openLb(chipId){
+  const d=CHIP[chipId];
+  $('#lbCrumb').innerHTML=crumbHTML(d.sub,chipId);
+  $('#lbPageNo').textContent=d.pg;
+  $('#lbDocTitle').textContent=d.title;
+  $('#lbDocSub').textContent=d.subtitle;
+  $('#lbText').textContent=d.text;
+  $('#lbTag').textContent=`${d.ex} · ${d.pg}`;
+  $('#lbNav').textContent=`Exhibit ${d.ex} · 第 ${d.pg.replace('p.','')} 页 / 共 ${d.pages} 页`;
+  $('#lb').classList.add('open');
+  $('#lbClose').focus();
+}
+function closeLb(){$('#lb').classList.remove('open');}
+
+$$('.lbz').forEach(b=>b.addEventListener('click',()=>{
+  $$('.lbz').forEach(x=>x.className='lbz px-2.5 py-1.5 text-[12px] text-slate-600 hover:bg-slate-50');
+  b.className='lbz px-2.5 py-1.5 text-[12px] font-semibold bg-slate-900 text-white';
+  const z=+b.dataset.z;
+  $('#lbPage').style.width=(300*z)+'px';
+}));
+$('#lbClose').addEventListener('click',closeLb);
+$('#lb').addEventListener('click',e=>{if(e.target.id==='lb') closeLb();});
+
+/* ---- delegated clicks ---- */
+document.addEventListener('click',e=>{
+  if(e.target.closest('.openLb')){e.stopPropagation();openLb(committedChip);return;}
+  const cite=e.target.closest('.cite');
+  if(cite){e.stopPropagation();focusChip(cite.dataset.chip);openLb(cite.dataset.chip);return;}
+  const z=e.target.closest('.zoom');
+  if(z){e.stopPropagation();const c=z.closest('.chip');focusChip(c.dataset.chip);openLb(c.dataset.chip);return;}
+  const acc=e.target.closest('.accept');
+  if(acc){e.stopPropagation();acc.closest('.sub').dataset.state='accepted';updateCounts();return;}
+  const chip=e.target.closest('.chip');
+  if(chip){e.stopPropagation();focusChip(chip.dataset.chip);return;}
+  const sub=e.target.closest('.sub');
+  if(sub){focusSub(sub.dataset.sub);return;}
+});
+
+$('#acceptAll').addEventListener('click',()=>{$$('.sub').forEach(s=>s.dataset.state='accepted');updateCounts();});
+
+document.addEventListener('keydown',e=>{
+  if($('#lb').classList.contains('open')){ if(e.key==='Escape') closeLb(); return; }
+  const subs=$$('.sub');
+  const cur=document.activeElement.closest?document.activeElement.closest('.sub'):null;
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+    e.preventDefault();
+    const i=cur?subs.indexOf(cur):-1;
+    const next=subs[Math.max(0,Math.min(subs.length-1,i+(e.key==='ArrowDown'?1:-1)))];
+    next.focus();focusSub(next.dataset.sub);
+  }
+  if(e.key==='Enter'&&cur&&cur.dataset.state==='proposed'){e.preventDefault();cur.dataset.state='accepted';updateCounts();}
+  if(e.key.toLowerCase()==='v'&&cur){e.preventDefault();openLb(committedChip);}
+});
+
+$('#helpBtn').addEventListener('click',()=>$('#drawer').classList.toggle('open'));
+$('#closeDrawer').addEventListener('click',()=>$('#drawer').classList.remove('open'));
+
+paint('c4');updateCounts();
+</script>
+</body>
+</html>

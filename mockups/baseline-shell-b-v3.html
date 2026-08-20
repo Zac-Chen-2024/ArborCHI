@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DraftDesk · 条件 B</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',system-ui,sans-serif;background:#f1f5f9;color:#0f172a}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+  .grab{cursor:grab}
+
+  #app{height:100dvh;display:grid;grid-template-rows:56px minmax(0,1fr);overflow:hidden}
+  #main{display:grid;grid-template-columns:clamp(300px,22vw,400px) minmax(0,1fr) clamp(380px,27vw,520px);overflow:hidden}
+  .panel{display:grid;overflow:hidden;min-width:0}
+  .scroll{overflow:auto;min-height:0;overscroll-behavior:contain}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:6px;border:3px solid transparent;background-clip:content-box}
+  ::-webkit-scrollbar-thumb:hover{background:#94a3b8;background-clip:content-box}
+
+  /* ---------- shared design tokens (identical in B & C) ---------- */
+  :root{
+    --h-topbar:56px; --h-phead:44px; --h-ctx:42px; --h-exstrip:42px; --h-pager:48px; --h-status:40px;
+    --c-ink:#0f172a; --c-muted:#64748b; --c-line:#e2e8f0; --c-bg:#f1f5f9;
+    --c-ev:#2563eb; --c-ev-bg:#eff6ff; --c-ev-line:#bfdbfe;
+    --r-card:8px; --r-box:12px;
+    --shadow-card:0 1px 2px rgba(15,23,42,.05),0 4px 16px rgba(15,23,42,.05);
+  }
+  .phead{height:var(--h-phead);display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid var(--c-line);background:#fff;flex-shrink:0}
+  .ctxstrip{height:var(--h-ctx);display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid var(--c-line);background:#fff;min-width:0}
+  .exstrip{height:var(--h-exstrip);display:flex;align-items:center;gap:6px;padding:0 12px;border-bottom:1px solid var(--c-line);background:#fff;overflow-x:auto;scrollbar-width:none}
+  .exstrip::-webkit-scrollbar{display:none}
+  .exchip{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:7px;border:1px solid var(--c-line);background:#fff;font-size:11.5px;color:#475569;cursor:pointer;transition:border-color .12s,background .12s}
+  .exchip:hover{border-color:#94a3b8}
+  .exchip.active{background:var(--c-ev-bg);border-color:var(--c-ev);color:#1e3a8a;font-weight:600}
+  .exchip .pgs{font-size:10px;color:#94a3b8;font-weight:400}
+  .pager{height:var(--h-pager);display:flex;align-items:center;gap:8px;padding:0 12px;border-top:1px solid var(--c-line);background:#fff;flex-shrink:0}
+  .pgbtn{height:28px;padding:0 10px;border-radius:7px;border:1px solid var(--c-line);background:#fff;font-size:11.5px;color:#475569;cursor:pointer;transition:border-color .12s}
+  .pgbtn:hover{border-color:#94a3b8}
+  .paper{background:#fff;border:1px solid var(--c-line);border-radius:6px;box-shadow:var(--shadow-card);padding:16px}
+
+  .pagebar{height:4px;background:#e2e8f0;border-radius:3px;margin-bottom:10px}
+
+  .msg-u{background:#4f46e5;color:#fff;border-radius:14px 14px 4px 14px}
+  .msg-a{background:#fff;border:1px solid var(--c-line);border-radius:14px 14px 14px 4px;box-shadow:var(--shadow-card)}
+
+  #editor{width:100%;height:100%;resize:none;border:none;outline:none;font-size:13px;line-height:1.85;color:var(--c-ink);background:transparent;font-family:inherit}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ============ TOP BAR ============ -->
+  <header class="bg-white border-b border-slate-200 flex items-center px-5 gap-4 min-w-0">
+    <span class="text-[16px] font-bold tracking-tight flex-shrink-0">DraftDesk</span>
+    <span class="w-px h-5 bg-slate-200 flex-shrink-0"></span>
+    <span class="text-[13px] text-slate-500 truncate flex-shrink-0">EB-1A · 李维博士</span>
+    <span class="w-px h-5 bg-slate-200 flex-shrink-0"></span>
+    <div class="flex items-baseline gap-2 min-w-0">
+      <h1 class="text-[15px] font-bold truncate">Leading or Critical Role</h1>
+      <span class="mono text-[11.5px] text-slate-400 flex-shrink-0 hidden xl:inline">8 C.F.R. §204.5(h)(3)(viii)</span>
+    </div>
+    <div class="ml-auto flex items-center gap-3 flex-shrink-0">
+      <span class="text-[11.5px] px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-500 font-medium">写作与核对 · 完成后即可提交</span>
+      <button class="px-3 py-1.5 rounded-lg border border-slate-200 text-[12.5px] text-slate-600 font-medium hover:bg-slate-50">说明</button>
+      <button class="px-4 py-2 rounded-lg bg-slate-900 text-white text-[13px] font-semibold hover:bg-slate-800">提交草稿</button>
+    </div>
+  </header>
+
+  <div id="main">
+
+    <!-- ============ LEFT : EVIDENCE (isomorphic viewer, manual nav only) ============ -->
+    <aside class="panel bg-white border-r border-slate-200" style="grid-template-rows:auto auto auto minmax(0,1fr) auto">
+      <div class="phead">
+        <span class="text-[13.5px] font-bold text-slate-700">证据库</span>
+        <span class="ml-auto text-[11px] text-slate-400">6 个 exhibit · 已 OCR</span>
+      </div>
+
+      <div class="ctxstrip">
+        <p class="text-[10px] font-bold text-slate-400 tracking-widest flex-shrink-0">当前文档</p>
+        <span class="mono text-[11px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold flex-shrink-0">B1</span>
+        <span class="text-[11px] text-slate-600 truncate">组织架构与授权文件</span>
+      </div>
+
+      <div class="exstrip">
+        <button class="exchip"><span class="mono">A3</span><span class="pgs">2页</span></button>
+        <button class="exchip active"><span class="mono">B1</span><span class="pgs">6页</span></button>
+        <button class="exchip"><span class="mono">B2</span><span class="pgs">8页</span></button>
+        <button class="exchip"><span class="mono">C1</span><span class="pgs">3页</span></button>
+        <button class="exchip"><span class="mono">C2</span><span class="pgs">5页</span></button>
+        <button class="exchip"><span class="mono">E2</span><span class="pgs">4页</span></button>
+      </div>
+
+      <div class="scroll bg-slate-50 p-3">
+        <div class="paper">
+          <div class="text-right text-[10px] text-slate-300 mb-2">p.2</div>
+          <p class="text-[12px] font-bold text-slate-600 text-center">NORTHWIND DATA SYSTEMS</p>
+          <p class="text-[10px] text-slate-400 text-center mb-3.5">Organizational Chart · R&amp;D</p>
+          <div class="pagebar" style="width:88%"></div>
+          <div class="pagebar" style="width:76%"></div>
+          <p class="text-[12px] text-slate-800 leading-relaxed my-2.5">
+            The Director of AI Research reports directly to the Chief Technology
+            Officer and oversees four research teams comprising 47 researchers.
+          </p>
+          <div class="pagebar" style="width:92%"></div>
+          <div class="pagebar" style="width:80%"></div>
+          <div class="pagebar" style="width:86%"></div>
+          <div class="pagebar" style="width:70%"></div>
+          <div class="pagebar" style="width:84%;margin-bottom:0"></div>
+        </div>
+        <div class="paper mt-2.5 opacity-40">
+          <div class="text-right text-[10px] text-slate-300 mb-2">p.3</div>
+          <div class="pagebar" style="width:84%"></div>
+          <div class="pagebar" style="width:90%"></div>
+          <div class="pagebar" style="width:72%;margin-bottom:0"></div>
+        </div>
+      </div>
+
+      <div class="pager">
+        <button class="pgbtn">‹ 上一页</button>
+        <span class="mono text-[11px] text-slate-500 flex-1 text-center">B1 · 第 2 / 6 页</span>
+        <button class="pgbtn">下一页 ›</button>
+        <span class="w-px h-4 bg-slate-200 mx-0.5"></span>
+        <button class="pgbtn" style="padding:0 8px">−</button>
+        <span class="mono text-[10.5px] text-slate-400">100%</span>
+        <button class="pgbtn" style="padding:0 8px">＋</button>
+      </div>
+    </aside>
+
+    <!-- ============ CENTER : CHAT ============ -->
+    <section class="panel bg-slate-100" style="grid-template-rows:auto minmax(0,1fr) auto">
+      <div class="phead" style="padding:0 20px">
+        <span class="text-[13.5px] font-bold text-slate-700 flex-shrink-0">写作助手</span>
+        <span class="text-[10.5px] px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 font-medium">写作指引已加载 · 证据文件已挂载</span>
+      </div>
+
+      <div class="scroll px-6 py-4 space-y-4">
+
+        <div class="flex justify-end">
+          <div class="msg-u max-w-[75%] px-4 py-2.5 text-[13px] leading-relaxed">
+            请基于挂载的证据,为李维博士写 Leading or Critical Role 一节。
+          </div>
+        </div>
+
+        <div class="flex">
+          <div class="msg-a max-w-[85%] px-4 py-3">
+            <p class="text-[13px] leading-[1.85] text-slate-800">
+              好的。以下是基于所提供证据撰写的 Leading or Critical Role 一节:
+            </p>
+            <div class="mt-2.5 pt-2.5 border-t border-slate-100 text-[13px] leading-[1.85] text-slate-800 space-y-2.5">
+              <p><strong>I. Northwind Data Systems 具有杰出声誉。</strong>
+              Northwind Data Systems is a data-infrastructure firm reporting $320M
+              in revenue and 1,800 employees across eleven offices [Exhibit B2, p.5].
+              The company was named Data Infrastructure Vendor of the Year for
+              2023 [Exhibit D1, p.1] …</p>
+              <p><strong>II. 李维博士在其中担任领导角色。</strong>
+              As Director of AI Research, Dr. Li reports directly to the Chief
+              Technology Officer and oversees four research teams comprising 47
+              researchers [Exhibit B1, p.2]. Dr. Li's SIGMOD 2022 Best Paper Award
+              [Exhibit A3, p.1] further underscores his professional standing …</p>
+              <p class="text-slate-400 text-[11.5px]">(共 26 句,含 14 条引证 — 其余省略)</p>
+            </div>
+            <div class="mt-3 flex items-center gap-2">
+              <button class="px-3 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-[12px] font-semibold">复制到草稿 →</button>
+              <button class="px-3 py-1.5 rounded-md border border-slate-200 bg-white text-[12px] text-slate-600">重新生成</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <div class="msg-u max-w-[75%] px-4 py-2.5 text-[13px] leading-relaxed">
+            第二段能不能更突出他的决策权限?
+          </div>
+        </div>
+
+        <div class="flex">
+          <div class="msg-a max-w-[85%] px-4 py-3">
+            <p class="text-[13px] leading-[1.85] text-slate-800">
+              当然。修改后的段落:As Director of AI Research, Dr. Li holds final
+              approval authority over the division's $12M annual R&amp;D budget
+              [Exhibit B1, p.4], reports directly to the Chief Technology Officer …
+            </p>
+            <div class="mt-3 flex items-center gap-2">
+              <button class="px-3 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-[12px] font-semibold">复制到草稿 →</button>
+              <button class="px-3 py-1.5 rounded-md border border-slate-200 bg-white text-[12px] text-slate-600">重新生成</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-5 py-3 bg-white border-t border-slate-200">
+        <div class="flex items-end gap-2 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 focus-within:border-indigo-400">
+          <textarea rows="1" placeholder="向助手提出修改要求,或让它解释某条证据……"
+            class="flex-1 resize-none outline-none text-[13px] leading-relaxed text-slate-800 placeholder:text-slate-400 bg-transparent"></textarea>
+          <button class="w-8 h-8 rounded-lg bg-slate-900 hover:bg-slate-700 text-white flex items-center justify-center flex-shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RIGHT : DRAFT EDITOR ============ -->
+    <aside class="panel bg-white border-l border-slate-200" style="grid-template-rows:auto minmax(0,1fr) auto">
+      <div class="phead" style="justify-content:space-between">
+        <span class="text-[13.5px] font-bold text-slate-700">我的草稿</span>
+        <span class="text-[11px] text-slate-400">这是你将提交的版本 · 可自由编辑</span>
+      </div>
+
+      <div class="px-5 py-4 overflow-hidden">
+<textarea id="editor" spellcheck="false">I. Northwind Data Systems 具有杰出声誉
+
+Northwind Data Systems is a data-infrastructure firm reporting $320M in revenue and 1,800 employees across eleven offices [Exhibit B2, p.5]. The company was named Data Infrastructure Vendor of the Year for 2023 [Exhibit D1, p.1], and its platform serves 13 of the 20 largest retailers in North America [Exhibit D1, p.3].
+
+II. 李维博士在其中担任领导角色
+
+As Director of AI Research, Dr. Li holds final approval authority over the division's $12M annual R&D budget [Exhibit B1, p.4], reports directly to the Chief Technology Officer, and oversees four research teams comprising 47 researchers [Exhibit B1, p.2]. The retrieval infrastructure rebuild that Dr. Li led reduced median query latency by 60% [Exhibit C1, p.1]. Dr. Li's SIGMOD 2022 Best Paper Award [Exhibit A3, p.1] and his invitation to the VLDB 2023 Program Committee [Exhibit E2, p.2] further underscore his professional standing.
+</textarea>
+      </div>
+
+      <div class="flex items-center px-4 border-t border-slate-200" style="height:var(--h-status)">
+        <span class="mono text-[11px] text-slate-400">9 句 · 8 条引证</span>
+        <span class="ml-auto text-[11px] text-slate-400">自动保存 · 刚刚</span>
+      </div>
+    </aside>
+  </div>
+</div>
+
+</body>
+</html>
