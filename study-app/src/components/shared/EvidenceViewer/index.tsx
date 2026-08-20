@@ -74,13 +74,7 @@ export function EvidenceViewer({
 
       <ExhibitStrip exhibits={exhibits} active={activeExhibit} onClick={onExhibitClick} />
 
-      <PageView
-        page={page}
-        zoom={zoom}
-        linkage={linkage}
-        onOpenLightbox={onOpenLightbox}
-        onScrollToPage={(p) => onPageChange(p, 'scroll')}
-      />
+      <PageView page={page} zoom={zoom} linkage={linkage} onOpenLightbox={onOpenLightbox} />
 
       <PagerBar
         exhibit={current.id}

@@ -6,6 +6,19 @@ on:
   pull_request:
 
 jobs:
+  # Runs first and on a bare checkout: catches the failures that a working tree
+  # hides -- files .gitignore swallowed, imports whose case only matters on
+  # Linux, red lines quietly edited out. See scripts/audit.py for the history.
+  audit:
+    name: audit (repo-level invariants)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python scripts/audit.py
+
   backend:
     name: backend (ruff + pytest)
     runs-on: ubuntu-latest

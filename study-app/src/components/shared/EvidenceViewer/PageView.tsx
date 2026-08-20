@@ -20,7 +20,6 @@ interface Props {
   zoom: number
   linkage?: Linkage
   onOpenLightbox?: () => void
-  onScrollToPage: (page: number) => void
 }
 
 /** Placeholder text lines, matching the mockup's bar widths. */
@@ -28,7 +27,7 @@ const BARS_ABOVE = [88, 76]
 const BARS_BELOW = [92, 80, 86, 70, 84]
 const NEXT_PAGE_BARS = [84, 90, 72]
 
-export function PageView({ page, zoom, linkage, onOpenLightbox, onScrollToPage }: Props) {
+export function PageView({ page, zoom, linkage, onOpenLightbox }: Props) {
   const { t } = useTranslation()
   const snippet = linkage?.snippet
 
@@ -83,13 +82,13 @@ export function PageView({ page, zoom, linkage, onOpenLightbox, onScrollToPage }
         ))}
       </div>
 
-      {/* Continuous paging: the next page is present and dimmed, and scrolling
-          into it reports a page_change with via:"scroll". */}
-      <div
-        className="paper mt-2.5 opacity-40"
-        style={{ zoom }}
-        onMouseEnter={() => onScrollToPage(page + 1)}
-      >
+      {/* Continuous paging: the next page sits below, dimmed, as in the mockup.
+          It reports nothing. An earlier version fired page_change{via:"scroll"}
+          on mouseenter as a stand-in for real scroll detection -- that would
+          have written a navigation the participant never made into the event
+          log. Real scroll tracking (IntersectionObserver over the page nodes)
+          lands with the OCR pages at M2; until then this is presentation only. */}
+      <div className="paper mt-2.5 opacity-40" style={{ zoom }}>
         <div className="text-[10px] text-slate-300 mb-2">{t('ref.page', { i: page + 1 })}</div>
         {NEXT_PAGE_BARS.map((w, i) => (
           <div

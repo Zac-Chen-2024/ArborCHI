@@ -23,6 +23,10 @@ export type LightboxZoom = (typeof ZOOM_LEVELS)[number]
 interface Props {
   open: boolean
   snippet: Snippet | null
+  /** Page currently shown. Its own value, not the snippet's: the participant
+      may page away from the cited page to check the surrounding document, and
+      whether they did is exactly the behaviour the study measures. */
+  page: number
   zoom: LightboxZoom
   crumb: React.ReactNode
   onZoom: (z: LightboxZoom) => void
@@ -33,21 +37,26 @@ interface Props {
 const LINES_ABOVE = [90, 82, 88]
 const LINES_BELOW = [94, 78, 86, 91, 72, 88, 80]
 
-export function Lightbox({ open, snippet, zoom, crumb, onZoom, onClose, onPage }: Props) {
+export function Lightbox({ open, snippet, page, zoom, crumb, onZoom, onClose, onPage }: Props) {
   const { t } = useTranslation()
 
   useEffect(() => {
     if (!open || !snippet) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
-      if (e.key === 'ArrowLeft') onPage(Math.max(1, snippet.page - 1))
-      if (e.key === 'ArrowRight') onPage(Math.min(snippet.pages, snippet.page + 1))
+      if (e.key === 'ArrowLeft') onPage(Math.max(1, page - 1))
+      if (e.key === 'ArrowRight') onPage(Math.min(snippet.pages, page + 1))
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, snippet, onClose, onPage])
+  }, [open, snippet, page, onClose, onPage])
 
   if (!open || !snippet) return null
+
+  // The cited passage lives on exactly one page. Paging elsewhere shows the
+  // document as it is -- with nothing highlighted, because there is nothing
+  // there to point at.
+  const onCitedPage = page === snippet.page
 
   return (
     <div
@@ -97,18 +106,26 @@ export function Lightbox({ open, snippet, zoom, crumb, onZoom, onClose, onPage }
 
         <div className="scroll bg-slate-200 p-8">
           <div id="lbPage" className="bg-white mx-auto shadow-xl p-10" style={{ width: 300 * zoom }}>
-            <div className="text-[12px] text-slate-300 mb-4">{t('ref.page', { i: snippet.page })}</div>
+            <div className="text-[12px] text-slate-300 mb-4">{t('ref.page', { i: page })}</div>
             <p className="text-[16px] font-bold text-slate-700 text-center">{snippet.docTitle}</p>
             <p className="text-[12px] text-slate-400 text-center mb-7">{snippet.docSubtitle}</p>
             {LINES_ABOVE.map((w, i) => (
               <div key={i} className="lbline" style={{ width: `${w}%` }} />
             ))}
-            <div className="border-[3px] border-dashed border-blue-500 bg-blue-50/70 rounded-lg px-5 py-4 my-5 relative">
-              <span className="absolute -top-3 left-4 px-2 py-0.5 rounded bg-blue-600 text-white text-[10.5px] font-bold mono">
-                {t('ref.exPageTag', { ex: snippet.ex, i: snippet.page })}
-              </span>
-              <p className="text-[15px] text-slate-900 leading-[1.75]">{snippet.text}</p>
-            </div>
+            {onCitedPage ? (
+              <div className="border-[3px] border-dashed border-blue-500 bg-blue-50/70 rounded-lg px-5 py-4 my-5 relative">
+                <span className="absolute -top-3 left-4 px-2 py-0.5 rounded bg-blue-600 text-white text-[10.5px] font-bold mono">
+                  {t('ref.exPageTag', { ex: snippet.ex, i: snippet.page })}
+                </span>
+                <p className="text-[15px] text-slate-900 leading-[1.75]">{snippet.text}</p>
+              </div>
+            ) : (
+              <div className="my-5">
+                <div className="lbline" style={{ width: '96%' }} />
+                <div className="lbline" style={{ width: '84%' }} />
+                <div className="lbline" style={{ width: '90%' }} />
+              </div>
+            )}
             {LINES_BELOW.map((w, i) => (
               <div
                 key={i}
@@ -122,18 +139,18 @@ export function Lightbox({ open, snippet, zoom, crumb, onZoom, onClose, onPage }
         <div className="px-5 py-3 border-t border-slate-200 flex items-center gap-3 bg-white">
           <button
             className="px-3 py-1.5 rounded-lg border border-slate-200 text-[12.5px] text-slate-600 hover:bg-slate-50"
-            disabled={snippet.page <= 1}
-            onClick={() => onPage(snippet.page - 1)}
+            disabled={page <= 1}
+            onClick={() => onPage(page - 1)}
           >
             {t('pager.prev')}
           </button>
           <span className="mono text-[12.5px] text-slate-500">
-            {t('lightbox.nav', { ex: snippet.ex, i: snippet.page, n: snippet.pages })}
+            {t('lightbox.nav', { ex: snippet.ex, i: page, n: snippet.pages })}
           </span>
           <button
             className="px-3 py-1.5 rounded-lg border border-slate-200 text-[12.5px] text-slate-600 hover:bg-slate-50"
-            disabled={snippet.page >= snippet.pages}
-            onClick={() => onPage(snippet.page + 1)}
+            disabled={page >= snippet.pages}
+            onClick={() => onPage(page + 1)}
           >
             {t('pager.next')}
           </button>

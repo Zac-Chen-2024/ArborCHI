@@ -71,7 +71,9 @@ export function Moderator() {
   const create = async (track: 'formal' | 'test') => {
     try {
       const out = await api.post<CreatedSession>('/sessions', {
-        condition: track === 'test' ? condition : condition,
+        condition,
+        // A test run still needs a participant code (it is a full dress
+        // rehearsal), but nobody should have to invent one.
         participant_code: track === 'test' ? 'TEST' : code,
         lang,
         track,

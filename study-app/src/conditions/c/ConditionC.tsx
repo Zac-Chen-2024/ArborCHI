@@ -38,10 +38,18 @@ export function ConditionC({ state }: Props) {
   const [tree, setTree] = useState<Argument[]>(TREE)
   const [committedChip, setCommittedChip] = useState<string>('c4')
   const [previewChip, setPreviewChip] = useState<string | null>(null)
+  // Where the viewer is actually pointed. This is its OWN state, not something
+  // derived from the focused snippet: the participant can navigate away by
+  // hand (exhibit chips, pager) while the focus stays where it was, and the
+  // analysis needs those to be two separate facts.
+  const [exhibit, setExhibit] = useState('B1')
   const [page, setPage] = useState(2)
   const [zoom, setZoom] = useState(1)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxZoom, setLightboxZoom] = useState<LightboxZoom>(3)
+  // The magnifier keeps its own page so the participant can read around the
+  // citation without moving the panel behind it.
+  const [lightboxPage, setLightboxPage] = useState(2)
   const [helpOpen, setHelpOpen] = useState(false)
 
   const subRefs = useRef<Record<string, HTMLDivElement | null>>({})
@@ -50,6 +58,15 @@ export function ConditionC({ state }: Props) {
   const effectiveChip = previewChip ?? committedChip
   const snippet = SNIPPETS[effectiveChip]
   const focusedSub = SNIPPETS[committedChip]?.sub ?? null
+
+  // Where the viewer is pointed right now. A hover PREVIEW takes the panel to
+  // the previewed passage without disturbing `exhibit`/`page`, so letting go
+  // returns you exactly where you were -- that is what makes preview a look
+  // rather than a move (C-05). Manual navigation and committed clicks write to
+  // the state; hover never does.
+  const viewExhibit = previewChip ? snippet.ex : exhibit
+  const viewPage = previewChip ? snippet.page : page
+  const showLinkage = viewExhibit === snippet.ex && viewPage === snippet.page
 
   const subTitle = useMemo(() => {
     const flat = tree.flatMap((a) => a.subs.map((s) => [s.id, s.title] as const))
@@ -67,7 +84,9 @@ export function ConditionC({ state }: Props) {
     if (!target) return
     setCommittedChip(chipId)
     setPreviewChip(null)
+    setExhibit(target.ex)
     setPage(target.page)
+    setLightboxPage(target.page)
     // Scroll the matching letter paragraph into view; the sub-argument card and
     // the breadcrumb follow from `committedChip` on the next render.
     paraRefs.current[target.sub]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
@@ -109,6 +128,7 @@ export function ConditionC({ state }: Props) {
     }
     if (e.key.toLowerCase() === 'v' && focusedSub) {
       e.preventDefault()
+      setLightboxPage(SNIPPETS[committedChip].page)
       setLightboxOpen(true)
     }
   }
@@ -146,10 +166,14 @@ export function ConditionC({ state }: Props) {
         >
           <EvidenceViewer
             exhibits={EXHIBITS}
-            activeExhibit={snippet.ex}
-            page={page}
+            activeExhibit={viewExhibit}
+            page={viewPage}
             zoom={zoom}
-            linkage={{ snippet, preview: previewChip !== null }}
+            // The highlight belongs to a place, not to a selection: once the
+            // participant has navigated somewhere else by hand, drawing the
+            // focused snippet's box on THIS page would be pointing at the
+            // wrong text. Show it only where it actually lives.
+            linkage={showLinkage ? { snippet, preview: previewChip !== null } : undefined}
             title={t('evidence.titleC')}
             headerBadge={
               previewChip !== null ? (
@@ -166,10 +190,13 @@ export function ConditionC({ state }: Props) {
                 </div>
               </div>
             }
-            onOpenLightbox={() => setLightboxOpen(true)}
+            onOpenLightbox={() => {
+              setLightboxPage(viewPage)
+              setLightboxOpen(true)
+            }}
             onExhibitClick={(id) => {
-              const first = Object.values(SNIPPETS).find((s) => s.ex === id)
-              if (first) setPage(first.page)
+              setExhibit(id)
+              setPage(1)
             }}
             onPageChange={(p) => setPage(p)}
             onZoom={setZoom}
@@ -214,11 +241,12 @@ export function ConditionC({ state }: Props) {
       <Lightbox
         open={lightboxOpen}
         snippet={SNIPPETS[committedChip]}
+        page={lightboxPage}
         zoom={lightboxZoom}
         crumb={crumb}
         onZoom={setLightboxZoom}
         onClose={() => setLightboxOpen(false)}
-        onPage={setPage}
+        onPage={setLightboxPage}
       />
 
       <HelpDrawer open={helpOpen} condition="c" onClose={() => setHelpOpen(false)} />

@@ -12,11 +12,14 @@ study-app/.env.local
 # ===================
 # 实验数据(绝不入库)
 # ===================
-data/
-backend/data/
-data_study_test/
-backend/study_materials/*/pages/
-!backend/study_materials/**/.gitkeep
+# 注意路径要锚定。裸写 `data/` 会匹配**任意层级**叫 data 的目录 —— 它吞掉过
+# study-app/src/data/fixtures.ts,本地照常能跑,只有干净 checkout 才暴露
+# (CI 报 Cannot find module '../../data/fixtures')。加前导斜杠只匹配仓库根。
+/data/
+/backend/data/
+/data_study_test/
+/backend/study_materials/*/pages/
+!/backend/study_materials/**/.gitkeep
 
 # ===================
 # Claude Code
