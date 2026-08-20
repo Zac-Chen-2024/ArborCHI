@@ -174,7 +174,15 @@
     "noSessions": "暂无场次。",
     "unauthorized": "这不是主试 token。",
     "token": "主试 token",
-    "seqLabel": "seq {{n}}"
+    "seqLabel": "seq {{n}}",
+    "close": "收场",
+    "closeHint": "跑完整性检查并存档报告",
+    "integrity": "完整性",
+    "verdict": {
+      "valid": "有效",
+      "review": "待人工复核",
+      "invalid": "不可用于分析"
+    }
   },
   "ref": {
     "exPage": "{{ex}} 第 {{i}} 页",

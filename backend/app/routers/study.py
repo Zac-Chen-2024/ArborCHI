@@ -26,7 +26,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from app.core import materials, probe, study, study_log, study_snapshots
+from app.core import integrity, materials, probe, study, study_log, study_snapshots
 from app.core.atomic_io import append_jsonl_many
 from app.core.config import settings
 from app.core.ids import validate_path_params
@@ -630,6 +630,44 @@ def moderator_note(body: NoteBody) -> Dict[str, Any]:
     session = _moderator_session(body.session_id)
     write_server_event(session, "moderator_note", {"text": body.text})
     return {"success": True}
+
+
+@router.post("/close/{session_id}")
+def close_session(session_id: str) -> Dict[str, Any]:
+    """Close-out: run the integrity checks and store the report (BE-15, MOD-06).
+
+    Run while the participant is still in the room. That is the point of doing
+    it here rather than in an analysis script weeks later -- a missing
+    checkpoint or a truncated log is sometimes still fixable at that moment,
+    and never fixable afterwards.
+
+    Idempotent and non-destructive: the report is a reading of what is on disk,
+    so re-running it on the same session gives the same answer.
+    """
+    _require_moderator()
+    session = _moderator_session(session_id)
+
+    report = integrity.build_report(session, baseline=_cohort_baseline(session))
+    integrity.write_report(session, report)
+    return report
+
+
+def _cohort_baseline(session: Dict[str, Any]) -> Dict[str, float]:
+    """Event-count baseline from the OTHER sessions on the same track.
+
+    Same track only: a test run and a formal run are the same software but not
+    the same behaviour, and pooling them would widen the baseline until nothing
+    looked unusual. The session being judged is excluded from its own baseline.
+    """
+    counts = []
+    for sid, ref in study.load_index().items():
+        if sid == session["session_id"] or ref.get("track") != session.get("track"):
+            continue
+        other = study.load_session(sid)
+        if not other or not other.get("submitted"):
+            continue
+        counts.append(int(other.get("event_count", 0)))
+    return integrity.cohort_baseline(counts)
 
 
 @router.get("/monitor/{session_id}")

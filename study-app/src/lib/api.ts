@@ -110,6 +110,24 @@ export interface CreatedSession {
   join_url: string
 }
 
+export interface IntegrityCheck {
+  check: string
+  /** pass = satisfied, flag = a human should look, fail = not analysable.
+   *  The flag/fail split is PR-4: an unusual event count is a finding, losing
+   *  the log is a defect. */
+  status: 'pass' | 'flag' | 'fail'
+  detail: string
+}
+
+export interface IntegrityReport {
+  session_id: string
+  verdict: 'valid' | 'review' | 'invalid'
+  failed: string[]
+  flagged: string[]
+  event_count: number
+  checks: IntegrityCheck[]
+}
+
 export interface MonitorRow {
   session_id: string
   condition: Condition

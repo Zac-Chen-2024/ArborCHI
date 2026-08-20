@@ -174,7 +174,15 @@
     "noSessions": "No sessions yet.",
     "unauthorized": "This token is not a moderator token.",
     "token": "Moderator token",
-    "seqLabel": "seq {{n}}"
+    "seqLabel": "seq {{n}}",
+    "close": "Close out session",
+    "closeHint": "Runs the integrity checks and stores the report",
+    "integrity": "Integrity",
+    "verdict": {
+      "valid": "Valid",
+      "review": "Needs review",
+      "invalid": "Not analysable"
+    }
   },
   "ref": {
     "exPage": "{{ex}} p.{{i}}",

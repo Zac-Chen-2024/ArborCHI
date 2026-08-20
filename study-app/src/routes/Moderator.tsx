@@ -14,6 +14,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { LANG_ENDONYM, LANGS } from '../i18n'
+import type { IntegrityReport } from '../lib/api'
 import { api, getToken, setToken, type Condition, type CreatedSession, type MonitorRow } from '../lib/api'
 
 interface SessionRow {
@@ -34,6 +35,7 @@ export function Moderator() {
   const [created, setCreated] = useState<CreatedSession | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [note, setNote] = useState('')
+  const [report, setReport] = useState<IntegrityReport | null>(null)
 
   const [condition, setCondition] = useState<Condition>('c')
   const [lang, setLang] = useState('en')
@@ -90,6 +92,11 @@ export function Moderator() {
   const advance = async () => {
     if (!selected) return
     await api.post('/advance', { session_id: selected })
+  }
+
+  const closeOut = async () => {
+    if (!selected) return
+    setReport(await api.post<IntegrityReport>(`/close/${selected}`))
   }
 
   const saveNote = async () => {
@@ -277,6 +284,52 @@ export function Moderator() {
               <button onClick={() => void saveNote()} className="px-4 py-2 rounded-lg border border-slate-300 text-[13px]">
                 {t('mod.noteSave')}
               </button>
+            </div>
+
+            <div className="pt-1">
+              <button
+                onClick={() => void closeOut()}
+                className="px-4 py-2 rounded-lg border border-slate-900 text-[13px] font-semibold"
+              >
+                {t('mod.close')}
+              </button>
+              <span className="ml-3 text-[11.5px] text-slate-400">{t('mod.closeHint')}</span>
+            </div>
+          </section>
+        )}
+
+        {report && (
+          <section className="bg-white rounded-xl border border-slate-200 p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <p className="text-[14px] font-bold">{t('mod.integrity')}</p>
+              <span
+                className={`px-2.5 py-1 rounded-full text-[12px] font-semibold ${
+                  report.verdict === 'valid'
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    : report.verdict === 'review'
+                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                      : 'bg-rose-50 text-rose-700 border border-rose-200'
+                }`}
+              >
+                {t(`mod.verdict.${report.verdict}`)}
+              </span>
+            </div>
+            <div className="space-y-1.5">
+              {report.checks.map((c) => (
+                <div key={c.check} className="flex items-start gap-2.5 text-[12.5px]">
+                  <span
+                    className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${
+                      c.status === 'pass'
+                        ? 'bg-emerald-500'
+                        : c.status === 'flag'
+                          ? 'bg-amber-500'
+                          : 'bg-rose-500'
+                    }`}
+                  />
+                  <span className="mono text-slate-500 w-[160px] flex-shrink-0">{c.check}</span>
+                  <span className="text-slate-700">{c.detail}</span>
+                </div>
+              ))}
             </div>
           </section>
         )}
