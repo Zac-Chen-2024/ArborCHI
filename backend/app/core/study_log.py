@@ -76,6 +76,11 @@ SERVER_EVENTS = frozenset({
 # Client-authored, both conditions.
 COMMON_EVENTS = frozenset({
     "heartbeat",          # 30s self-driven; drives the liveness light (MOD-04)
+    # A render crashed and the error boundary caught it. In the log because a
+    # session that ends oddly needs to say why: without it the record shows a
+    # participant who simply stopped doing anything, which reads as
+    # disengagement rather than a blank screen.
+    "client_error",
     "panel_focus",        # which of evidence / tree|chat / letter|draft has attention
     "doc_open",           # an exhibit was opened
     "page_change",        # via: click | scroll | linkage

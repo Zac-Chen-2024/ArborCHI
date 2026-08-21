@@ -17,9 +17,10 @@
  * verification behaviour: someone who opened the magnifier and read the rest of
  * the page did something different from someone who opened and closed it.
  */
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { pageImageUrl } from '../../lib/pageImage'
 import type { Snippet } from '../../lib/material'
 
 const ZOOM_LEVELS = [1, 2, 3] as const
@@ -42,11 +43,37 @@ interface Props {
   onScroll: (scrollTop: number) => void
 }
 
-const LINES_ABOVE = [90, 82, 88]
-const LINES_BELOW = [94, 78, 86, 91, 72, 88, 80]
 /** Scroll reports are throttled: a wheel gesture is dozens of events and the
  *  analysis needs the trajectory, not every pixel of it. */
 const SCROLL_THROTTLE_MS = 300
+
+
+/** One page of the exhibit, fetched with the participant's token. */
+function LightboxPage({ exhibit, page }: { exhibit: string; page: number }) {
+  const { t } = useTranslation()
+  const [url, setUrl] = useState<string | null>(null)
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    let live = true
+    setUrl(null)
+    setFailed(false)
+    pageImageUrl(exhibit, page)
+      .then((u) => live && setUrl(u))
+      .catch(() => live && setFailed(true))
+    return () => {
+      live = false
+    }
+  }, [exhibit, page])
+
+  if (url) return <img src={url} alt="" className="block w-full select-none" draggable={false} />
+  return (
+    <div className="w-full grid place-items-center text-[12px] text-slate-400"
+         style={{ aspectRatio: '1 / 1.29' }}>
+      {failed ? t('evidence.pageUnavailable') : ''}
+    </div>
+  )
+}
 
 export function Lightbox({
   open, snippet, exhibitPages, page, zoom, crumb, onZoom, onClose, onPage, onScroll,
@@ -127,34 +154,33 @@ export function Lightbox({
             onScroll(Math.round(e.currentTarget.scrollTop))
           }}
         >
-          <div id="lbPage" className="bg-white mx-auto shadow-xl p-10" style={{ width: 300 * zoom }}>
-            <div className="text-[12px] text-slate-300 mb-4">{t('ref.page', { i: page })}</div>
-            <p className="text-[16px] font-bold text-slate-700 text-center">{snippet.doc_title}</p>
-            <p className="text-[12px] text-slate-400 text-center mb-7">{snippet.doc_subtitle}</p>
-            {LINES_ABOVE.map((w, i) => (
-              <div key={i} className="lbline" style={{ width: `${w}%` }} />
-            ))}
-            {onCitedPage ? (
-              <div className="border-[3px] border-dashed border-blue-500 bg-blue-50/70 rounded-lg px-5 py-4 my-5 relative">
-                <span className="absolute -top-3 left-4 px-2 py-0.5 rounded bg-blue-600 text-white text-[10.5px] font-bold mono">
+          {/* The page as it is. On the cited page the passage is boxed; on any
+              other page nothing is -- turning away from the citation has to
+              show the document unmarked, or "I checked the source" stops
+              meaning the participant read anything (C-11). */}
+          <div id="lbPage" className="bg-white mx-auto shadow-xl relative"
+               style={{ width: 300 * zoom }}>
+            <div className="absolute top-2 left-3 z-10 text-[12px] text-slate-400 bg-white/80 px-1.5 rounded">
+              {t('ref.page', { i: page })}
+            </div>
+            <LightboxPage exhibit={snippet.exhibit} page={page} />
+            {onCitedPage && (
+              <div
+                className="absolute pointer-events-none rounded-sm border-[3px] border-blue-500 bg-blue-500/10"
+                style={{
+                  // 红线 #8: the bundle's 1000x1000 space, so /10 is a percentage
+                  // of the page and the box holds at every zoom level.
+                  left: `${snippet.bbox[0] / 10}%`,
+                  top: `${snippet.bbox[1] / 10}%`,
+                  width: `${(snippet.bbox[2] - snippet.bbox[0]) / 10}%`,
+                  height: `${(snippet.bbox[3] - snippet.bbox[1]) / 10}%`,
+                }}
+              >
+                <span className="absolute -top-3.5 left-2 px-2 py-0.5 rounded bg-blue-600 text-white text-[10.5px] font-bold mono whitespace-nowrap">
                   {t('ref.exPageTag', { ex: snippet.exhibit, i: snippet.page })}
                 </span>
-                <p className="text-[15px] text-slate-900 leading-[1.75]">{snippet.text}</p>
-              </div>
-            ) : (
-              <div className="my-5">
-                <div className="lbline" style={{ width: '96%' }} />
-                <div className="lbline" style={{ width: '84%' }} />
-                <div className="lbline" style={{ width: '90%' }} />
               </div>
             )}
-            {LINES_BELOW.map((w, i) => (
-              <div
-                key={i}
-                className="lbline"
-                style={{ width: `${w}%`, marginBottom: i === LINES_BELOW.length - 1 ? 0 : undefined }}
-              />
-            ))}
           </div>
         </div>
 

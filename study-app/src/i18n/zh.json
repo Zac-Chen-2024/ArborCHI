@@ -38,7 +38,8 @@
   "evidence": {
     "titleC": "证据原文",
     "titleB": "证据库",
-    "meta": "{{n}} 个 exhibit · 已 OCR"
+    "meta": "{{n}} 个 exhibit · 已 OCR",
+    "pageUnavailable": "这一页没能加载出来。"
   },
   "crumb": {
     "label": "当前查看",
@@ -206,5 +207,9 @@
     "confirmBody": "提交之后就不能再修改这封信了。",
     "confirmYes": "确认提交",
     "confirmNo": "继续检查"
+  },
+  "crash": {
+    "title": "这个界面出了点问题。",
+    "body": "请告知主试。你的工作已经保存。"
   }
 }

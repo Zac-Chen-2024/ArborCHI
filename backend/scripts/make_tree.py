@@ -386,14 +386,16 @@ def main() -> int:
         "pr1_filter_satisfied": not provisional,
         "provisional": provisional,
         "provisional_reason": (
-            "No candidate hung >= 2 cross-criterion snippets. Every candidate "
-            "placed exactly one dual-use item (k17, a biography read as the "
-            "judge's credentials) and all five correctly excluded the peer's "
-            "research record (k16) and the petitioner's own article (k18). "
+            "No candidate hung >= 2 cross-criterion snippets. Each placed "
+            "exactly one, and the same one: k17, a biography that every "
+            "candidate read as the judge's own credentials -- a defensible "
+            "placement, since it is dual-use. All five excluded k18, the "
+            "petitioner's own article, which is squarely another criterion. "
             "PR-1's filter presumes a generator that mis-places off-criterion "
             "evidence; this one does not, so new seeds would not change the "
-            "outcome. The distractor node C-14 and 红线 #5 are about must be "
-            "introduced deliberately -- a PR-1 amendment, not a script change."
+            "outcome. The distractor node C-14 and 红线 #5 are about has to be "
+            "introduced deliberately -- a PR-1 amendment for a human to make, "
+            "not something for this script to slip in."
         ) if provisional else None,
     }
     (TREES / "selection.log.json").write_text(

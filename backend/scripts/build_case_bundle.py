@@ -144,7 +144,17 @@ SNIPPETS = [
 # Snippets that evidence a DIFFERENT criterion. Not shipped to the client --
 # this is the answer key for the distractor check (红线 #5), used by the tree
 # selection script and never by anything the participant can reach.
-CROSS_CRITERION = {"k16", "k17", "k18"}
+#
+# k16 (Prof. Liping Sun's faculty page) was listed here until the filed brief
+# turned up. The brief uses it INSIDE this criterion -- "Dr. Liping Sun ... also
+# participated in the Tiger Roar Awards selection with Dr. Liu" -- as evidence
+# of the calibre of the panel he sat on. Calling it off-criterion was my reading,
+# and the attorney's reading is the one that counts.
+#
+# What is left is genuinely off-criterion: a biography evidencing his leading
+# role (§(h)(3)(viii)) and one of his own articles evidencing authorship
+# (§(h)(3)(vi)). Two, which is exactly PR-1's threshold.
+CROSS_CRITERION = {"k17", "k18"}
 
 # Subject/predicate/object per snippet, for the relations panel. Written out
 # rather than extracted: a wrong triple here is a wrong claim shown to a
@@ -229,6 +239,30 @@ def display(exhibit: str) -> str:
     return f"{m.group(1).upper()}-{m.group(2)}"
 
 
+# The petitioner as the corpus writes him. Both orders appear: Chinese sources
+# translate as "Liu Dehuan", the English filing uses "Dehuan Liu".
+NAME_FORMS = ("Dehuan Liu", "Liu Dehuan", "LIU Dehuan", "Liu, Dehuan")
+
+
+def other_mentions(exhibits: set) -> list:
+    """Every page in this bundle that names the petitioner.
+
+    Feeds the relations panel's "he is also named here" list, which is a
+    navigation aid, not an assessment (C-07). Derived rather than hand-listed:
+    a page that mentions him and is missing from this list is a place the
+    participant is quietly not told to look.
+    """
+    out = []
+    for ex in sorted(exhibits, key=lambda s: (s[0], int(s[1:]))):
+        for path in sorted(glob.glob(str(OCR_ROOT / ex / "page_*.json")),
+                           key=lambda p: int(re.search(r"(\d+)", Path(p).name).group(1))):
+            page = json.loads(Path(path).read_text(encoding="utf-8"))
+            text = page.get("markdown_text") or ""
+            if any(form in text for form in NAME_FORMS):
+                out.append({"exhibit": display(ex), "page": page["page_number"]})
+    return out
+
+
 def build() -> None:
     snippets, missing = {}, []
     used_exhibits = set()
@@ -275,9 +309,11 @@ def build() -> None:
         "snippets": snippets,
     })
 
+    mentions = other_mentions(used_exhibits)
     write(OUT / "relations.json", {
         "schema_version": 1,
         "focus_entity": FOCUS_ENTITY,
+        "other_mentions": {FOCUS_ENTITY: mentions},
         "relations": {
             sid: [{"subject": s, "predicate": p, "object": o} for s, p, o in triples]
             for sid, triples in RELATIONS.items() if sid in snippets
@@ -292,7 +328,8 @@ def build() -> None:
         "snippet_ids": sorted(CROSS_CRITERION & set(snippets)),
     })
 
-    print(f"{len(snippets)} snippets across {len(exhibits)} exhibits -> {OUT}")
+    print(f"{len(snippets)} snippets across {len(exhibits)} exhibits, "
+          f"{len(mentions)} pages naming the petitioner -> {OUT}")
     for sid, s in snippets.items():
         print(f"  {sid:<4} {s['exhibit']:<5} p{s['page']:<3} {s['text'][:78]}")
 

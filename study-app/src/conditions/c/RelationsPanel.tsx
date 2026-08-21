@@ -20,8 +20,14 @@ interface Props {
 
 export function RelationsPanel({ snippet, relations, onMentionClick }: Props) {
   const { t } = useTranslation()
-  const triples = relations.relations[snippet.snippet_id] ?? []
-  const mentions = relations.other_mentions[relations.focus_entity] ?? []
+  // Optional chaining on the containers, not just the lookups. A bundle that
+  // omits `other_mentions` made `undefined[focus_entity]` throw, and with no
+  // error boundary above it the whole workspace white-screened the moment a
+  // participant selected their first piece of evidence -- top bar, tree, letter
+  // and all. A panel that renders one section short is a bundle bug; a blank
+  // screen mid-task is a lost session.
+  const triples = relations?.relations?.[snippet.snippet_id] ?? []
+  const mentions = relations?.other_mentions?.[relations?.focus_entity] ?? []
 
   return (
     <div className="border-t border-slate-200 bg-white">

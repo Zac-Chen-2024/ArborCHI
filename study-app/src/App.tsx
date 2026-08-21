@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, Route, BrowserRouter as Router, Routes, useNavigate } from 'react-router-dom'
 
+import { ErrorBoundary } from './components/shared/ErrorBoundary'
 import { ConditionB } from './conditions/b/ConditionB'
 import { ConditionC } from './conditions/c/ConditionC'
 import { ConfidenceForm } from './conditions/common/ConfidenceForm'
@@ -58,7 +59,11 @@ function ConditionRoute({ want }: { want: Condition }) {
 
   return (
     <>
-      <PhaseScreen state={state} want={want} />
+      {/* Inside the route, not around the Router: a crash should cost the
+          workspace, not the moderator's ability to advance the phase. */}
+      <ErrorBoundary>
+        <PhaseScreen state={state} want={want} />
+      </ErrorBoundary>
       {state.softlock && <SoftLockOverlay />}
     </>
   )

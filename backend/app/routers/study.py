@@ -22,9 +22,11 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from app.core import integrity, materials, probe, study, study_log, study_snapshots
@@ -396,6 +398,44 @@ def start_session() -> Dict[str, Any]:
         # Material hashes join this payload at M5 when the bundle lands (BE-07).
     })
     return study.public_state(session)
+
+
+_EXHIBIT_ID = re.compile(r"^[A-Z]{1,3}-\d{1,3}$")
+
+
+@router.get("/page/{exhibit}/{page}")
+def exhibit_page(exhibit: str, page: int) -> FileResponse:
+    """One rendered page of one exhibit, as an image.
+
+    Served through the API rather than mounted as a static directory, for the
+    same reason /material exists: the bundle a request may read is decided by
+    the SERVER from the phase. A static mount would let a participant in the
+    practice phase fetch the real case's pages by guessing a path, which is
+    exactly the part of the session the two conditions are compared on.
+
+    The exhibit id is matched against a pattern and then used to index the
+    bundle's own manifest -- never joined into a path directly.
+    """
+    session = _participant_session()
+    if not _EXHIBIT_ID.match(exhibit):
+        raise HTTPException(status_code=404, detail="No such page")
+
+    material_id = _material_for_phase(session)
+    known = {e["id"] for e in materials.public_snippets(material_id).get("exhibits") or []}
+    if exhibit not in known:
+        raise HTTPException(status_code=404, detail="No such page")
+
+    path = materials.bundle_dir(material_id) / "pages" / exhibit / f"{page}.jpg"
+    try:
+        resolved = path.resolve(strict=True)
+        resolved.relative_to((materials.bundle_dir(material_id) / "pages").resolve())
+    except (OSError, ValueError):
+        raise HTTPException(status_code=404, detail="No such page") from None
+
+    # Cacheable but private: the page is stable for the life of the bundle, and
+    # a participant turning back to an exhibit should not wait for it twice.
+    return FileResponse(resolved, media_type="image/jpeg",
+                        headers={"Cache-Control": "private, max-age=3600"})
 
 
 @router.get("/material")

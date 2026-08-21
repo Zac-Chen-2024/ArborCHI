@@ -1,51 +1,98 @@
 /**
- * The scrolling page area. M0 renders the mockup's placeholder page; at M2
- * this becomes the real OCR page, and the bbox rectangle is positioned from
- * the bundle's normalised coordinates.
+ * The scrolling page area: the exhibit page as it actually looks, with the
+ * cited passage boxed on it.
  *
- * bbox convention (红线 #8): the bundle stores coordinates in a 1000×1000
- * normalised space -- divide by 1000 to get a fraction of the page, then
- * multiply by the rendered page box. Never store or read pixels; the same
- * snippet has to land correctly at every zoom level and every render width.
- * This mirrors DocumentViewer.tsx in the product frontend, which is where the
- * arithmetic is being carried over from.
+ * This drew the mockup's grey placeholder bars until the real material landed.
+ * That was right for a wireframe and wrong the moment a participant is asked to
+ * check a sentence against the page it cites: three of the five planted error
+ * kinds are findable only by reading the exhibit, `source_opened` and the
+ * magnifier dwell are dependent variables, and the bbox exists to put a
+ * highlight somewhere. None of that means anything over grey bars.
+ *
+ * bbox convention (红线 #8): the bundle stores a 1000×1000 normalised space, so
+ * a coordinate divided by 10 is a percentage of the rendered page. Positioned in
+ * percentages rather than pixels, the box lands correctly at every zoom level
+ * and every render width, and the image's own size never has to be known here.
+ *
+ * Parity (§D3, B-03): the PAGE is identical in both conditions. `linkage` adds
+ * the box and nothing else -- same document, same passage on it, different
+ * pointing.
  */
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { pageImageUrl } from '../../../lib/pageImage'
 import type { Linkage } from './index'
 
 interface Props {
+  exhibit: string
   page: number
+  /** Pages in this exhibit, so the trailing next-page preview knows to stop. */
+  pageCount: number
   zoom: number
   linkage?: Linkage
-  /** Document header, from the material rather than hard-coded. Both
-   *  conditions print the same header for the same page -- the difference
-   *  between them is the highlight, not the document. */
-  docTitle: string
-  docSubtitle: string
-  /** Page body shown when there is no linkage (condition B, or a page the
-   *  focused snippet does not live on). The same passage is present either
-   *  way; only the pointing differs (B-03). */
-  bodyText: string
   onOpenLightbox?: () => void
 }
 
-/** Placeholder text lines, matching the mockup's bar widths. */
-const BARS_ABOVE = [88, 76]
-const BARS_BELOW = [92, 80, 86, 70, 84]
-const NEXT_PAGE_BARS = [84, 90, 72]
+/** One rendered page, or a reason it is not there. */
+function Page({ exhibit, page, dim }: { exhibit: string; page: number; dim?: boolean }) {
+  const { t } = useTranslation()
+  const [url, setUrl] = useState<string | null>(null)
+  const [failed, setFailed] = useState(false)
 
-export function PageView({ page, zoom, linkage, docTitle, docSubtitle, bodyText, onOpenLightbox }: Props) {
+  useEffect(() => {
+    let live = true
+    setUrl(null)
+    setFailed(false)
+    pageImageUrl(exhibit, page)
+      .then((u) => live && setUrl(u))
+      .catch(() => live && setFailed(true))
+    return () => {
+      live = false
+    }
+  }, [exhibit, page])
+
+  return (
+    <div className={`relative bg-white ${dim ? 'opacity-40' : ''}`}>
+      <div className="absolute top-1.5 left-2 z-10 text-[10px] text-slate-400 bg-white/80 px-1 rounded">
+        {t('ref.page', { i: page })}
+      </div>
+      {url ? (
+        <img
+          src={url}
+          alt=""
+          className="block w-full select-none"
+          draggable={false}
+        />
+      ) : (
+        // A fixed aspect box so the page does not jump when the image lands.
+        // Failure says so rather than showing an empty frame: a participant
+        // staring at a blank exhibit should be able to tell the researcher
+        // something is wrong, not conclude the document is blank.
+        <div className="w-full grid place-items-center text-[11px] text-slate-400"
+             style={{ aspectRatio: '1 / 1.29' }}>
+          {failed ? t('evidence.pageUnavailable') : ''}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function PageView({ exhibit, page, pageCount, zoom, linkage, onOpenLightbox }: Props) {
   const { t } = useTranslation()
   const snippet = linkage?.snippet
+  // Only box the passage when it is on the page being looked at. Turning to
+  // another page must not leave a rectangle behind on unrelated text (C-11).
+  const box =
+    snippet && snippet.exhibit === exhibit && snippet.page === page ? snippet.bbox : null
 
   return (
     <div className="scroll bg-slate-50 p-3">
-      <div className="paper relative" style={{ zoom }}>
+      <div className="paper relative overflow-hidden" style={{ zoom, padding: 0 }}>
         {onOpenLightbox && (
           <button
             onClick={onOpenLightbox}
-            className="absolute top-2 right-2 w-6 h-6 rounded border border-slate-200 bg-white text-slate-400 flex items-center justify-center hover:text-blue-600 hover:border-blue-300"
+            className="absolute top-2 right-2 z-20 w-6 h-6 rounded border border-slate-200 bg-white text-slate-400 flex items-center justify-center hover:text-blue-600 hover:border-blue-300"
             aria-label={t('lightbox.open')}
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -54,54 +101,35 @@ export function PageView({ page, zoom, linkage, docTitle, docSubtitle, bodyText,
             </svg>
           </button>
         )}
-        <div className="text-[10px] text-slate-300 mb-2">{t('ref.page', { i: page })}</div>
-        <p className="text-[12px] font-bold text-slate-600 text-center">{docTitle}</p>
-        <p className="text-[10px] text-slate-400 text-center mb-3.5">{docSubtitle}</p>
-        {BARS_ABOVE.map((w, i) => (
-          <div key={i} className="pagebar" style={{ width: `${w}%` }} />
-        ))}
 
-        {snippet ? (
-          // Condition C only: the located passage. `is-preview` distinguishes a
-          // hover look-ahead from a committed click (C-05).
-          <div
-            className={`rounded px-3 py-2.5 my-2.5 border-2 border-blue-500 bg-blue-50/70 ${
-              linkage?.preview ? 'border-dashed' : ''
-            }`}
-          >
-            <p className="text-[12px] text-slate-800 leading-relaxed">{snippet.text}</p>
-          </div>
-        ) : (
-          // Condition B: the same passage is on the page as ordinary text --
-          // equally available, just not pointed at.
-          <p className="text-[12px] text-slate-800 leading-relaxed my-2.5">{bodyText}</p>
-        )}
-
-        {BARS_BELOW.map((w, i) => (
-          <div
-            key={i}
-            className="pagebar"
-            style={{ width: `${w}%`, marginBottom: i === BARS_BELOW.length - 1 ? 0 : undefined }}
-          />
-        ))}
+        <div className="relative">
+          <Page exhibit={exhibit} page={page} />
+          {box && (
+            <div
+              className={`absolute pointer-events-none rounded-sm border-2 border-blue-500 bg-blue-500/10 ${
+                linkage?.preview ? 'border-dashed' : ''
+              }`}
+              style={{
+                left: `${box[0] / 10}%`,
+                top: `${box[1] / 10}%`,
+                width: `${(box[2] - box[0]) / 10}%`,
+                height: `${(box[3] - box[1]) / 10}%`,
+              }}
+            />
+          )}
+        </div>
       </div>
 
       {/* Continuous paging: the next page sits below, dimmed, as in the mockup.
           It reports nothing. An earlier version fired page_change{via:"scroll"}
           on mouseenter as a stand-in for real scroll detection -- that would
           have written a navigation the participant never made into the event
-          log. Real scroll tracking (IntersectionObserver over the page nodes)
-          lands with the OCR pages at M2; until then this is presentation only. */}
-      <div className="paper mt-2.5 opacity-40" style={{ zoom }}>
-        <div className="text-[10px] text-slate-300 mb-2">{t('ref.page', { i: page + 1 })}</div>
-        {NEXT_PAGE_BARS.map((w, i) => (
-          <div
-            key={i}
-            className="pagebar"
-            style={{ width: `${w}%`, marginBottom: i === NEXT_PAGE_BARS.length - 1 ? 0 : undefined }}
-          />
-        ))}
-      </div>
+          log. */}
+      {page < pageCount && (
+        <div className="paper mt-2.5 overflow-hidden" style={{ zoom, padding: 0 }}>
+          <Page exhibit={exhibit} page={page + 1} dim />
+        </div>
+      )}
     </div>
   )
 }

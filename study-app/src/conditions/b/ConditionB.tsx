@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next'
 
 import { EvidenceViewer } from '../../components/shared/EvidenceViewer'
 import { TopBar } from '../../components/shared/TopBar'
-import { DRAFT_FIXTURE, PAGE_BODY_FIXTURE } from '../../data/fixtures'
+import { DRAFT_FIXTURE } from '../../data/fixtures'
 import { fetchMaterial, type Material } from '../../lib/material'
 import type { StudyState } from '../../lib/api'
 import { logger } from '../../lib/logger'
@@ -102,9 +102,6 @@ export function ConditionB({ state }: Props) {
         >
           <EvidenceViewer
             exhibits={exhibits}
-            docTitle={current?.title ?? ''}
-            docSubtitle={t('doc.page', { i: page })}
-            bodyText={PAGE_BODY_FIXTURE}
             activeExhibit={exhibit}
             page={page}
             zoom={zoom}

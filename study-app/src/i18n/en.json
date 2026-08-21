@@ -38,7 +38,8 @@
   "evidence": {
     "titleC": "Source Evidence",
     "titleB": "Evidence Library",
-    "meta": "{{n}} exhibits · OCR-processed"
+    "meta": "{{n}} exhibits · OCR-processed",
+    "pageUnavailable": "This page could not be loaded."
   },
   "crumb": {
     "label": "Now viewing",
@@ -206,5 +207,9 @@
     "confirmBody": "You will not be able to change the letter after this.",
     "confirmYes": "Submit final",
     "confirmNo": "Keep checking"
+  },
+  "crash": {
+    "title": "Something went wrong on this screen.",
+    "body": "Please tell the researcher. Your work has been saved."
   }
 }
