@@ -98,16 +98,24 @@ class Logger {
     // covers the participant switching away without closing. Both, because
     // neither alone fires in every browser for every exit.
     window.addEventListener('pagehide', this.beaconFlush)
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') this.beaconFlush()
-    })
+    document.addEventListener('visibilitychange', this.onVisibilityChange)
   }
 
+  private onVisibilityChange = (): void => {
+    if (document.visibilityState === 'hidden') this.beaconFlush()
+  }
+
+  /** Undo everything `start` did. Listeners as well as timers: leaving them
+   *  attached means a second logger's flush fires the first one's too, which
+   *  is invisible in an app with one logger and a page-long lifetime, and very
+   *  visible the moment anything creates two. */
   stop(): void {
     if (this.timer !== null) window.clearInterval(this.timer)
     if (this.heartbeat !== null) window.clearInterval(this.heartbeat)
     this.timer = null
     this.heartbeat = null
+    window.removeEventListener('pagehide', this.beaconFlush)
+    document.removeEventListener('visibilitychange', this.onVisibilityChange)
     this.started = false
   }
 

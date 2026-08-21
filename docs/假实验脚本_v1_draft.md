@@ -70,6 +70,11 @@ cd backend && ./.venv/Scripts/python.exe scripts/dry_run.py
 
 这些自动跑不了 —— 要么依赖真实指针事件，要么依赖浏览器生命周期。
 
+> B11–B13(断网/关页/崩溃)原先在这张表里，现在改由 `src/lib/logger.test.ts`
+> 注入故障来验：fetch 强制失败、派发 `pagehide`、让新 logger 启动在死掉的那个
+> 留下的镜像上。它们保护的是**过期不可补**的日志，每次改动都手工走一遍不可持续，
+> 所以进了 CI。
+
 | 步 | 动作 | 验收编号 | 应当看到 |
 |---|---|---|---|
 | B1 | 悬停一张证据卡，**不点**，移开 | C-05 | `hover_start` + `hover_end`(带 `dwell_ms`) 成对；**没有** `chip_click`；左栏出现虚线预览与「Hover preview」标；移开后回到原处 |
@@ -82,9 +87,9 @@ cd backend && ./.venv/Scripts/python.exe scripts/dry_run.py
 | B8 | 把分论点移到另一个主论点下 | C-04 | 菜单二级列出其他主论点；日志带 `from_parent_title` / `to_parent_title` |
 | B9 | 改完结构后重新生成 | C-09 | stale 横幅出现；重新生成后段落对上新结构 |
 | B10 | 在信件里改字、把一句拆成两句 | C-10 / 红线 #2 | `text_edit` 防抖 2 秒；`lineage` 里旧 id 指向两个新 id |
-| B11 | **拔网线 30 秒**再插回 | FS-04 | 期间照常操作；恢复后 `seq` 连续无丢行 |
-| B12 | **关标签页** | FS-04 | 最后一批事件经 `sendBeacon` 到达 |
-| B13 | 崩溃恢复：开发者工具里杀掉页面再打开 | FS-04 | localStorage 镜像重放，无丢行 |
+| ~~B11~~ | ~~拔网线 30 秒~~ | FS-04 | **已自动化** → `study-app` 的 `npm test`（见上方说明） |
+| ~~B12~~ | ~~关标签页~~ | FS-04 | **已自动化** → `study-app` 的 `npm test`（见上方说明） |
+| ~~B13~~ | ~~崩溃恢复~~ | FS-04 | **已自动化** → `study-app` 的 `npm test`（见上方说明） |
 | B14 | 核验段全 DOM 搜计时元素 | FS-07 / 红线 #4 | **搜不到** |
 | B15 | 干扰节点 DOM 审计 | C-14 / 红线 #5 | 与普通节点**无任何**样式或 data 差异 |
 | B16 | live 与 frozen 句对比 | 红线 #3 | 视觉无差 |
