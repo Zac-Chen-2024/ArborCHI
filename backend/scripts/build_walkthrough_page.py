@@ -149,12 +149,35 @@ CAPTIONS = {
         "they declare themselves finished is itself the data.",
     ),
     "cite-click": (
-        "点信里的引证,直接跳到被引页并打开放大镜——不必先猜是哪份 exhibit、"
-        "再翻到第几页。「有没有去查原文、查了多久」是因变量,所以查证这条路必须短。",
-        "Clicking a citation in the letter jumps straight to the cited page and "
-        "opens the magnifier — no guessing which exhibit, no paging to find it. "
-        "Whether they checked the source and for how long is a dependent "
-        "variable, so the path to checking has to be short.",
+        "点信里的引证:左栏翻到被引页、把那段圈出来、并把框滚到面板中间——"
+        "不必先猜是哪份 exhibit、再翻到第几页。**放大镜不会自己弹出**。"
+        "打开放大镜本身是被记录的动作,如果点引证就自动打开,"
+        "「有没有放大原文」记的就是界面的行为而不是被试的。",
+        "Clicking a citation turns to the cited page, boxes the passage and "
+        "scrolls it to the middle of the panel — no guessing which exhibit, no "
+        "paging to find it. <strong>The magnifier does not open by itself.</strong> "
+        "Opening it is a recorded act; if a citation click opened it, "
+        "\"did they magnify the source\" would record the interface's behaviour "
+        "rather than the participant's.",
+    ),
+    "bbox-hover": (
+        "鼠标移到框上,框加深并出现放大镜徽标,光标变成 zoom-in——"
+        "告诉被试这里可以点进去。**悬停预览证据卡时框是不响应的**:"
+        "那时指针只是路过,在它下面放一个可点的控件会误触。",
+        "Hovering the box deepens it, shows a magnifier badge and turns the "
+        "cursor to zoom-in — it says it can be clicked. While an evidence card is "
+        "merely being <em>previewed</em> on hover the box stays inert: the "
+        "pointer is only passing through, and a live control under it would fire "
+        "by accident.",
+    ),
+    "bbox-zoom": (
+        "点框才打开放大镜(角落那个按钮是另一个入口,日志里分得开:"
+        "<code>via: bbox</code> 与 <code>via: page_button</code>)。"
+        "点弹层以外的任意位置即关闭,Esc 也可以。",
+        "Clicking the box opens the magnifier. The corner button is a second way "
+        "in, and the log tells them apart — <code>via: bbox</code> versus "
+        "<code>via: page_button</code>. Clicking anywhere outside the panel "
+        "closes it, as does Esc.",
     ),
     "editing": (
         "双击进入编辑,整封信是一个文本域。改动按**句**记录血缘:一句拆成两句,"

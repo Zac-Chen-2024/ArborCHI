@@ -66,7 +66,7 @@ function LightboxPage({ exhibit, page }: { exhibit: string; page: number }) {
     }
   }, [exhibit, page])
 
-  if (url) return <img src={url} alt="" className="block w-full select-none" draggable={false} />
+  if (url) return <img src={url} alt="" className="block w-full max-w-full select-none" draggable={false} />
   return (
     <div className="w-full grid place-items-center text-[12px] text-slate-400"
          style={{ aspectRatio: '1 / 1.29' }}>

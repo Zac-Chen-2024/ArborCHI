@@ -40,8 +40,26 @@ body{
 /* 三栏骨架:证据 / 中栏(C=树, B=聊天) / 右栏(C=信件, B=草稿) */
 #app{height:100dvh;display:grid;grid-template-rows:var(--h-topbar) minmax(0,1fr);overflow:hidden}
 #main{display:grid;grid-template-columns:clamp(300px,22vw,400px) minmax(0,1fr) clamp(380px,27vw,520px);overflow:hidden}
-.panel{display:grid;overflow:hidden;min-width:0}
-.scroll{overflow:auto;min-height:0;overscroll-behavior:contain}
+/* grid-template-columns:minmax(0,1fr) is an addition to what the mockups
+   carried. min-width:0 constrains the panel BOX; it does not constrain the
+   implicit grid TRACK inside it, which sizes to the widest row. The relations
+   panel has whitespace-nowrap chips ("Prof. Dehuan Liu", "appointed"), so
+   selecting a piece of evidence widened that track past the column -- and the
+   page image, sized at width:100% of the track, grew with it and had 197px
+   clipped by the overflow:hidden above. The document's title was cut mid-word
+   and the bbox highlight ran off the edge of the panel. */
+.panel{display:grid;grid-template-columns:minmax(0,1fr);overflow:hidden;min-width:0}
+/* min-width:0 is an addition to what the mockups carried, and it is needed
+   because the mockups never contained a real document.
+   A grid item defaults to min-width:auto, so it refuses to shrink below its
+   content's intrinsic width. The placeholder page was grey bars at percentage
+   widths -- no intrinsic width, nothing to push against. The moment the real
+   exhibit page went in, a 1400px image widened this container to 517px inside a
+   333px column and 197px of every page was clipped: the certificate's title cut
+   mid-word, the petitioner's name cut, and the bbox highlight itself cut off at
+   the panel edge. Nothing overflowed visibly, because .panel above it hides it.
+   .panel already carries min-width:0; this is the same rule one level down. */
+.scroll{overflow:auto;min-height:0;min-width:0;overscroll-behavior:contain}
 
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:6px;border:3px solid transparent;background-clip:content-box}
@@ -63,3 +81,28 @@ body{
 .pagebar{height:4px;background:#e2e8f0;border-radius:3px;margin-bottom:10px}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---------- located passage (C-11) ----------
+ * The box is the way into the magnifier. It says so on hover and takes a
+ * click; the magnifier does not open on its own from following a citation,
+ * because opening it is itself a measured act -- if it appeared whenever a
+ * participant clicked a reference, "did they magnify the source" would be a
+ * record of the interface's behaviour rather than theirs. A hover PREVIEW of
+ * an evidence card leaves the box inert: the pointer is only passing through,
+ * and a live control under it would fire by accident. */
+.bbox{transition:background-color .12s ease,box-shadow .12s ease}
+.bbox.is-zoomable{cursor:zoom-in}
+.bbox.is-zoomable:hover,.bbox.is-zoomable:focus-visible{
+  background:rgba(37,99,235,.18);
+  box-shadow:0 0 0 3px rgba(37,99,235,.18);
+  outline:none;
+}
+.bbox-zoom{
+  position:absolute;top:-11px;right:-11px;width:22px;height:22px;border-radius:999px;
+  background:var(--c-ev);color:#fff;display:none;place-items:center;
+  box-shadow:0 1px 4px rgba(15,23,42,.35);
+}
+.bbox-zoom svg{width:12px;height:12px}
+.bbox.is-zoomable:hover .bbox-zoom,
+.bbox.is-zoomable:focus-visible .bbox-zoom{display:grid}
+@media (prefers-reduced-motion:reduce){.bbox{transition:none}}

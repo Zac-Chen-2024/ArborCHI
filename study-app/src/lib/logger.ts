@@ -99,6 +99,10 @@ class Logger {
   private timer: number | null = null
   private heartbeat: number | null = null
   private backoff = 0
+  /** Pending retry after a failed flush. Held so `stop()` can cancel it: a
+   *  stopped logger that still wakes up a second later and rewrites its mirror
+   *  is a logger that outlives the session it belonged to. */
+  private retry: number | null = null
   private sending = false
   private started = false
   private mirrorKey = `${MIRROR_PREFIX}.anon`
@@ -143,8 +147,11 @@ class Logger {
   stop(): void {
     if (this.timer !== null) window.clearInterval(this.timer)
     if (this.heartbeat !== null) window.clearInterval(this.heartbeat)
+    if (this.retry !== null) window.clearTimeout(this.retry)
     this.timer = null
     this.heartbeat = null
+    this.retry = null
+    this.backoff = 0
     window.removeEventListener('pagehide', this.beaconFlush)
     document.removeEventListener('visibilitychange', this.onVisibilityChange)
     this.started = false
@@ -246,7 +253,9 @@ class Logger {
       // Exponential backoff, capped. The queue is untouched -- nothing is
       // dropped because a request failed.
       this.backoff = this.backoff === 0 ? 1_000 : Math.min(this.backoff * 2, MAX_BACKOFF_MS)
-      window.setTimeout(() => {
+      if (this.retry !== null) window.clearTimeout(this.retry)
+      this.retry = window.setTimeout(() => {
+        this.retry = null
         this.backoff = 0
         void this.flush()
       }, this.backoff)

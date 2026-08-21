@@ -434,7 +434,7 @@ export function ConditionC({ state }: Props) {
                 </div>
               </div>
             }
-            onOpenLightbox={() => openLightbox(effectiveChip, viewPage, 'page_button')}
+            onOpenLightbox={(via) => openLightbox(effectiveChip, viewPage, via)}
             onExhibitClick={(id) => {
               logger.log('doc_open', { exhibit: id, from_exhibit: exhibit, via: 'chip' })
               logger.log('page_change', { exhibit: id, page: 1, via: 'click', reason: 'exhibit chip' })
@@ -515,8 +515,12 @@ export function ConditionC({ state }: Props) {
           staleNodeIds={staleNodeIds}
           generating={generating}
           onCiteClick={(id) => {
+            // Locate and highlight only. The magnifier is a separate,
+            // deliberate act -- clicking the box on the page, or the button on
+            // the page corner. Opening it here made every citation click count
+            // as a magnify, so "did they open the source" measured the
+            // interface rather than the participant.
             commitChip(id, 'linkage')
-            openLightbox(id, snippets[id]?.page ?? 1, 'citation')
             void usePractice.getState().clear('linkage')
           }}
           onRegenerate={() => void runGeneration('participant')}

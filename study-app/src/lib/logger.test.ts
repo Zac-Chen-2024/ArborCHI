@@ -426,3 +426,30 @@ describe('the sequence number across a reload', () => {
     mine.stop()
   })
 })
+
+describe('stopping', () => {
+  it('cancels the retry a failed flush left behind', async () => {
+    setToken('test-token')
+    const logger = await freshLogger()
+    let calls = 0
+    vi.stubGlobal('fetch', vi.fn(async () => {
+      calls += 1
+      throw new TypeError('Failed to fetch')
+    }))
+
+    logger.start('test-build')
+    logger.log('heartbeat', {})
+    await logger.flush()
+    const afterFirst = calls
+    expect(afterFirst).toBeGreaterThan(0)
+
+    // stop() used to clear the intervals and leave the backoff timer armed, so
+    // a stopped logger woke up a second later, flushed again and rewrote its
+    // mirror -- into whatever session had started in the meantime. It showed up
+    // as an intermittent failure in the test above this one.
+    logger.stop()
+    await new Promise((r) => setTimeout(r, 1400))
+
+    expect(calls).toBe(afterFirst)
+  })
+})

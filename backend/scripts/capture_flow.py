@@ -264,9 +264,22 @@ def main() -> int:
              "Verification: check each sentence against its exhibit. No countdown, no lock.", sid)
 
         page.locator(".cite").nth(3).click()
+        page.wait_for_timeout(2200)
+        if page.locator("#lb").count():
+            raise SystemExit("a citation click opened the magnifier -- it must only locate")
+        shot(page, "cite-click", "点信里的引证:左栏跳到被引页、画框、滚到居中。放大镜**不会**自己弹出",
+             "Clicking a citation turns to the cited page, boxes the passage and "
+             "centres it. The magnifier does <strong>not</strong> open by itself.", sid)
+
+        page.hover(".bbox")
+        settle(page, 700)
+        shot(page, "bbox-hover", "鼠标移到框上:出现放大提示,光标变成 zoom-in",
+             "Hovering the box offers the magnifier; the cursor becomes zoom-in.", sid)
+
+        page.click(".bbox")
         settle(page, 1600)
-        shot(page, "cite-click", "点信里的引证:直接跳到被引页并打开放大镜",
-             "Clicking a citation jumps to the cited page and opens the magnifier.", sid)
+        shot(page, "bbox-zoom", "点框才打开放大镜。点弹层以外任意位置即关闭",
+             "Clicking the box opens the magnifier. Clicking anywhere outside it closes.", sid)
 
         close_lightbox(page)
         page.locator(".para p").first.dblclick()

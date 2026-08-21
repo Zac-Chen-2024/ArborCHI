@@ -18,7 +18,7 @@
  * the box and nothing else -- same document, same passage on it, different
  * pointing.
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { pageImageUrl } from '../../../lib/pageImage'
@@ -31,7 +31,10 @@ interface Props {
   pageCount: number
   zoom: number
   linkage?: Linkage
-  onOpenLightbox?: () => void
+  /** `via` names the affordance: the corner button, or the highlighted
+   *  passage itself. They are different acts and the log has to tell
+   *  them apart. */
+  onOpenLightbox?: (via: 'page_button' | 'bbox') => void
 }
 
 /** One rendered page, or a reason it is not there. */
@@ -61,7 +64,7 @@ function Page({ exhibit, page, dim }: { exhibit: string; page: number; dim?: boo
         <img
           src={url}
           alt=""
-          className="block w-full select-none"
+          className="block w-full max-w-full select-none"
           draggable={false}
         />
       ) : (
@@ -80,18 +83,33 @@ function Page({ exhibit, page, dim }: { exhibit: string; page: number; dim?: boo
 
 export function PageView({ exhibit, page, pageCount, zoom, linkage, onOpenLightbox }: Props) {
   const { t } = useTranslation()
+  const boxRef = useRef<HTMLDivElement | null>(null)
   const snippet = linkage?.snippet
   // Only box the passage when it is on the page being looked at. Turning to
   // another page must not leave a rectangle behind on unrelated text (C-11).
   const box =
     snippet && snippet.exhibit === exhibit && snippet.page === page ? snippet.bbox : null
 
+  // Bring the located passage to the middle of the panel rather than leaving it
+  // wherever it happens to fall. A citation on page 9 of a twelve-page exhibit
+  // otherwise lands off-screen, and "follow the citation" quietly becomes
+  // "follow the citation, then hunt".
+  useEffect(() => {
+    if (!box || !boxRef.current) return
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    boxRef.current.scrollIntoView({
+      block: 'center',
+      inline: 'nearest',
+      behavior: reduce ? 'auto' : 'smooth',
+    })
+  }, [exhibit, page, snippet?.snippet_id, box])
+
   return (
     <div className="scroll bg-slate-50 p-3">
       <div className="paper relative overflow-hidden" style={{ zoom, padding: 0 }}>
         {onOpenLightbox && (
           <button
-            onClick={onOpenLightbox}
+            onClick={() => onOpenLightbox('page_button')}
             className="absolute top-2 right-2 z-20 w-6 h-6 rounded border border-slate-200 bg-white text-slate-400 flex items-center justify-center hover:text-blue-600 hover:border-blue-300"
             aria-label={t('lightbox.open')}
           >
@@ -105,9 +123,32 @@ export function PageView({ exhibit, page, pageCount, zoom, linkage, onOpenLightb
         <div className="relative">
           <Page exhibit={exhibit} page={page} />
           {box && (
+            // The box itself is the way into the magnifier: hovering it says so,
+            // and it takes a click. A hover preview stays inert -- the pointer
+            // is only passing over an evidence card, and arming a control under
+            // the cursor there would open the magnifier by accident.
             <div
-              className={`absolute pointer-events-none rounded-sm border-2 border-blue-500 bg-blue-500/10 ${
-                linkage?.preview ? 'border-dashed' : ''
+              ref={boxRef}
+              role={onOpenLightbox && !linkage?.preview ? 'button' : undefined}
+              tabIndex={onOpenLightbox && !linkage?.preview ? 0 : undefined}
+              aria-label={onOpenLightbox ? t('lightbox.open') : undefined}
+              onClick={onOpenLightbox && !linkage?.preview ? () => onOpenLightbox('bbox') : undefined}
+              onKeyDown={
+                onOpenLightbox && !linkage?.preview
+                  ? (e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        onOpenLightbox('bbox')
+                      }
+                    }
+                  : undefined
+              }
+              className={`bbox absolute rounded-sm border-2 border-blue-500 bg-blue-500/10 ${
+                linkage?.preview
+                  ? 'border-dashed pointer-events-none'
+                  : onOpenLightbox
+                    ? 'is-zoomable'
+                    : 'pointer-events-none'
               }`}
               style={{
                 left: `${box[0] / 10}%`,
@@ -115,7 +156,16 @@ export function PageView({ exhibit, page, pageCount, zoom, linkage, onOpenLightb
                 width: `${(box[2] - box[0]) / 10}%`,
                 height: `${(box[3] - box[1]) / 10}%`,
               }}
-            />
+            >
+              {onOpenLightbox && !linkage?.preview && (
+                <span className="bbox-zoom" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="M20 20l-3.5-3.5M11 8v6M8 11h6" />
+                  </svg>
+                </span>
+              )}
+            </div>
           )}
         </div>
       </div>

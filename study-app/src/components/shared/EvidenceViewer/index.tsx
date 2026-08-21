@@ -37,7 +37,7 @@ interface Props {
   contextStrip: React.ReactNode
   title: string
   /** Set in C only: the magnifier button on the page (C-11). */
-  onOpenLightbox?: () => void
+  onOpenLightbox?: (via: 'page_button' | 'bbox') => void
   onExhibitClick: (id: string) => void
   onPageChange: (page: number, via: 'click' | 'scroll' | 'linkage') => void
   onZoom: (zoom: number) => void
