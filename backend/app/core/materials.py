@@ -40,7 +40,36 @@ logger = logging.getLogger(__name__)
 
 # Fields that exist for the analysis and must never leave the server.
 SERVER_ONLY_NODE_FIELDS = ("distractor",)
-SERVER_ONLY_SENTENCE_FIELDS = ("planted_id",)
+
+# Sentence fields the client is ALLOWED to see. An allow-list, not a strip-list.
+#
+# It was a strip-list, and that makes every field added later a leak until
+# somebody remembers to name it here. One nearly shipped: `text_clean`, the
+# sentence as the generator wrote it before an error was planted in it. That is
+# not merely metadata about the answer -- it *is* the answer, sitting next to
+# the planted text in the same response, for every planted sentence at once.
+#
+# Listed the other way round, a new server-side field is invisible by default
+# and only becomes visible when someone writes it down here on purpose.
+PUBLIC_SENTENCE_FIELDS = (
+    "sent_id",
+    "text",
+    "snippet_ids",
+    "exhibit_refs",
+    "sentence_type",
+    # frozen|live. Survives on purpose: the analysis needs it and the UI is
+    # forbidden from rendering the two differently (红线 #3).
+    "source",
+    "subargument_id",
+    "argument_id",
+    "position",
+    "position_in_node",
+    "change_reason",
+)
+
+# Kept for the tests and the audit, which assert these specific names never
+# appear in a participant-reachable payload.
+SERVER_ONLY_SENTENCE_FIELDS = ("planted_id", "text_clean")
 
 
 class MaterialError(Exception):
@@ -210,12 +239,12 @@ def public_relations(material_id: str = "case_v1") -> Dict[str, Any]:
 
 
 def public_sentence(sentence: Dict[str, Any]) -> Dict[str, Any]:
-    """One sentence with the answer key removed.
+    """One sentence, reduced to the fields a participant may receive.
 
-    `source` (frozen|live) SURVIVES: it is data the analysis needs and the UI
-    is forbidden from rendering differently (红线 #3). `planted_id` does not.
+    Built by naming what goes out, not what stays behind: see
+    PUBLIC_SENTENCE_FIELDS for why round.
     """
-    return {k: v for k, v in sentence.items() if k not in SERVER_ONLY_SENTENCE_FIELDS}
+    return {k: sentence[k] for k in PUBLIC_SENTENCE_FIELDS if k in sentence}
 
 
 def public_sentences(sentences: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -228,4 +257,5 @@ __all__ = [
     "planted_index", "public_tree", "public_snippets", "public_relations",
     "public_sentence",
     "public_sentences", "SERVER_ONLY_NODE_FIELDS", "SERVER_ONLY_SENTENCE_FIELDS",
+    "PUBLIC_SENTENCE_FIELDS",
 ]

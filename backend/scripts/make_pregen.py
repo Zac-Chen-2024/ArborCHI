@@ -56,6 +56,11 @@ async def run(material_id: str, only: set[str] | None) -> int:
                 for s in sentences:
                     s["source"] = "frozen"
                     s["planted_id"] = None
+                    # The generator's own words, kept so plant_errors.py can
+                    # derive the planted text from them every time instead of
+                    # editing in place. Server-only: it is the correct version
+                    # of a sentence a participant is being asked to check.
+                    s["text_clean"] = s["text"]
                 target.write_text(
                     json.dumps({"schema_version": 1, "node_id": node_id,
                                 "sentences": sentences},

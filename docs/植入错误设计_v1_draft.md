@@ -86,9 +86,21 @@
 
 ## 现状
 
-`planted.json` 里是 3 条占位（`overstated` / `wrong_exhibit` / `unsupported_causal`），
-挂在 s1 / s3 / s5。它们能让整条链路跑通并被测试覆盖，**但不能用于任何真实场次**。
-材料包 `manifest.placeholder: true`，任何跑在它上面的场次在日志里都能认出来。
+**`judging_v1`(真材料,Judging the Work of Others)**:6 条 5 类已按上表落地,
+脚本自带分布规则校验(每个主论点 ≥2、每个分论点 ≤1、干扰节点内 ≥1、≥5 类),
+不满足就拒绝写盘。
+
+| # | 类型 | 句 | 埋在哪 | 原文实际怎么说 |
+|---|---|---|---|---|
+| p1 | `wrong_exhibit` | s1_0 | ①| 引 C-3 p.2(搜狐终审报道),但聘书是 C-1 p.2 |
+| p2 | `unsupported_causal` | s2_1 | ① | C-1 只写"执行主席:陈徐斌",没说申请人因此有任何监督职权 |
+| p3 | `overstated` | s11_0 | ② | C-5 p.3 写的是 "650+ public jury" |
+| p4 | `wrong_entity` | s14_0 | ② | C-3 p.7 的评审团主席是郑晓东,不是申请人 |
+| p5 | `stale_qualifier` | s21_0 | ③ | C-2 p.2 写 "the ever first",不是 "sole" |
+| p6 | `overstated` | s24_1 | ③ 干扰节点 | G-5 p.3 写 "over 40 papers" |
+
+**`case_v1`** 仍是 3 条占位，`manifest.placeholder: true`，任何跑在它上面的场次
+在日志里都能认出来。
 
 ---
 

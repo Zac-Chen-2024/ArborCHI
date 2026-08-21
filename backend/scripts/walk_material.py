@@ -138,7 +138,10 @@ def main() -> int:
           f"flagged={report['flagged']}")
 
     blob = "\n".join(BODIES)
-    hits = [k for k in ("planted_id", "source_says", "cross_criterion", "distractor")
+    # text_clean is the pre-planting sentence -- not a hint about the answer,
+    # the answer. It reached this list only after nearly shipping.
+    hits = [k for k in ("planted_id", "text_clean", "source_says",
+                        "cross_criterion", "distractor")
             if k in blob]
     print(f"\nscanned {len(BODIES)} response bodies for the answer key: "
           f"{hits or 'zero hits'}")

@@ -490,3 +490,49 @@ def test_the_tree_is_frozen_once_the_draft_is_handed_in(auth_client, participant
     r = auth_client.put("/api/study/tree", headers=hdr,
                         json={"tree": [], "material_id": "case_v1"})
     assert r.status_code == 409
+
+
+# ---------------------------------------------------------------------------
+# 红线 #5 -- what may leave the server is named, not what may not
+# ---------------------------------------------------------------------------
+
+def test_a_sentence_field_nobody_listed_does_not_reach_the_client():
+    """The strip is an allow-list, and this is why.
+
+    While it was a deny-list, every field added to a pregen sentence was public
+    until somebody remembered to name it. One that nearly went out was
+    `text_clean` -- the sentence as generated, before an error was planted in
+    it. Not a hint about the answer: the answer itself, in the same response as
+    the planted text, for every planted sentence at once.
+    """
+    sentence = {
+        "sent_id": "s1_0",
+        "text": "The petitioner was appointed Deputy Director. [Exhibit C-1, p.2]",
+        "snippet_ids": ["k10"],
+        "exhibit_refs": [{"exhibit": "C-1", "page": 2}],
+        "sentence_type": "claim",
+        "source": "frozen",
+        "planted_id": "p1",
+        "text_clean": "THE CORRECT VERSION, which the participant must never see.",
+        "reviewer_note": "some field a future change adds without thinking",
+    }
+
+    out = materials.public_sentence(sentence)
+
+    assert out["text"] == sentence["text"]
+    assert out["source"] == "frozen"
+    assert "planted_id" not in out
+    assert "text_clean" not in out
+    # The point: a field nobody listed is absent because nobody listed it.
+    assert "reviewer_note" not in out
+    assert set(out) <= set(materials.PUBLIC_SENTENCE_FIELDS)
+
+
+def test_the_real_bundles_keep_their_clean_text_on_the_server():
+    """Whatever bundles exist on disk, none of them leak the pre-planting text."""
+    for material_id in ("case_v1", "practice_v1"):
+        for node_id in materials.frozen_nodes(material_id):
+            for s in materials.pregen_sentences(node_id, material_id) or []:
+                public = materials.public_sentence(s)
+                for field in materials.SERVER_ONLY_SENTENCE_FIELDS:
+                    assert field not in public, f"{material_id}/{s['sent_id']} leaked {field}"

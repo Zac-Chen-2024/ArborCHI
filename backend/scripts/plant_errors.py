@@ -93,27 +93,49 @@ def main() -> int:
             distractor[sub["id"]] = sub["distractor"]
 
     items, failures = [], []
+    # Every run rebuilds the planted text from `text_clean`, the generator's
+    # untouched output, rather than editing whatever is on disk.
+    #
+    # It used to edit in place, which made the whole set write-once: a second
+    # run failed because the substring it was looking for had already been
+    # replaced, so changing one sentence meant regenerating the paragraph
+    # through the model -- new prose, and every other plant in that node
+    # relocated. Deriving from clean makes this list the only thing that
+    # decides what is planted: edit an entry, re-run, done; delete an entry and
+    # that sentence goes back to what the generator wrote.
+    docs: dict = {}
+
+    def load(node: str):
+        if node not in docs:
+            path = BUNDLE / "pregen" / f"{node}.json"
+            if not path.exists():
+                return None
+            docs[node] = json.loads(path.read_text(encoding="utf-8"))
+        return docs[node]
+
+    for doc in filter(None, (load(p.stem) for p in sorted((BUNDLE / "pregen").glob("*.json")))):
+        for s in doc["sentences"]:
+            s.setdefault("text_clean", s["text"])
+            s["text"] = s["text_clean"]
+            s["planted_id"] = None
+
     for pid, node, sent_id, kind, find, repl, note, source_says in PLANTS:
-        path = BUNDLE / "pregen" / f"{node}.json"
-        if not path.exists():
+        doc = load(node)
+        if doc is None:
             failures.append(f"{pid}: no pregen for {node}")
             continue
-        doc = json.loads(path.read_text(encoding="utf-8"))
         target = next((s for s in doc["sentences"] if s["sent_id"] == sent_id), None)
         if target is None:
             failures.append(f"{pid}: {node} has no {sent_id}")
             continue
-        if find not in target["text"]:
+        if find not in target["text_clean"]:
             # Loudly. A plant that silently does nothing leaves a probe item
             # whose answer key says "error" over a sentence that is correct.
             failures.append(f"{pid}: {sent_id} does not contain {find!r}")
             continue
 
-        if not args.check:
-            target["text"] = target["text"].replace(find, repl, 1)
-            target["planted_id"] = pid
-            path.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n",
-                            encoding="utf-8")
+        target["text"] = target["text_clean"].replace(find, repl, 1)
+        target["planted_id"] = pid
 
         items.append({
             "planted_id": pid,
@@ -129,6 +151,8 @@ def main() -> int:
         })
 
     if failures:
+        # Nothing has been written yet, so a bad entry leaves the bundle as it
+        # was rather than half-planted.
         raise SystemExit("planting failed:\n  " + "\n  ".join(failures))
 
     per_argument: dict = {}
@@ -149,11 +173,20 @@ def main() -> int:
         raise SystemExit("distribution rules violated:\n  " + "\n  ".join(problems))
 
     if not args.check:
+        for node, doc in docs.items():
+            (BUNDLE / "pregen" / f"{node}.json").write_text(
+                json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
         (BUNDLE / "planted.json").write_text(json.dumps({
             "schema_version": 1,
             "_comment": ("Answer key. Never served to a client -- materials.public_* "
-                         "strips planted_id (红线 #5). Awaiting review by an "
-                         "immigration attorney before any real session."),
+                         "strips planted_id (红线 #5)."),
+            # Two different things, kept apart on purpose. The study owner has
+            # cleared these for use so the pipeline is not blocked; whether an
+            # immigration attorney would call each one an error is a judgement
+            # neither this script nor its author can make, and pilot data is
+            # where a badly-pitched plant shows up anyway.
+            "cleared_for_use": True,
             "reviewed_by_attorney": False,
             "items": items,
         }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
