@@ -63,6 +63,10 @@ class LLMRequest:
     timeout: float
     json_mode: bool = False                # caller wants JSON back
     json_schema: Optional[Dict[str, Any]] = None
+    # Reasoning models (GPT-5 family) take effort instead of temperature --
+    # they run several rounds of reasoning and selection internally, so the
+    # sampling knobs are not exposed at all. None = leave at the model default.
+    reasoning_effort: Optional[str] = None
 
 
 @dataclass
@@ -80,6 +84,8 @@ class ProviderResponse:
 DEFAULT_MODELS = {
     "deepseek": "deepseek-chat",
     "openai": "gpt-4.1",
+    # Cost-tier reasoning model on the Responses API; 1.05M context.
+    "openai_responses": "gpt-5.6-luna",
     "anthropic": "claude-opus-5",
 }
 
@@ -186,6 +192,109 @@ class OpenAICompatProvider:
 
 
 # ---------------------------------------------------------------------------
+# OpenAI Responses API (GPT-5.6 family)
+# ---------------------------------------------------------------------------
+
+class OpenAIResponsesProvider:
+    """OpenAI's Responses API -- the endpoint the GPT-5.6 models are served on.
+
+    Separate from OpenAICompatProvider because the request shape genuinely
+    differs, not just in field names:
+
+    * `input` instead of `messages`, `instructions` for the system prompt
+    * `max_output_tokens` instead of `max_tokens`
+    * **no `temperature`, no `seed`.** Reasoning models disable the sampling
+      parameters; `reasoning.effort` is what steers the output instead.
+
+    That last point matters for this study and is worth stating where someone
+    will read it. Generation is NOT reproducible by re-running the model, and
+    no parameter will make it so. The study does not rely on that: the frozen
+    material is generated once, offline, and hashed, so every participant reads
+    identical bytes and reproducibility comes from the bundle rather than from
+    the model. Live generation (a node the participant edited) is inherently
+    per-participant; what makes it auditable is the trace record of the actual
+    call, not the ability to replay it.
+    """
+
+    def __init__(self, api_key: str, api_base: str):
+        self.name = "openai"
+        self.api_key = api_key
+        self.api_base = api_base.rstrip("/")
+
+    async def complete(self, req: LLMRequest) -> ProviderResponse:
+        if not self.api_key:
+            raise ConfigError(
+                "OpenAI API key not configured. Set OPENAI_API_KEY in .env")
+
+        system = "\n\n".join(
+            m["content"] for m in req.messages if m.get("role") == "system")
+        user = "\n\n".join(
+            m["content"] for m in req.messages if m.get("role") != "system")
+
+        body: Dict[str, Any] = {
+            "model": req.model,
+            "input": user,
+            "max_output_tokens": req.max_tokens,
+        }
+        if system:
+            body["instructions"] = system
+        if req.reasoning_effort:
+            body["reasoning"] = {"effort": req.reasoning_effort}
+        if req.json_mode and req.json_schema:
+            body["text"] = {"format": {
+                "type": "json_schema", "name": "response",
+                "strict": True, "schema": req.json_schema,
+            }}
+
+        headers = {"Authorization": f"Bearer {self.api_key}",
+                   "Content-Type": "application/json"}
+        try:
+            resp = await http_client().post(
+                f"{self.api_base}/responses", json=body, headers=headers,
+                timeout=req.timeout,
+            )
+        except (httpx.TimeoutException, httpx.ConnectError, httpx.RemoteProtocolError) as e:
+            raise RetryableError(f"openai: {type(e).__name__}") from e
+
+        if resp.status_code != 200:
+            logger.error("openai responses error %s: %s", resp.status_code, resp.text[:500])
+            msg = f"OpenAI API error {resp.status_code}"
+            if resp.status_code == 429 or resp.status_code >= 500:
+                raise RetryableError(msg, resp.status_code)
+            raise LLMError(msg, resp.status_code)
+
+        data = resp.json()
+        content = _responses_text(data)
+        usage = data.get("usage") or {}
+        return ProviderResponse(
+            content=content,
+            tokens_in=int(usage.get("input_tokens") or 0),
+            tokens_out=int(usage.get("output_tokens") or 0),
+            model=data.get("model") or req.model,
+        )
+
+
+def _responses_text(data: Dict[str, Any]) -> str:
+    """Pull the assistant text out of a Responses payload.
+
+    `output` is a list of items and only some of them are messages -- a
+    reasoning model also returns reasoning items, which carry no text for us.
+    Concatenating everything blindly would splice reasoning traces into the
+    petition letter.
+    """
+    if isinstance(data.get("output_text"), str):
+        return data["output_text"]
+    parts: List[str] = []
+    for item in data.get("output") or []:
+        if item.get("type") != "message":
+            continue
+        for chunk in item.get("content") or []:
+            if chunk.get("type") in ("output_text", "text") and chunk.get("text"):
+                parts.append(chunk["text"])
+    return "".join(parts)
+
+
+# ---------------------------------------------------------------------------
 # Anthropic (official SDK, native Messages API)
 # ---------------------------------------------------------------------------
 
@@ -280,9 +389,11 @@ def get_provider(name: str):
         return OpenAICompatProvider("deepseek", settings.deepseek_api_key, settings.deepseek_api_base, strict_schema=False)
     if name == "openai":
         return OpenAICompatProvider("openai", settings.openai_api_key, settings.openai_api_base, strict_schema=True)
+    if name == "openai_responses":
+        return OpenAIResponsesProvider(settings.openai_api_key, settings.openai_api_base)
     if name == "anthropic":
         return AnthropicProvider(settings.anthropic_api_key, settings.anthropic_api_base or None)
     raise ConfigError(f"Unknown provider: {name}. Use 'deepseek', 'openai' or 'anthropic'.")
 
 
-PROVIDERS = ("deepseek", "openai", "anthropic")
+PROVIDERS = ("deepseek", "openai", "openai_responses", "anthropic")

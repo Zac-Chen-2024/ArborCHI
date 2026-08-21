@@ -4,7 +4,7 @@
   "sentences": [
     {
       "sent_id": "s6_0",
-      "text": "Dr. Li's SIGMOD 2022 Best Paper Award further underscores his professional standing. [Exhibit A3, p.1]",
+      "text": "Dr. Li's SIGMOD 2022 Best Paper Award establishes him as one of the leading database researchers in the world. [Exhibit A3, p.1]",
       "snippet_ids": [
         "c8"
       ],
@@ -16,7 +16,7 @@
       ],
       "sentence_type": "evidence",
       "source": "frozen",
-      "planted_id": null
+      "planted_id": "p6"
     },
     {
       "sent_id": "s6_1",

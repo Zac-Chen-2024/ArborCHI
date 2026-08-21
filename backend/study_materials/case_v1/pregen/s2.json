@@ -4,7 +4,7 @@
   "sentences": [
     {
       "sent_id": "s2_0",
-      "text": "Its platform serves 13 of the 20 largest retailers in North America. [Exhibit D1, p.3]",
+      "text": "Its platform serves nearly all of the 20 largest retailers in North America. [Exhibit D1, p.3]",
       "snippet_ids": [
         "c3"
       ],
@@ -16,7 +16,7 @@
       ],
       "sentence_type": "evidence",
       "source": "frozen",
-      "planted_id": null
+      "planted_id": "p2"
     }
   ]
 }

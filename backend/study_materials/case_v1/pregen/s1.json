@@ -20,13 +20,13 @@
     },
     {
       "sent_id": "s1_1",
-      "text": "The company was named Data Infrastructure Vendor of the Year for 2023, placing it among the top five vendors worldwide. [Exhibit D1, p.1]",
+      "text": "The company was named Data Infrastructure Vendor of the Year for 2023. [Exhibit C1, p.1]",
       "snippet_ids": [
-        "c2"
+        "c6"
       ],
       "exhibit_refs": [
         {
-          "exhibit": "D1",
+          "exhibit": "C1",
           "page": 1
         }
       ],

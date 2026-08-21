@@ -120,7 +120,15 @@ def test_snapshot_carries_per_sentence_provenance(auth_client, participant):
         assert "planted_id" in s
 
     planted = [s for s in snap["sentences"] if s["planted_id"]]
-    assert len(planted) == 3      # the placeholder bundle plants three
+    registry = materials.load_bundle()["planted"]["items"]
+    assert len(planted) == len(registry)
+    # At most one plant per node: two in the same paragraph would cue each
+    # other (docs/植入错误设计 distribution rules).
+    nodes = [s["subargument_id"] for s in planted]
+    assert len(nodes) == len(set(nodes))
+    # Several distinct kinds -- a probe made only of "wrong exhibit number"
+    # would measure reference-checking rather than evidence evaluation.
+    assert len({i["kind"] for i in registry}) >= 3
 
 
 # ---------------------------------------------------------------------------
@@ -281,7 +289,7 @@ def test_the_bundle_itself_does_contain_the_answer_key():
     raw = json.dumps(bundle, ensure_ascii=False)
     assert "planted_id" in raw
     assert "distractor" in raw
-    assert len(bundle["planted"]["items"]) == 3
+    assert len(bundle["planted"]["items"]) > 0
 
 
 def test_public_tree_strips_the_distractor_flag():

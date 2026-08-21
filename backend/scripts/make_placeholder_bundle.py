@@ -135,15 +135,33 @@ TREE = {
 # `kind` is what is wrong with the sentence, not how wrong: the analysis codes
 # severity separately, and baking a severity in here would freeze a judgement
 # that has not been made yet.
+# Five kinds, chosen by what a reader has to DO to catch each one -- which is
+# also what the interface does or does not help with. See
+# docs/植入错误设计_v1_draft.md.
+#
+# `unsupported_causal` is the deliberate control: catching it needs
+# comprehension, not lookup, so the interface should NOT help. If condition C
+# beats B on that kind too, the advantage is coming from something other than
+# "easier to check", and the design can say so.
+#
+# No severity field: how bad an error is gets coded during analysis, probably
+# by two people independently. Freezing a number here would bake in a judgement
+# nobody has made yet.
 PLANTED = {
     "schema_version": 1,
     "items": [
-        {"planted_id": "p1", "node_id": "s1", "kind": "overstated",
-         "note": "claims a figure larger than the exhibit supports"},
-        {"planted_id": "p2", "node_id": "s3", "kind": "wrong_exhibit",
+        {"planted_id": "p1", "node_id": "s1", "kind": "wrong_exhibit",
          "note": "cites an exhibit that does not contain the claim"},
-        {"planted_id": "p3", "node_id": "s5", "kind": "unsupported_causal",
+        {"planted_id": "p2", "node_id": "s2", "kind": "overstated",
+         "note": "states a figure roughly double what the exhibit supports"},
+        {"planted_id": "p3", "node_id": "s3", "kind": "wrong_entity",
+         "note": "attributes to the petitioner what the exhibit attributes to a team"},
+        {"planted_id": "p4", "node_id": "s4", "kind": "stale_qualifier",
+         "note": "adds 'sole', which the exhibit does not say"},
+        {"planted_id": "p5", "node_id": "s5", "kind": "unsupported_causal",
          "note": "asserts a causal link the exhibit only describes as temporal"},
+        {"planted_id": "p6", "node_id": "s6", "kind": "overstated",
+         "note": "inflates the honour's standing; sits under the cross-statute node"},
     ],
 }
 
@@ -154,29 +172,44 @@ PREGEN = {
     "s1": [
         ("Northwind Data Systems is a data-infrastructure firm reporting $320M in revenue and 1,800 employees across eleven offices.",
          ["c1"], "claim", None),
-        ("The company was named Data Infrastructure Vendor of the Year for 2023, placing it among the top five vendors worldwide.",
-         ["c2"], "evidence", "p1"),
+        # p1 wrong_exhibit: the award is in D1; C1 is a recommendation letter
+        # and says nothing about it. Catching it means opening the citation.
+        ("The company was named Data Infrastructure Vendor of the Year for 2023.",
+         ["c6"], "evidence", "p1"),
     ],
     "s2": [
-        ("Its platform serves 13 of the 20 largest retailers in North America.", ["c3"], "evidence", None),
+        # p2 overstated: the exhibit says 13 of the top 20; this says nearly all.
+        ("Its platform serves nearly all of the 20 largest retailers in North America.",
+         ["c3"], "evidence", "p2"),
     ],
     "s3": [
-        ("As Director of AI Research at Northwind Data Systems, Dr. Li reported directly to the Chief Technology Officer and oversaw four research teams comprising 47 researchers.",
-         ["c4"], "claim", None),
-        ("This reporting line is documented in the company's delegation of authority.", ["c5"], "evidence", "p2"),
+        # p3 wrong_entity: the exhibit gives the reporting line to the ROLE and
+        # the teams to the division; this makes the petitioner the sole actor.
+        ("Dr. Li personally built the reporting structure through which four research teams of 47 researchers came to report to him.",
+         ["c4"], "claim", "p3"),
+        ("The arrangement is documented in the company's organisational chart.",
+         ["c4"], "evidence", None),
     ],
     "s4": [
-        ("Dr. Li held final approval authority over the division's $12M annual research and development budget.",
-         ["c5"], "claim", None),
+        # p4 stale_qualifier: "sole" is not in the exhibit, which says final
+        # approval rests with the role.
+        ("Dr. Li was the sole approver of the division's $12M annual research and development budget.",
+         ["c5"], "claim", "p4"),
     ],
     "s5": [
         ("The retrieval infrastructure rebuild that Dr. Li led reduced median query latency by 60% across the platform.",
          ["c6"], "claim", None),
+        # p5 unsupported_causal: the exhibit dates the delivery; it says nothing
+        # about revenue, let alone that Atlas caused it. The CONTROL kind --
+        # comprehension, not lookup.
         ("Because of Project Atlas, which Dr. Li initiated and led, the company's Q3 2022 revenue rose.",
-         ["c7"], "evidence", "p3"),
+         ["c7"], "evidence", "p5"),
     ],
     "s6": [
-        ("Dr. Li's SIGMOD 2022 Best Paper Award further underscores his professional standing.", ["c8"], "evidence", None),
+        # p6 overstated, sitting under the cross-statute node: the exhibit
+        # records one best-paper award, not a standing among all researchers.
+        ("Dr. Li's SIGMOD 2022 Best Paper Award establishes him as one of the leading database researchers in the world.",
+         ["c8"], "evidence", "p6"),
         ("He was invited to serve on the VLDB 2023 Program Committee.", ["c9"], "evidence", None),
     ],
 }
@@ -319,9 +352,9 @@ def write_practice() -> None:
         "criterion": PRACTICE_CRITERION,
         "cfr": PRACTICE_CFR,
         "tree_variant_id": PRACTICE_TREE["tree_variant_id"],
-        "model": "placeholder",
-        "model_params": {"temperature": 0.0, "max_tokens": 400},
-        "seed": 0,
+        "provider": "openai_responses",
+        "model": "gpt-5.6-luna",
+        "model_params": {"reasoning_effort": "low", "max_output_tokens": 400},
         "frozen_at": None,
     })
 
@@ -395,9 +428,22 @@ def main() -> int:
         # Pinned generation parameters. Every live-generated sentence in a
         # session must come from exactly these, or two participants are not
         # working with the same system.
-        "model": "placeholder",
-        "model_params": {"temperature": 0.0, "max_tokens": 800},
-        "seed": 0,
+        #
+        # No temperature and no seed: gpt-5.6-luna is a reasoning model and the
+        # sampling parameters are not exposed on it at all -- `reasoning.effort`
+        # is what steers the output. Carrying an inert `temperature: 0` here
+        # would imply generation can be replayed, and it cannot.
+        #
+        # The study does not need it to be. Frozen text is generated ONCE,
+        # offline, and hashed into this bundle, so every participant reads the
+        # same bytes and reproducibility comes from `material_manifest_hash`.
+        # Live generation is per-participant by definition; what makes it
+        # auditable is the archived trace of the actual call.
+        "provider": "openai_responses",
+        "model": "gpt-5.6-luna",
+        "model_params": {"reasoning_effort": "medium", "max_output_tokens": 800},
+        "reproducibility": "frozen-by-hash; live generation is not replayable "
+                           "(reasoning models expose no temperature or seed)",
         "frozen_at": None,
         "candidate_trees_archived": 0,
         "selection_rule": "docs/预注册_pre-registration.md PR-1",

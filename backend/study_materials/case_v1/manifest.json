@@ -6,12 +6,13 @@
   "criterion": "Leading or Critical Role",
   "cfr": "8 C.F.R. §204.5(h)(3)(viii)",
   "tree_variant_id": "placeholder-v0",
-  "model": "placeholder",
+  "provider": "openai_responses",
+  "model": "gpt-5.6-luna",
   "model_params": {
-    "temperature": 0.0,
-    "max_tokens": 800
+    "reasoning_effort": "medium",
+    "max_output_tokens": 800
   },
-  "seed": 0,
+  "reproducibility": "frozen-by-hash; live generation is not replayable (reasoning models expose no temperature or seed)",
   "frozen_at": null,
   "candidate_trees_archived": 0,
   "selection_rule": "docs/预注册_pre-registration.md PR-1"
