@@ -20,10 +20,8 @@ instead of a silent no-op.
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
-from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -172,34 +170,53 @@ class ProbeAnswerBody(BaseModel):
     source_opened: bool = False
 
 
-def _live_generator():
-    """Adapter from assemble()'s synchronous callback to the async generator.
+async def _precompute_live(
+    node_states: Dict[str, Any], material_id: str,
+) -> Dict[str, List[Dict[str, Any]]]:
+    """Generate every changed node's text, on the request's own event loop.
 
-    assemble() is deliberately synchronous: it is a pure function of the tree
-    and the bundle, and keeping it that way is what lets the frozen/live
-    decision be tested without a network. The one place that needs I/O is this
-    callback, so the bridge lives here rather than colouring the whole call
-    chain async.
+    assemble() is deliberately synchronous -- it is a pure function of the tree
+    and the bundle, which is what lets the frozen/live decision be tested
+    without a network. So the I/O happens here, first, and assemble is handed a
+    callback that only looks up what was already produced.
 
-    `anyio.from_thread.run` is not usable -- we are on the event loop, not in a
-    worker thread -- so the coroutine is driven on a private loop in a worker
-    thread. Generation happens once per changed node at a phase boundary, so
-    the cost of a thread is irrelevant next to the model call it wraps.
-
-    Returning None here (as this did while the provider was unchosen) makes a
-    changed node a loud 503 rather than a quiet substitution of frozen text,
-    which would look like success while falsifying `source`. That property is
-    preserved: a failure inside generate_live_sentences raises GenerationError,
-    which /generate turns into the same 503.
+    An earlier version bridged the other way, driving the coroutine with
+    `asyncio.run` inside a worker thread. It worked once per process and then
+    failed with "Event loop is closed": the provider caches one
+    httpx.AsyncClient, that client binds to the loop that created it, and
+    `asyncio.run` closes its loop on the way out. The first participant to
+    press Regenerate got live text; every request after that -- in that server
+    process, for every session -- got a 503. A single call in a fresh process
+    looks perfectly healthy, which is why it survived a direct test and was
+    caught by the deployment rehearsal instead.
     """
-    def run(node_id: str, submitted: Dict[str, Any]) -> List[Dict[str, Any]]:
-        with ThreadPoolExecutor(max_workers=1) as pool:
-            return pool.submit(
-                asyncio.run,
-                study_generator.generate_live_sentences(node_id, submitted),
-            ).result()
+    frozen = materials.frozen_nodes(material_id)
+    out: Dict[str, List[Dict[str, Any]]] = {}
+    for node_id, submitted in node_states.items():
+        if (submitted or {}).get("state") == "removed":
+            continue
+        changed, _reason = study_generator.node_is_changed(node_id, submitted, frozen)
+        if changed:
+            out[node_id] = await study_generator.generate_live_sentences(
+                node_id, submitted, material_id=material_id,
+            )
+    return out
 
-    return run
+
+def _live_generator(precomputed: Dict[str, List[Dict[str, Any]]]):
+    """Hands assemble() the text produced above.
+
+    Raises rather than falling back if assemble asks for a node that was not
+    precomputed: a quiet substitution of frozen text would look like success
+    while falsifying `source`, which is the independent variable.
+    """
+    def lookup(node_id: str, _submitted: Dict[str, Any]) -> List[Dict[str, Any]]:
+        if node_id not in precomputed:
+            raise study_generator.GenerationError(
+                f"no live text was generated for {node_id}")
+        return precomputed[node_id]
+
+    return lookup
 
 
 # ---------------------------------------------------------------------------
@@ -429,7 +446,7 @@ def _material_for_phase(session: Dict[str, Any]) -> str:
 
 
 @router.post("/generate")
-def generate(body: GenerateBody) -> Dict[str, Any]:
+async def generate(body: GenerateBody) -> Dict[str, Any]:
     """Assemble the letter and snapshot it (BE-08, 红线 #1).
 
     **The ordering in this function is the red line.** The snapshot is written
@@ -462,10 +479,11 @@ def generate(body: GenerateBody) -> Dict[str, Any]:
 
     material_id = _material_for_phase(session)
     try:
+        live = await _precompute_live(body.node_states, material_id)
         built = study_generator.assemble(
             body.node_states,
             material_id=material_id,
-            generate_live=_live_generator(),
+            generate_live=_live_generator(live),
         )
     except study_generator.GenerationError as e:
         # Surfaced as 503 rather than 500: the request was fine, the capability

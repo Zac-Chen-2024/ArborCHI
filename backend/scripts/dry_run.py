@@ -225,12 +225,32 @@ def run(base: str) -> int:
           f"{len(gen.get('sentences', []))} sentences, snapshot hash matches")
 
     # --- A16 ----------------------------------------------------------------
+    # Twice, and the two must agree. This step used to assert a bare 503, which
+    # was right only while no provider was wired: once one was, the same 503
+    # kept the step green for an entirely different reason. Live generation was
+    # succeeding on the first request of a server process and failing on every
+    # request after it ("Event loop is closed" -- the provider's cached HTTP
+    # client outliving the loop it was created on). One call in a fresh process
+    # cannot see that; two can.
     changed = dict(states)
     first_node = next(iter(changed))
     changed[first_node] = {**changed[first_node], "title": "A different heading entirely"}
-    code, _ = call("POST", "/generate", tok, {"node_states": changed})
-    check("A16", "BE-08", code == 503,
-          f"changed node without a generator -> {code} (must not silently reuse frozen text)")
+    code_a, gen_a = call("POST", "/generate", tok, {"node_states": changed})
+    code_b, gen_b = call("POST", "/generate", tok, {"node_states": changed})
+
+    def _sources(payload):
+        return {x["source"] for x in payload.get("sentences", [])
+                if x.get("subargument_id") == first_node}
+
+    if code_a == 200:
+        # A changed node must come back live. Frozen text here would look like
+        # success while falsifying `source`, the independent variable.
+        ok = code_b == 200 and _sources(gen_a) == {"live"} and _sources(gen_b) == {"live"}
+        detail = f"changed node live on both calls ({code_a}/{code_b})"
+    else:
+        ok = code_a == code_b == 503
+        detail = f"no provider: 503 on both calls ({code_a}/{code_b}), never silent frozen text"
+    check("A16", "BE-08", ok, detail)
 
     # --- A17, A18 -----------------------------------------------------------
     call("POST", "/advance", mod, {"session_id": sid})      # -> verification
