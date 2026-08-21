@@ -37,9 +37,16 @@ interface Props {
   onDone: () => void
 }
 
-/** "[Exhibit B1, p.2]" -> { exhibit, page } so the source can be shown. */
-function parseCitation(cite: string): { exhibit: string; page: number } | null {
-  const m = /\[Exhibit\s+([A-Za-z0-9]+),\s*p\.(\d+)/.exec(cite)
+/** "[Exhibit C-1, p.2]" -> { exhibit, page } so the source can be shown.
+ *
+ * The id class allows a hyphen. Without it this matched the placeholder
+ * bundle's ids (`B2`, `C1`) and nothing else -- and a real filing numbers its
+ * exhibits the way the brief does, `C-1`, `G-5`. Parsing then failed, `source`
+ * came back null, and the "View source" button simply did not render: no way to
+ * check the evidence during the probe, and `source_opened` false for every item
+ * in every session. It is one of the measures the study exists to collect. */
+export function parseCitation(cite: string): { exhibit: string; page: number } | null {
+  const m = /\[Exhibit\s+([A-Za-z0-9][A-Za-z0-9-]*),\s*p\.\s*(\d+)/.exec(cite)
   return m ? { exhibit: m[1], page: Number(m[2]) } : null
 }
 

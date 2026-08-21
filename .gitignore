@@ -92,3 +92,9 @@ backend/.venv/
 # corpus (backend/scripts/build_case_bundle.py), so nothing is lost by keeping
 # it out; putting it in cannot be undone.
 backend/study_materials/judging_v1/
+
+# Captured session figures. They photograph the real exhibit pages -- the same
+# reason the bundle itself is not tracked. Regenerate with
+# backend/scripts/capture_flow.py; the page that embeds them is built by
+# backend/scripts/build_walkthrough_page.py, both of which ARE tracked.
+docs/figures/flow/

@@ -1,0 +1,724 @@
+<title>Arbor Session Walkthrough</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;450;500;600&display=swap">
+
+<style>
+  /* Palette taken from the study app's own tokens.css -- this page is about
+     that interface, so it wears its colours. Semantic colours are a separate
+     set from the one accent. */
+  :root {
+    --ink:       #0f172a;
+    --ink-soft:  #334155;
+    --muted:     #64748b;
+    --faint:     #94a3b8;
+    --line:      #e2e8f0;
+    --line-soft: #eef2f7;
+    --ground:    #f1f5f9;
+    --paper:     #ffffff;
+    --raised:    #f8fafc;
+
+    --ev:        #2563eb;
+    --ev-bg:     #eff6ff;
+
+    --good:      #047857;
+    --good-bg:   #ecfdf5;
+    --warn:      #b45309;
+    --warn-bg:   #fffbeb;
+    --bad:       #be123c;
+    --bad-bg:    #fff1f2;
+
+    --serif: 'Newsreader', 'Iowan Old Style', Georgia, serif;
+    --sans:  'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    /* Chinese uses the reader's own installed faces -- the same stack the study
+       app uses. A CJK webfont would cost megabytes for one page. */
+    --sans-zh: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Source Han Sans SC',
+               'Noto Sans CJK SC', ui-sans-serif, system-ui, sans-serif;
+    --mono:  'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink:       #e8edf4;
+      --ink-soft:  #c3cddb;
+      --muted:     #8b98a9;
+      --faint:     #6b7888;
+      --line:      #26303d;
+      --line-soft: #1c2530;
+      --ground:    #0d1219;
+      --paper:     #131a23;
+      --raised:    #182029;
+      --ev:        #7aa7f7;
+      --ev-bg:     #16233a;
+      --good:      #4ec99a;
+      --good-bg:   #10261e;
+      --warn:      #e0a44a;
+      --warn-bg:   #2a2011;
+      --bad:       #f5788f;
+      --bad-bg:    #2c1219;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ink:       #e8edf4;
+    --ink-soft:  #c3cddb;
+    --muted:     #8b98a9;
+    --faint:     #6b7888;
+    --line:      #26303d;
+    --line-soft: #1c2530;
+    --ground:    #0d1219;
+    --paper:     #131a23;
+    --raised:    #182029;
+    --ev:        #7aa7f7;
+    --ev-bg:     #16233a;
+    --good:      #4ec99a;
+    --good-bg:   #10261e;
+    --warn:      #e0a44a;
+    --warn-bg:   #2a2011;
+    --bad:       #f5788f;
+    --bad-bg:    #2c1219;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 28px 120px; }
+
+  /* ---------- masthead ---------- */
+
+  header.top {
+    padding: 76px 0 40px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 56px;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 18px;
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(36px, 5.4vw, 54px);
+    font-weight: 500;
+    line-height: 1.07;
+    letter-spacing: -0.018em;
+    text-wrap: balance;
+    margin: 0 0 8px;
+  }
+  h1 .zh {
+    display: block;
+    font-family: var(--sans-zh);
+    font-size: 0.5em;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--ink-soft);
+    margin-top: 14px;
+    line-height: 1.4;
+  }
+
+  .standfirst {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 40px;
+    margin: 28px 0 0;
+    max-width: 900px;
+  }
+  .standfirst p { margin: 0; font-size: 16px; color: var(--ink-soft); }
+  .standfirst .zh { font-family: var(--sans-zh); line-height: 1.85; }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    margin-top: 40px;
+  }
+  .fact { background: var(--paper); padding: 15px 17px; }
+  .fact dt {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .fact dd { margin: 0; font-size: 14px; font-weight: 500; line-height: 1.45; }
+
+  /* ---------- sections ---------- */
+
+  section { margin-bottom: 80px; }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: 30px;
+    font-weight: 500;
+    letter-spacing: -0.012em;
+    line-height: 1.2;
+    margin: 0 0 6px;
+  }
+  h2 .zh {
+    font-family: var(--sans-zh);
+    font-size: 0.62em;
+    font-weight: 600;
+    color: var(--muted);
+    margin-left: 14px;
+    letter-spacing: 0;
+  }
+
+  .section-lede {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 40px;
+    margin: 18px 0 44px;
+  }
+  .section-lede p { margin: 0; color: var(--ink-soft); font-size: 15.5px; }
+  .section-lede .zh { font-family: var(--sans-zh); line-height: 1.85; }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: var(--raised);
+    border: 1px solid var(--line-soft);
+    border-radius: 3px;
+    padding: 1px 5px;
+  }
+  strong { font-weight: 600; }
+  em { font-style: italic; }
+
+  /* ---------- steps ---------- */
+
+  .step { margin-bottom: 64px; scroll-margin-top: 24px; }
+
+  .step-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .step-n {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ev);
+    letter-spacing: 0.06em;
+  }
+  .step-name {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+
+  figure { margin: 0 0 18px; }
+  figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper);
+  }
+
+  .caption {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 40px;
+  }
+  .caption p { margin: 0; font-size: 14.5px; color: var(--ink-soft); }
+  .caption .zh p { font-family: var(--sans-zh); line-height: 1.9; }
+  .caption .en p { line-height: 1.7; }
+
+  /* ---------- observed results ---------- */
+
+  .results {
+    margin: 16px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .results .r {
+    background: var(--raised);
+    padding: 8px 13px;
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .results dt {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .results dd {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .results .ev { flex-basis: 100%; }
+  .results .ev dd span {
+    display: inline-block;
+    background: var(--ev-bg);
+    color: var(--ev);
+    border-radius: 3px;
+    padding: 1px 6px;
+    margin: 2px 4px 2px 0;
+    font-size: 11px;
+  }
+
+  /* ---------- findings ---------- */
+
+  .finding {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--sev, var(--line));
+    padding: 18px 20px;
+    margin-bottom: 12px;
+  }
+  .finding.critical { --sev: var(--bad); }
+  .finding.serious  { --sev: var(--warn); }
+  .finding.quiet    { --sev: var(--muted); }
+
+  .finding .pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 36px;
+  }
+  .finding h4 {
+    font-size: 14.5px;
+    font-weight: 600;
+    margin: 0 0 10px;
+    line-height: 1.45;
+    grid-column: 1 / -1;
+    text-wrap: balance;
+  }
+  .finding h4 .zh { font-family: var(--sans-zh); }
+  .finding h4 .sep { color: var(--faint); font-weight: 400; margin: 0 8px; }
+  .finding p { margin: 0; font-size: 13.5px; color: var(--ink-soft); }
+  .finding .zh p { font-family: var(--sans-zh); line-height: 1.85; }
+
+  .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 8px;
+    vertical-align: 1.5px;
+    white-space: nowrap;
+  }
+  .tag.fixed { color: var(--good); background: var(--good-bg); }
+  .tag.open  { color: var(--warn); background: var(--warn-bg); }
+
+  .evidence {
+    grid-column: 1 / -1;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    background: var(--raised);
+    border: 1px solid var(--line-soft);
+    padding: 9px 11px;
+    margin-top: 10px;
+    color: var(--muted);
+    white-space: pre-wrap;
+    overflow-x: auto;
+    line-height: 1.65;
+  }
+  .evidence b { color: var(--ink); font-weight: 500; }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding-top: 26px;
+    margin-top: 72px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  footer .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 36px; }
+  footer p { margin: 0 0 10px; }
+  footer .zh { font-family: var(--sans-zh); line-height: 1.8; }
+
+  @media (max-width: 760px) {
+    .wrap { padding: 0 18px 80px; }
+    header.top { padding-top: 48px; }
+    .standfirst, .section-lede, .caption, .finding .pair, footer .pair {
+      grid-template-columns: 1fr;
+    }
+    .caption .en p, .section-lede .en, .finding .en p { padding-top: 4px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <p class="eyebrow">Arbor · CHI 2027 · Condition C · <!--SESSION--></p>
+  <h1>
+    Walking the study as a participant
+    <span class="zh">以被试身份走完整场实验</span>
+  </h1>
+  <div class="standfirst">
+    <p class="zh">被试实际坐过的九个阶段、二十一个界面,每一步都是脚本在真实浏览器里
+    跑出来的截图,配上那一步的实测结果——屏幕上有没有钟、日志落了哪些事件。
+    材料是一份真实的 EB-1A 申请案卷。</p>
+    <p class="en">The nine phases and twenty-one screens a participant actually sits
+    through. Every screenshot is captured by script in a real browser, paired with
+    what was measurably true at that moment — whether a clock was on screen, which
+    events reached the log. The material is a real EB-1A filing.</p>
+  </div>
+
+  <dl class="facts">
+    <div class="fact"><dt>Criterion 法条</dt><dd>Judging the Work of Others<br>8 C.F.R. §204.5(h)(3)(iv)</dd></div>
+    <div class="fact"><dt>Material 材料</dt><dd>11 exhibits · 18 evidence cards<br>60 rendered pages</dd></div>
+    <div class="fact"><dt>Letter 信</dt><dd>10 paragraphs · 20 sentences<br>6 planted errors, 5 kinds</dd></div>
+    <div class="fact"><dt>Viewport 视口</dt><dd><!--VIEWPORT--><br>close-out: <!--VERDICT--></dd></div>
+  </dl>
+</header>
+
+<section>
+  <h2>The session, step by step<span class="zh">会话流程,逐步</span></h2>
+  <div class="section-lede">
+    <p class="zh">阶段顺序由服务端强制:被试不提交就到不了拷问段,主试也跳不过任何一段。
+    只有主试能推进,被试从头到尾没有「下一步」这个按钮。每张图下面的灰条是那一刻从
+    页面和日志里读出来的事实,不是我写的说明。</p>
+    <p class="en">Phase order is enforced on the server: the probe is unreachable
+    without a submission, and no phase can be skipped. Only the moderator advances;
+    the participant never has a "next" button. The grey strip under each screenshot
+    is read off the live page and the live event log, not written by hand.</p>
+  </div>
+
+<!--STEPS-->
+</section>
+
+<section>
+  <h2>What the walkthrough found<span class="zh">这一趟查出什么</span></h2>
+  <div class="section-lede">
+    <p class="zh">走了两遍——先用占位材料,再用这份真实案卷。二十个缺陷,其中九个会在
+    当时毫无异常的情况下损坏数据。下面按后果分组,只列会影响结论的。</p>
+    <p class="en">Two passes: once on placeholder material, once on this real filing.
+    Twenty defects, nine of which would have damaged the data with nothing looking
+    wrong at the time. Grouped below by what they would have cost.</p>
+  </div>
+
+  <div class="finding critical">
+    <div class="pair">
+      <h4><span class="zh">初稿基线每次重新生成都被覆盖</span><span class="sep">/</span>The baseline draft was overwritten on every regeneration<span class="tag fixed">fixed</span></h4>
+      <div class="zh"><p>「被试改了什么」全部对着初稿算。而那个文件每次生成都被重写,
+      进入核验段还会自动再生成一次——基线常常在需要它的阶段开始之前就没了。当时什么
+      都看不出来:请求内部顺序仍然正确,每一稿仍然记了哈希,integrity 仍然报告
+      「初稿与终稿俱在,哈希吻合」。</p></div>
+      <div class="en"><p>Every measure of what the participant changed is computed
+      against the first draft. That file was rewritten on every generation — and
+      entering verification regenerates automatically, so the baseline was routinely
+      gone before the phase that needs it began. Nothing surfaced at the time.</p></div>
+      <div class="evidence">6 draft_snapshot events, 6 different sha256
+on disk: the <b>last</b> one — 2 sentences, 280 chars
+the actual first draft — 11 sentences, 1373 chars — gone</div>
+    </div>
+  </div>
+
+  <div class="finding critical">
+    <div class="pair">
+      <h4><span class="zh">编辑日志和答案卷用两套句子编号</span><span class="sep">/</span>The edit log and the answer key named sentences differently<span class="tag fixed">fixed</span></h4>
+      <div class="zh"><p>编辑器自己造句 id 而不是沿用服务端的。血缘记录得完整而无用:
+      没法和快照或拷问段对上,于是「被试改的是哪条植入句」——核验段的核心测量——
+      根本答不出来。</p></div>
+      <div class="en"><p>The editor minted its own ids instead of keeping the
+      server's. The lineage recorded splits perfectly and uselessly: it could not be
+      joined to the snapshot or the probe, so the phase's central measure had no
+      answer.</p></div>
+      <div class="evidence">before  snapshot: s1_0 s1_1 s2_0 …   edit log: s_mt29wwt3_a …   <b>overlap 0 of 10</b>
+after   affected_sent_ids: ['s1_0']            <b>overlap 11 of 11</b></div>
+    </div>
+  </div>
+
+  <div class="finding critical">
+    <div class="pair">
+      <h4><span class="zh">被试自己写的句子可能继承一条植入错误</span><span class="sep">/</span>A participant's own sentence could inherit a planted error<span class="tag fixed">fixed</span></h4>
+      <div class="zh"><p>短句之间共有引证方括号和常用词,相似度会被推高。被试在第一段
+      键入的九个词,对两段之外一条<strong>原封未动、自身以 1.0 匹配</strong>的句子得分
+      0.43,落进「重写」频段,于是继承了它的 id 和 <code>planted_id</code>。拷问段随后
+      会拿被试自己写的句子提问,而答案卷说它是植入错误。阈值是预注册的,没动;
+      加的是一条消歧规则。</p></div>
+      <div class="en"><p>Similarity over character bigrams runs high on short strings
+      sharing citation brackets. A typed sentence scored inside the "rewritten" band
+      against a sentence that was itself still present, untouched, matching at 1.0 —
+      and inherited its id and its <code>planted_id</code>. The pre-registered
+      thresholds were left alone; a disambiguation rule was added.</p></div>
+      <div class="evidence">typed "Separately, the record supports this."  →  0.4317 vs s3_1
+s3_1 itself, elsewhere in the letter        →  1.0000
+<b>a sentence matching at 1.0 cannot also have been split</b></div>
+    </div>
+  </div>
+
+  <div class="finding critical">
+    <div class="pair">
+      <h4><span class="zh">每条植入句的正确版本差点被发到浏览器</span><span class="sep">/</span>The correct version of every planted sentence nearly shipped<span class="tag fixed">fixed</span></h4>
+      <div class="zh"><p>为了让植入可重跑,需要在句子旁边留一份生成器的原话。那个字段
+      会随信一起发出去。不是关于答案的线索,就是答案本身,和被植入的版本躺在同一个响应里,
+      六条一次全给。根因是守卫方向反了:服务端列的是「要剥掉哪些字段」,于是以后每加一个
+      服务端字段默认都是泄露。现在改成列「允许发出去哪些」。</p></div>
+      <div class="en"><p>Making the planting re-runnable meant keeping the generator's
+      original wording beside the planted text — and that field would have gone out
+      with the letter. Not a hint about the answer: the answer, next to the planted
+      version, for all six at once. The guard listed fields to strip, so every new
+      field was public by default. It now lists what may be sent.</p></div>
+    </div>
+  </div>
+
+  <div class="finding critical">
+    <div class="pair">
+      <h4><span class="zh">刷新一次页面,整个组织段静默清空</span><span class="sep">/</span>A page reload silently erased the whole organization phase<span class="tag fixed">fixed</span></h4>
+      <div class="zh"><p>树只活在浏览器内存里。刷新、崩溃、误按后退,所有分论点回到
+      「待审」,改名和移动全部消失,下一次生成用的是机器最初的提案。信照样渲染,阶段照样
+      推进,日志里每一步操作都还在。在核验段这比丢工作更糟:被试正在核验的那封信,
+      被当场用一棵他没整理过的树重建了。</p></div>
+      <div class="en"><p>The working tree lived only in the browser. A refresh put
+      every sub-argument back to "proposed" and undid every rename and move, and the
+      next generation ran against the machine's original proposal. The letter still
+      rendered, the phase still advanced, the log still held every operation. In
+      verification it was worse than lost work.</p></div>
+      <div class="evidence">before reload  2 accepted · 1 renamed · 1 moved
+after  reload  <b>6 proposed · 0 accepted</b> · letter regenerated from the pristine tree</div>
+    </div>
+  </div>
+
+  <div class="finding critical">
+    <div class="pair">
+      <h4><span class="zh">真实材料下,拷问段的「看原文」按钮根本不出现</span><span class="sep">/</span>On real material the probe's source button never appeared<span class="tag fixed">fixed</span></h4>
+      <div class="zh"><p>引证解析器的 id 字符类不含连字符。占位包的编号是 <code>B2</code>、
+      <code>C1</code>,而真实申请书按 <code>C-1</code>、<code>G-5</code> 编号——解析失败,
+      按钮就不渲染。没有报错,只是没有。于是<strong>每一场的每一题</strong>
+      <code>source_opened</code> 都是 false,而「作答前有没有查原文」正是本研究要收的
+      测量之一。这条只有真实材料能暴露。</p></div>
+      <div class="en"><p>The parser's id class allowed no hyphen. The placeholder
+      bundle numbered exhibits <code>B2</code>, <code>C1</code>; a real filing numbers
+      them <code>C-1</code>, <code>G-5</code>. Parsing failed, the button did not
+      render, nothing errored. <code>source_opened</code> would have been false for
+      <strong>every item in every session</strong> — and whether they checked is one
+      of the measures the study exists to collect. Only real material could surface
+      this.</p></div>
+      <div class="evidence">/\[Exhibit\s+([A-Za-z0-9]+),\s*p\.(\d+)/          <b>"[Exhibit C-1, p.2]" → null</b>
+/\[Exhibit\s+([A-Za-z0-9][A-Za-z0-9-]*),\s*p\.\s*(\d+)/   → { exhibit: "C-1", page: 2 }</div>
+    </div>
+  </div>
+
+  <div class="finding serious">
+    <div class="pair">
+      <h4><span class="zh">一场完整的场次因为上一个被试而被判无效</span><span class="sep">/</span>A complete session was invalidated by the previous participant<span class="tag fixed">fixed</span></h4>
+      <div class="zh"><p>崩溃镜像按浏览器来源存,不按场次。实验室一台机器连着跑 24 个人,
+      上一个被试没发出去的队列会被下一个人的 logger 恢复,序号也跨场继续——
+      于是下一场从 108 开始,服务端记下一个 107 条的缺口。</p></div>
+      <div class="en"><p>The crash mirror was keyed by origin, not by session. On one
+      lab machine running 24 participants in sequence, one participant's unsent queue
+      was restored into the next one's logger and the sequence continued across the
+      boundary.</p></div>
+      <div class="evidence">seq_gaps: [[1, 107]]
+seq_continuity  FAIL  107 of 181 client events never arrived (59.1%)
+verdict: <b>invalid</b>   ← a session in which nothing was lost</div>
+    </div>
+  </div>
+
+  <div class="finding serious">
+    <div class="pair">
+      <h4><span class="zh">选中第一张证据卡就整页白屏</span><span class="sep">/</span>Selecting the first evidence card white-screened everything<span class="tag fixed">fixed</span></h4>
+      <div class="zh"><p>一个面板直接读了新材料包没有的字段容器。React 卸载了整棵树——
+      顶栏、证据、结构、信件一起消失,而且当时没有 error boundary,主试看到的白页和浏览器
+      崩溃无法区分。两半都修了:面板不再假设容器存在,并加了边界,捕获后写进日志并提示
+      「请告知主试」。</p></div>
+      <div class="en"><p>A panel read straight through a container the new bundle did
+      not have. React unmounted the whole tree, and there was no error boundary, so a
+      moderator would see a blank page indistinguishable from a crash. Both halves are
+      fixed.</p></div>
+    </div>
+  </div>
+
+  <div class="finding serious">
+    <div class="pair">
+      <h4><span class="zh">live 生成每个服务进程只成功一次</span><span class="sep">/</span>Live generation worked once per server process<span class="tag fixed">fixed</span></h4>
+      <div class="zh"><p>provider 缓存了一个 HTTP 客户端,绑在创建它的事件循环上,而桥接
+      每次出栈都会关掉自己的循环。第一个按下重新生成的被试拿到了 live 文本;之后这个进程里
+      每一次请求、每一场次,都是 503。新鲜进程里单调一次完全正常——所以直接测试测不出来,
+      是部署级彩排跑起来才现形。</p></div>
+      <div class="en"><p>The provider caches one HTTP client bound to the loop that
+      created it, and the bridge closed its loop on the way out. The first participant
+      to press Regenerate got live text; every request after that, in that process, for
+      every session, got a 503. One call in a fresh process looks healthy — which is
+      why the deployment rehearsal caught it and a direct test did not.</p></div>
+    </div>
+  </div>
+
+  <div class="finding serious">
+    <div class="pair">
+      <h4><span class="zh">准备段和讲解段能读到真实案件</span><span class="sep">/</span>The real case was readable during the briefing<span class="tag fixed">fixed</span></h4>
+      <div class="zh"><p>那两段渲染了完整工作区并加载了真实 exhibit,顶栏还挂着核验段的
+      标题。被试可以在没人计时、没人观察的时候把即将被测的案子读一遍。现在服务端在这两段
+      也只发练习包,前端就算问也拿不到。</p></div>
+      <div class="en"><p>Both phases rendered the full workspace with the real exhibits
+      loaded, under the verification phase's heading — the case they were about to be
+      measured on, readable unobserved and untimed. The server now serves the practice
+      bundle there too.</p></div>
+    </div>
+  </div>
+
+  <div class="finding serious">
+    <div class="pair">
+      <h4><span class="zh">练习段显示的是正式案件的法条和申请人姓名</span><span class="sep">/</span>Practice displayed the real criterion and petitioner<span class="tag fixed">fixed</span></h4>
+      <div class="zh"><p>法条、条号、案件名是界面翻译文件里的固定字符串。练习段本该是
+      另一个法条——它却在练习材料上方显示着正式案件的法条和真实申请人姓名。三者现在都
+      来自材料包。</p></div>
+      <div class="en"><p>The criterion, the statute and the case name were fixed strings
+      in the translation file. Practice is a different criterion on purpose, and it was
+      showing the real one, with the real petitioner's name, above practice material.
+      All three now come from the bundle.</p></div>
+    </div>
+  </div>
+
+  <div class="finding quiet">
+    <div class="pair">
+      <h4><span class="zh">其余</span><span class="sep">/</span>The rest<span class="tag fixed">fixed</span></h4>
+      <div class="zh"><p>拷问会问到同一句两次;首次刷新之后日志丢失对连续性检查不可见;
+      按放大镜会多记一次并未发生的卡片点击;重构后信过期却无提示;提交没有二次确认;
+      首次生成前按钮写着「重新生成」;切走标签页后阶段最多滞后一分钟;
+      事件量检查拿 n=2 的基线算 z 分数,把第一场真实场次标成 +51σ。</p></div>
+      <div class="en"><p>The probe could ask the same sentence twice; log loss became
+      invisible after the first reload; pressing the magnifier logged a card click that
+      never happened; restructuring left the letter stale with no cue; submitting had
+      no confirmation; the generate button read "Regenerate" before anything existed;
+      switching tabs left the phase up to a minute behind; the volume check computed a
+      z-score against a two-session baseline and flagged the first real session at
+      +51σ.</p></div>
+    </div>
+  </div>
+
+  <div class="finding quiet">
+    <div class="pair">
+      <h4><span class="zh">我判断错的地方</span><span class="sep">/</span>Where I was wrong</h4>
+      <div class="zh"><p>五处我当成缺陷的其实不是。服务端给每条事件盖自己的到达时间,
+      看着像时钟损坏,其实客户端原时间就保存在旁边。生成失败的提示是有的,我在信件面板里找,
+      它渲染在屏幕底部。过期横幅也在,坏的是触发它的判据。软锁确实拦得住——我的脚本点击
+      绕过了真实指针必须经过的命中测试。分论点标题被截断是我的窗口太窄,不是布局问题——
+      不过实验机若是那个宽度,十条标题会全被截掉,而没人会注意到。</p></div>
+      <div class="en"><p>Five things I called defects were not. The server stamps its
+      own arrival time on every event, which reads as clock corruption until you notice
+      the client's own timestamp is preserved beside it. The generation-failure toast
+      exists — it renders at the foot of the screen, not in the letter panel. The stale
+      banner exists too; the bug was in what triggered it. The soft lock does block
+      everything, and my test only got through because a scripted click skips the hit
+      test a real pointer cannot. And the truncated titles were my narrow window — though
+      a lab machine at that width would truncate all ten, and nobody would notice.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Still open<span class="zh">仍待决定</span></h2>
+
+  <div class="finding serious">
+    <div class="pair">
+      <h4><span class="zh">选树规则无法被一个称职的生成器满足</span><span class="sep">/</span>The tree-selection rule cannot be satisfied by a competent generator<span class="tag open">needs a decision</span></h4>
+      <div class="zh"><p>预注册规则要求剔除「挂进本法条的跨法条证据少于两条」的候选树——
+      干扰节点是那几项克制检查得以成立的前提。五棵候选各只放了一条,而且是同一条:
+      一份被所有候选读作「评审者本人资历」的简历,这个放法站得住。他自己的论文五棵全部
+      正确排除。换种子只会重复同样正确的判断。规则预设生成器会误放证据,而这一个不会。
+      干扰节点必须被<strong>设计</strong>进去,那是对预注册的修订,不是改脚本。
+      当前选定的树标为 provisional,未通过筛除的那一轮如实存档。</p></div>
+      <div class="en"><p>The rule discards any candidate hanging fewer than two
+      cross-criterion items under the criterion — the distractor node is what makes the
+      restraint checks meaningful. All five placed exactly one, and the same one: a
+      biography every candidate read as the judge's own credentials, which is
+      defensible. All five correctly excluded his own article. New seeds would repeat
+      the same correct judgement. The rule presumes a generator that misfiles evidence;
+      this one does not. The distractor has to be introduced <strong>deliberately</strong>,
+      which is an amendment to the pre-registration, not a change to a script.</p></div>
+    </div>
+  </div>
+
+  <div class="finding serious">
+    <div class="pair">
+      <h4><span class="zh">植入句尚未经移民律师过目</span><span class="sep">/</span>The planted sentences have not been read by an attorney<span class="tag open">cleared for use</span></h4>
+      <div class="zh"><p>已放行使用,流程不再卡,而这与「已审阅」分开记录:
+      <code>cleared_for_use: true</code> 与 <code>reviewed_by_attorney: false</code>。
+      合并两者等于让「能跑」冒充「这些确实是从业者会认作错误的东西」,而后者是因变量的
+      刻度尺。目前两条夸大分别是 2.5 倍和 5 倍,比设计文档建议的 1.5–2 倍激进——
+      这正是四场 pilot 该定的事。</p></div>
+      <div class="en"><p>Cleared so the pipeline is not blocked, recorded separately
+      from review. Collapsing the two would let "it runs" stand in for "a practitioner
+      would call these errors", and the second is the scale the dependent variable is
+      measured on. Two of the overstatements are currently 2.5× and 5× against a
+      suggested 1.5–2× — exactly what four pilot sessions exist to settle.</p></div>
+    </div>
+  </div>
+
+  <div class="finding serious">
+    <div class="pair">
+      <h4><span class="zh">克制审计需要一个没写这些代码的人</span><span class="sep">/</span>The restraint audit needs someone who did not write the code<span class="tag open">not startable by me</span></h4>
+      <div class="zh"><p>验收流程要求五项克制检查由未参与实现的人对着红线独立过一遍。
+      这是进 pilot 前的最后一道闸,我不能是那个人。</p></div>
+      <div class="en"><p>The acceptance procedure requires five restraint checks to be
+      walked independently, against the red lines, by a person who did not implement
+      them. It is the last gate before pilot and I cannot be that person.</p></div>
+    </div>
+  </div>
+
+  <div class="finding quiet">
+    <div class="pair">
+      <h4><span class="zh">未阻塞的其余项</span><span class="sep">/</span>Unblocked remainder</h4>
+      <div class="zh"><p>人工清单还剩三项没走(键盘导航、TEST 徽章对拍、中文场次);
+      三栏布局没有最小宽度保护,约 1280px 以下每条分论点标题都会截断,而被试的任务恰恰是
+      读和重组这些标题;目前只建了一个法条的材料包;条件 B 仍是或有项;
+      除笔记本外尚未部署。</p></div>
+      <div class="en"><p>Three items on the manual checklist have not been walked
+      (keyboard navigation, the test-badge comparison, a Chinese-language session); the
+      three-column layout has no minimum-width guard and below roughly 1280&nbsp;px every
+      sub-argument title truncates while the participant's whole task is reading and
+      reorganising them; only one criterion has been built; condition B remains
+      optional; nothing is deployed beyond a laptop.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="pair">
+    <p class="zh">截图由 <code>backend/scripts/capture_flow.py</code> 在真实浏览器里
+    脚本化生成,每张图下的实测结果同时从页面和事件日志读出。界面改动后重跑即可,
+    论文配图用同一套。材料包留在本地不进版本库:里面每一份 exhibit 都已公开,但一个
+    具名个人的案卷汇集到一处是另一回事,而仓库是公开的。</p>
+    <p class="en">Screenshots captured by <code>backend/scripts/capture_flow.py</code>
+    in a real browser; the results beneath each are read from the live page and the
+    live event log at the same moment. Re-runnable when the interface changes, and the
+    same figures serve the paper. The material bundle is held locally and kept out of
+    version control: every exhibit in it is published, but a named individual's case
+    assembled in one place is a different thing, and the repository is public.</p>
+  </div>
+</footer>
+
+</div>
