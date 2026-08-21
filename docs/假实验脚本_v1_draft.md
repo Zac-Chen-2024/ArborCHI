@@ -95,6 +95,13 @@ cd backend && ./.venv/Scripts/python.exe scripts/dry_run.py
 | B16 | live 与 frozen 句对比 | 红线 #3 | 视觉无差 |
 | B17 | test 场顶栏 | FS-11 | 灰色 `TEST` 徽章；正式场无此徽章、其余完全一致 |
 | B18 | zh 场全界面 | FS-03 | 界面中文、材料仍英文 |
+| B19 | 组织段编辑后**刷新页面** | 红线 #1 邻域 | 已接受/重命名/移动**全部还在**。树原先只在内存里,刷新会静默退回 AI 初始提案,信随后用错的树重新生成 |
+| B20 | 核验段刷新一次,再看 `snapshots/` | 红线 #1 | `initial.json` 不变,新的一稿落成 `draft_N.json` |
+| B21 | setup / tutorial 两个阶段 | BE-03 | 只有等待屏;抓包 `/material` 拿到的是**练习包**,顶栏没有正式案件的法条与姓名 |
+| B22 | 练习段顶栏 | BE-18 | criterion / cfr / 案件名都来自练习包(另一个法条、另一个姓名) |
+| B23 | 点「Submit final」 | BE-11 | 先弹确认框;点"继续检查"不提交。提交不可逆,单击一次就结束被测任务 |
+| B24 | 换一个被试、同一台机器、同一浏览器 | FS-04 | 新场次 seq 从 **0** 起;`seq_gaps` 为空;integrity 不因此判 invalid |
+| B25 | 同一场次内刷新数次后收场 | PR-4 | `seq_continuity` 的事件总数与实际相符(seq 跨刷新续号,不从 0 重来) |
 
 ---
 
