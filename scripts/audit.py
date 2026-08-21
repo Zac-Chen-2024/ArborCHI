@@ -138,6 +138,45 @@ for rel in REQUIRED:
 
 
 # ---------------------------------------------------------------------------
+# 2b. No credential may be tracked
+# ---------------------------------------------------------------------------
+#
+# The key lives in backend/.env, which .gitignore excludes -- but "excluded"
+# is a property of one line in one file, and a key pasted into a script, a
+# test fixture, or a README example is tracked like anything else. A committed
+# key is not undone by deleting it: it is in the history, and on a public repo
+# it is compromised the moment it is pushed.
+#
+# Patterns are assembled from parts so this file does not trip its own scan.
+SECRET_PATTERNS = [
+    ("OpenAI key", re.compile("sk" + r"-[A-Za-z0-9_\-]{24,}")),
+    ("Google key", re.compile("AIza" + r"[0-9A-Za-z_\-]{30,}")),
+    ("GitHub token", re.compile("gh[pousr]" + r"_[A-Za-z0-9]{30,}")),
+    ("Anthropic key", re.compile("sk-ant" + r"-[A-Za-z0-9_\-]{20,}")),
+    ("AWS key id", re.compile("AKIA" + r"[0-9A-Z]{16}")),
+    ("private key block", re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----")),
+]
+
+SECRET_SCAN_SKIP = ('.png', '.jpg', '.jpeg', '.pdf', '.ico', '.woff', '.woff2')
+
+for rel in sorted(tracked):
+    if rel.endswith(SECRET_SCAN_SKIP):
+        continue
+    path = os.path.join(ROOT, rel)
+    try:
+        with io.open(path, encoding='utf-8', errors='ignore') as fh:
+            body = fh.read()
+    except OSError:
+        continue
+    for label, pattern in SECRET_PATTERNS:
+        if pattern.search(body):
+            note('SECRET', f'{rel} contains something shaped like a {label}. '
+                           f'Credentials belong in backend/.env, which is not '
+                           f'tracked. If this was pushed, rotate it -- deleting '
+                           f'the line does not remove it from history.')
+
+
+# ---------------------------------------------------------------------------
 # 3. Red lines, checked against the source
 # ---------------------------------------------------------------------------
 
