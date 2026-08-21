@@ -56,7 +56,8 @@
     "next": "下一页 ›",
     "pos": "{{ex}} · 第 {{i}} / {{n}} 页",
     "zoomOut": "缩小",
-    "zoomIn": "放大"
+    "zoomIn": "放大",
+    "jump": "跳到"
   },
   "tree": {
     "title": "论证结构",
@@ -91,7 +92,8 @@
   "relations": {
     "title": "这条证据说的是谁",
     "src": "关系抽取自文档",
-    "mentions": "「{{name}}」在本案中的其他出处"
+    "mentions": "「{{name}}」在本案中的其他出处",
+    "none": "这条摘录没有登记关系。"
   },
   "letter": {
     "title": "申请信 · {{criterion}}",

@@ -1,9 +1,16 @@
 /**
- * Pager, 48px. Prev / position / next plus the zoom stepper (FS-05).
+ * Pager, 48px: where you are in the exhibit, a jump control, and zoom (FS-05).
  *
- * Page moves made here report `via: "click"`; the same move triggered by a
- * citation or chip reports `via: "linkage"`, which is how the analysis tells
- * a participant's own navigation apart from the system's (C-08).
+ * No Prev / Next. The exhibit scrolls as one document, so stepping a page at a
+ * time is not how anyone reads it -- and every step would land in the log as
+ * navigation, filling `page_change` with presses that stand in for scrolling.
+ * What remains is the position (observed from the scroll, not commanded) and a
+ * way to go somewhere specific in a twelve-page exhibit.
+ *
+ * A jump made here reports `via: "click"`; the same move triggered by a
+ * citation or an evidence card reports `via: "linkage"`, and scrolling reports
+ * `via: "scroll"`. That is how the analysis separates a participant's own
+ * navigation from the system's (C-08).
  */
 import { useTranslation } from 'react-i18next'
 
@@ -30,20 +37,31 @@ export function PagerBar({ exhibit, page, pages, zoom, onPage, onZoom }: Props) 
 
   return (
     <div className="pager">
-      <button className="pgbtn" disabled={page <= 1} onClick={() => onPage(page - 1)}>
-        {t('pager.prev')}
-      </button>
-      <span className="mono text-[11px] text-slate-500 flex-1 text-center">
+      <span className="mono text-[11px] text-slate-500 truncate">
         {t('pager.pos', { ex: exhibit, i: page, n: pages })}
       </span>
-      <button className="pgbtn" disabled={page >= pages} onClick={() => onPage(page + 1)}>
-        {t('pager.next')}
-      </button>
-      <span className="w-px h-4 bg-slate-200 mx-0.5" />
+
+      <label className="ml-auto flex items-center gap-1.5 flex-shrink-0">
+        <span className="text-[10.5px] text-slate-400">{t('pager.jump')}</span>
+        <select
+          className="pgsel mono"
+          value={page}
+          onChange={(e) => onPage(Number(e.target.value))}
+          aria-label={t('pager.jump')}
+        >
+          {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <span className="w-px h-4 bg-slate-200 mx-0.5 flex-shrink-0" />
       <button className="pgbtn" style={{ padding: '0 8px' }} onClick={() => step(-1)} aria-label={t('pager.zoomOut')}>
         {ZOOM_OUT}
       </button>
-      <span className="mono text-[10.5px] text-slate-400">{Math.round(zoom * 100)}%</span>
+      <span className="mono text-[10.5px] text-slate-400 num">{Math.round(zoom * 100)}%</span>
       <button className="pgbtn" style={{ padding: '0 8px' }} onClick={() => step(1)} aria-label={t('pager.zoomIn')}>
         {ZOOM_IN}
       </button>

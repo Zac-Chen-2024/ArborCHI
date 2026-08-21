@@ -434,7 +434,7 @@ export function ConditionC({ state }: Props) {
                 </div>
               </div>
             }
-            onOpenLightbox={(via) => openLightbox(effectiveChip, viewPage, via)}
+            onOpenLightbox={() => openLightbox(effectiveChip, viewPage, 'bbox')}
             onExhibitClick={(id) => {
               logger.log('doc_open', { exhibit: id, from_exhibit: exhibit, via: 'chip' })
               logger.log('page_change', { exhibit: id, page: 1, via: 'click', reason: 'exhibit chip' })

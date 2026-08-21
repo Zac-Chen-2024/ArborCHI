@@ -56,7 +56,8 @@
     "next": "Next ›",
     "pos": "{{ex}} · Page {{i}} / {{n}}",
     "zoomOut": "Zoom out",
-    "zoomIn": "Zoom in"
+    "zoomIn": "Zoom in",
+    "jump": "Page"
   },
   "tree": {
     "title": "Argument Structure",
@@ -91,7 +92,8 @@
   "relations": {
     "title": "Who this evidence is about",
     "src": "Relations extracted from documents",
-    "mentions": "Other mentions of \"{{name}}\" in this case"
+    "mentions": "Other mentions of \"{{name}}\" in this case",
+    "none": "No relations recorded for this excerpt."
   },
   "letter": {
     "title": "Petition Letter · {{criterion}}",

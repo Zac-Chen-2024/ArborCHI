@@ -224,8 +224,30 @@ def public_tree(material_id: str = "case_v1") -> Dict[str, Any]:
 
 def public_snippets(material_id: str = "case_v1") -> Dict[str, Any]:
     """Snippets and exhibits. Nothing here is secret -- the participant is
-    meant to read all of it -- so this is a straight pass-through."""
-    return load_bundle(material_id)["snippets"]
+    meant to read all of it -- so this is close to a pass-through.
+
+    Each exhibit also carries `page_aspects`, the height/width ratio of every
+    rendered page. The evidence viewer scrolls a whole exhibit continuously, and
+    without the shape of each page up front it cannot reserve the right space:
+    pages would resize as their images arrived and the document would jump under
+    a participant who is reading it.
+    """
+    out = dict(load_bundle(material_id)["snippets"])
+    index_path = bundle_dir(material_id) / "pages" / "index.json"
+    sizes: Dict[str, Any] = {}
+    if index_path.exists():
+        sizes = (_read(index_path).get("exhibits") or {})
+    exhibits = []
+    for ex in out.get("exhibits") or []:
+        pages = (sizes.get(ex["id"]) or {}).get("pages") or []
+        aspects = [
+            round(p["h"] / p["w"], 4)
+            for p in pages
+            if isinstance(p, dict) and p.get("w") and p.get("h")
+        ]
+        exhibits.append({**ex, "page_aspects": aspects})
+    out["exhibits"] = exhibits
+    return out
 
 
 def public_relations(material_id: str = "case_v1") -> Dict[str, Any]:

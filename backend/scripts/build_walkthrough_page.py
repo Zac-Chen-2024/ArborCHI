@@ -69,15 +69,22 @@ CAPTIONS = {
         "merges, removes and re-assigns.",
     ),
     "linkage": (
-        "点一张证据卡,四处同时动:左栏翻到被引页并画框、面包屑更新、对应分论点卡高亮、"
-        "下方「这条证据讲的是谁」列出主谓宾三元组和他在本案其他出现处。"
-        "这就是条件 C 与 B 的**唯一**差别——同样的文档,只是有没有人替你指。",
-        "Selecting an evidence card moves four things at once: the page turns "
-        "and the passage is boxed, the breadcrumb updates, the matching "
-        "sub-argument card highlights, and the relations panel lists what the "
-        "excerpt asserts plus where else he is named. This is the <em>only</em> "
-        "difference between conditions C and B — same document, only the "
-        "pointing differs.",
+        "点一张证据卡,四处同时动:左栏滚到被引段落并画框(滚到面板中间)、面包屑更新、"
+        "对应分论点卡高亮、下方「这条证据讲的是谁」列出事实与他在本案其他出现处。"
+        "**整份 exhibit 是一条连续滚动的文档**,没有上一页/下一页——"
+        "翻文件本来就是眼睛上下走,每页一次点击会把翻阅变成一串并非真实发生的导航事件。"
+        "要去特定某页有下拉可跳。这就是条件 C 与 B 的**唯一**差别——"
+        "同样的文档,只是有没有人替你指。",
+        "Selecting an evidence card moves four things at once: the panel scrolls "
+        "to the passage and boxes it, centred; the breadcrumb updates; the "
+        "matching sub-argument card highlights; and the relations panel lists "
+        "what the excerpt asserts and where else he is named. <strong>The whole "
+        "exhibit is one continuous document</strong> — no Prev/Next, because "
+        "reading a filing means running your eye up and down it, and a decision "
+        "per page would fill the log with navigation nobody really made. A jump "
+        "control remains for going somewhere specific. This is the <em>only</em> "
+        "difference between conditions C and B: same document, only the pointing "
+        "differs.",
     ),
     "magnifier": (
         "放大镜 300%:真实文书页面(北京大学出版社/虎啸奖聘书等,由源 PDF 渲染),"
@@ -161,23 +168,29 @@ CAPTIONS = {
         "rather than the participant's.",
     ),
     "bbox-hover": (
-        "鼠标移到框上,框加深并出现放大镜徽标,光标变成 zoom-in——"
-        "告诉被试这里可以点进去。**悬停预览证据卡时框是不响应的**:"
-        "那时指针只是路过,在它下面放一个可点的控件会误触。",
-        "Hovering the box deepens it, shows a magnifier badge and turns the "
-        "cursor to zoom-in — it says it can be clicked. While an evidence card is "
-        "merely being <em>previewed</em> on hover the box stays inert: the "
-        "pointer is only passing through, and a live control under it would fire "
-        "by accident.",
+        "**鼠标移到框上,就地放大那一块区域**——不打开任何东西,也不记任何事件。"
+        "它只是一个阅读辅助:300px 宽的页面上那段字太小,这样不用离开页面就能读。"
+        "悬停**预览**证据卡时框保持不响应:那时指针只是路过。",
+        "Hovering the box <strong>enlarges that region in place</strong>. It "
+        "opens nothing and records nothing — it is a reading aid: the passage is "
+        "small on a 300px-wide page and this makes it legible without leaving "
+        "the page. While an evidence card is merely being <em>previewed</em> on "
+        "hover, the box stays inert; the pointer is only passing through.",
     ),
     "bbox-zoom": (
-        "点框才打开放大镜(角落那个按钮是另一个入口,日志里分得开:"
-        "<code>via: bbox</code> 与 <code>via: page_button</code>)。"
-        "点弹层以外的任意位置即关闭,Esc 也可以。",
-        "Clicking the box opens the magnifier. The corner button is a second way "
-        "in, and the log tells them apart — <code>via: bbox</code> versus "
-        "<code>via: page_button</code>. Clicking anywhere outside the panel "
-        "closes it, as does Esc.",
+        "**只有点框上那个放大镜按钮才打开弹窗。** 打开它是被记录的动作 —— "
+        "<code>lightbox_open</code>、停留时长、里面的滚动 —— 所以必须是一次明确的按下。"
+        "任何「指到某处就自动打开」都会把界面的行为记成被试的。"
+        "按钮常驻而不是悬停才出现:靠悬停才能发现的控件,有些人一辈子发现不了,"
+        "那样测到的就成了「可发现性」。点弹层外任意位置或 Esc 关闭。",
+        "<strong>Only the magnifier button on the box opens the dialog.</strong> "
+        "Opening it is a measured act — <code>lightbox_open</code>, its dwell, "
+        "its scrolling — so it takes a deliberate press; anything that opened it "
+        "as a side effect of pointing would record the interface's behaviour as "
+        "the participant's. The button is always visible rather than appearing "
+        "on hover: a control that must be discovered by hovering is one some "
+        "people never find, and the measure would become discoverability. "
+        "Clicking outside, or Esc, closes it.",
     ),
     "editing": (
         "双击进入编辑,整封信是一个文本域。改动按**句**记录血缘:一句拆成两句,"

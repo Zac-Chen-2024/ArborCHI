@@ -20,7 +20,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { pageImageUrl } from '../../lib/pageImage'
+import { pageImage } from '../../lib/pageImage'
 import type { Snippet } from '../../lib/material'
 
 const ZOOM_LEVELS = [1, 2, 3] as const
@@ -58,8 +58,8 @@ function LightboxPage({ exhibit, page }: { exhibit: string; page: number }) {
     let live = true
     setUrl(null)
     setFailed(false)
-    pageImageUrl(exhibit, page)
-      .then((u) => live && setUrl(u))
+    pageImage(exhibit, page)
+      .then((p) => live && setUrl(p.url))
       .catch(() => live && setFailed(true))
     return () => {
       live = false

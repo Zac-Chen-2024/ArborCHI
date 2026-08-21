@@ -83,26 +83,54 @@ body{
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
 /* ---------- located passage (C-11) ----------
- * The box is the way into the magnifier. It says so on hover and takes a
- * click; the magnifier does not open on its own from following a citation,
- * because opening it is itself a measured act -- if it appeared whenever a
- * participant clicked a reference, "did they magnify the source" would be a
- * record of the interface's behaviour rather than theirs. A hover PREVIEW of
- * an evidence card leaves the box inert: the pointer is only passing through,
- * and a live control under it would fire by accident. */
+ * Two magnifications, deliberately different.
+ *
+ * HOVER enlarges the boxed region in place. It is a reading aid: a passage is
+ * small on a 300px-wide page and this makes it legible without leaving the
+ * page. It opens nothing and reports nothing.
+ *
+ * The BUTTON on the box opens the magnifier dialog. That is a measured act --
+ * lightbox_open, its dwell, its scrolling -- so it takes a deliberate press.
+ * Anything that opened the dialog as a side effect of pointing at something
+ * would record the interface's behaviour as the participant's. The button is
+ * always visible on a live box rather than appearing on hover: a control that
+ * has to be discovered by hovering is one some participants never find, and
+ * "did they magnify" would then be measuring discoverability.
+ *
+ * A hover PREVIEW of an evidence card leaves the box inert -- the pointer is
+ * only passing through, and a live control under it would fire by accident. */
 .bbox{transition:background-color .12s ease,box-shadow .12s ease}
-.bbox.is-zoomable{cursor:zoom-in}
-.bbox.is-zoomable:hover,.bbox.is-zoomable:focus-visible{
-  background:rgba(37,99,235,.18);
-  box-shadow:0 0 0 3px rgba(37,99,235,.18);
-  outline:none;
+.bbox.is-live{cursor:default}
+.bbox.is-live:hover{
+  background:rgba(37,99,235,.16);
+  box-shadow:0 0 0 3px rgba(37,99,235,.16);
 }
 .bbox-zoom{
-  position:absolute;top:-11px;right:-11px;width:22px;height:22px;border-radius:999px;
-  background:var(--c-ev);color:#fff;display:none;place-items:center;
-  box-shadow:0 1px 4px rgba(15,23,42,.35);
+  position:absolute;top:-10px;right:-10px;width:21px;height:21px;border-radius:999px;
+  background:var(--c-ev);color:#fff;display:grid;place-items:center;cursor:zoom-in;
+  border:1.5px solid #fff;box-shadow:0 1px 4px rgba(15,23,42,.3);padding:0;
 }
-.bbox-zoom svg{width:12px;height:12px}
-.bbox.is-zoomable:hover .bbox-zoom,
-.bbox.is-zoomable:focus-visible .bbox-zoom{display:grid}
+.bbox-zoom:hover{background:#1d4ed8}
+.bbox-zoom:focus-visible{outline:2px solid var(--c-ev);outline-offset:2px}
+.bbox-zoom svg{width:11px;height:11px}
+
+/* The loupe: the boxed region alone, at the panel's full width. Sits over the
+   page, clear of the box, and never intercepts the pointer -- moving onto it
+   would leave the box and dismiss it. */
+.loupe{
+  position:absolute;left:8px;right:8px;z-index:30;pointer-events:none;
+  background:#fff;border:1px solid var(--c-ev-line);border-radius:8px;padding:6px;
+  box-shadow:0 10px 30px rgba(15,23,42,.18),0 2px 6px rgba(15,23,42,.08);
+}
+.loupe-crop{position:relative;overflow:hidden;border-radius:4px;background:#fff;width:100%}
+.loupe-crop img{position:absolute;max-width:none;image-rendering:auto}
+
 @media (prefers-reduced-motion:reduce){.bbox{transition:none}}
+
+.pgsel{
+  height:26px;border-radius:6px;border:1px solid var(--c-line);background:#fff;
+  font-size:11.5px;color:#475569;padding:0 4px;cursor:pointer;
+  font-variant-numeric:tabular-nums;
+}
+.pgsel:hover{border-color:#94a3b8}
+.pgsel:focus-visible{outline:2px solid var(--c-ev);outline-offset:1px}

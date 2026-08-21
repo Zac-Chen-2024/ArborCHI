@@ -188,11 +188,11 @@ def main() -> int:
              "Organization: the real case. The only visible clock in the session.", sid)
 
         page.click(".chip")
-        settle(page, 1400)
+        settle(page, 2200)
         shot(page, "linkage", "点一张证据卡:面包屑、左栏定位、卡片、关系面板同时联动",
              "Selecting evidence moves breadcrumb, page, card and relations together.", sid)
 
-        page.click(".chip .zoom")
+        page.click(".bbox-zoom")
         settle(page, 1800)
         page.click("button:has-text('300%')")
         settle(page, 1200)
@@ -272,11 +272,11 @@ def main() -> int:
              "centres it. The magnifier does <strong>not</strong> open by itself.", sid)
 
         page.hover(".bbox")
-        settle(page, 700)
+        settle(page, 1100)
         shot(page, "bbox-hover", "鼠标移到框上:出现放大提示,光标变成 zoom-in",
              "Hovering the box offers the magnifier; the cursor becomes zoom-in.", sid)
 
-        page.click(".bbox")
+        page.click(".bbox-zoom")
         settle(page, 1600)
         shot(page, "bbox-zoom", "点框才打开放大镜。点弹层以外任意位置即关闭",
              "Clicking the box opens the magnifier. Clicking anywhere outside it closes.", sid)

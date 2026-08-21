@@ -1,185 +1,330 @@
 /**
- * The scrolling page area: the exhibit page as it actually looks, with the
- * cited passage boxed on it.
+ * The exhibit, as one continuously scrolling document.
  *
- * This drew the mockup's grey placeholder bars until the real material landed.
- * That was right for a wireframe and wrong the moment a participant is asked to
- * check a sentence against the page it cites: three of the five planted error
- * kinds are findable only by reading the exhibit, `source_opened` and the
- * magnifier dwell are dependent variables, and the bbox exists to put a
- * highlight somewhere. None of that means anything over grey bars.
+ * Every page is stacked in one scroller rather than shown one at a time.
+ * Reading a filing means running your eye down it and back up; a Prev / Next
+ * pair turns that into a decision per page, and those decisions land in the log
+ * as navigation the participant did not really make. A jump control remains for
+ * going somewhere specific in a twelve-page exhibit.
+ *
+ * Which page is being read is therefore *observed* rather than commanded: the
+ * page occupying most of the viewport is the current one, reported with
+ * `via: "scroll"`. Moves the software makes on the participant's behalf --
+ * following a citation -- are suppressed, or every linkage would also look like
+ * a scroll (C-08).
+ *
+ * ## Two magnifications, and why they differ
+ *
+ * Hovering the located passage enlarges **that region only**, in place. It is a
+ * reading aid: the passage is small on a 300px-wide page, and this makes it
+ * legible without leaving the page or opening anything.
+ *
+ * The full magnifier dialog opens only from the button on the box. Opening it
+ * is a measured act -- `lightbox_open`, its dwell, its scrolling -- so it takes
+ * a deliberate press. Anything that opened it as a side effect of pointing at
+ * something would record the interface's behaviour as the participant's.
  *
  * bbox convention (红线 #8): the bundle stores a 1000×1000 normalised space, so
- * a coordinate divided by 10 is a percentage of the rendered page. Positioned in
- * percentages rather than pixels, the box lands correctly at every zoom level
- * and every render width, and the image's own size never has to be known here.
+ * a coordinate divided by 10 is a percentage of the page. Positioned in
+ * percentages, the box holds at every zoom and every render width.
  *
- * Parity (§D3, B-03): the PAGE is identical in both conditions. `linkage` adds
- * the box and nothing else -- same document, same passage on it, different
- * pointing.
+ * Parity (§D3, B-03): the PAGES are identical in both conditions. `linkage`
+ * adds the box, the loupe and the magnifier button; without it the same
+ * document scrolls with nothing pointed at.
  */
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { pageImageUrl } from '../../../lib/pageImage'
+import { pageImage, type PageImage } from '../../../lib/pageImage'
 import type { Linkage } from './index'
 
 interface Props {
   exhibit: string
+  /** The page to bring into view when it changes from outside -- a jump from
+   *  the pager, or a citation. Scrolling never sets this; it reports instead. */
   page: number
-  /** Pages in this exhibit, so the trailing next-page preview knows to stop. */
   pageCount: number
+  /** Height/width of each page, so space is reserved before the image lands. */
+  pageAspects?: number[]
   zoom: number
   linkage?: Linkage
-  /** `via` names the affordance: the corner button, or the highlighted
-   *  passage itself. They are different acts and the log has to tell
-   *  them apart. */
-  onOpenLightbox?: (via: 'page_button' | 'bbox') => void
+  /** Reading position, observed from scrolling. */
+  onPageInView?: (page: number) => void
+  onOpenLightbox?: () => void
 }
 
-/** One rendered page, or a reason it is not there. */
-function Page({ exhibit, page, dim }: { exhibit: string; page: number; dim?: boolean }) {
+/** Page shape assumed while nothing is known -- close to A4 and Letter. */
+const FALLBACK_ASPECT = 1.3
+
+/** One page: reserves its space immediately, loads its image when near. */
+function Page({
+  exhibit,
+  page,
+  aspect,
+  onLoaded,
+  children,
+}: {
+  exhibit: string
+  page: number
+  aspect: number
+  onLoaded?: (img: PageImage) => void
+  children?: React.ReactNode
+}) {
   const { t } = useTranslation()
-  const [url, setUrl] = useState<string | null>(null)
+  const ref = useRef<HTMLDivElement | null>(null)
+  const [img, setImg] = useState<PageImage | null>(null)
   const [failed, setFailed] = useState(false)
+  const [near, setNear] = useState(false)
+
+  // Only fetch what is about to be looked at. A twelve-page exhibit is twelve
+  // images, and loading all of them the moment it opens would put a stall at
+  // the front of every navigation.
+  useEffect(() => {
+    const el = ref.current
+    if (!el || near) return
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => e.isIntersecting && setNear(true)),
+      { rootMargin: '600px 0px' },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [near])
 
   useEffect(() => {
+    if (!near) return
     let live = true
-    setUrl(null)
     setFailed(false)
-    pageImageUrl(exhibit, page)
-      .then((u) => live && setUrl(u))
+    pageImage(exhibit, page)
+      .then((p) => {
+        if (!live) return
+        setImg(p)
+        onLoaded?.(p)
+      })
       .catch(() => live && setFailed(true))
     return () => {
       live = false
     }
-  }, [exhibit, page])
+  }, [near, exhibit, page, onLoaded])
 
   return (
-    <div className={`relative bg-white ${dim ? 'opacity-40' : ''}`}>
-      <div className="absolute top-1.5 left-2 z-10 text-[10px] text-slate-400 bg-white/80 px-1 rounded">
+    <div
+      ref={ref}
+      data-page={page}
+      className="paper relative overflow-hidden"
+      style={{ padding: 0, aspectRatio: `1 / ${aspect}` }}
+    >
+      <div className="absolute top-1.5 left-2 z-10 text-[10px] text-slate-400 bg-white/85 px-1 rounded">
         {t('ref.page', { i: page })}
       </div>
-      {url ? (
-        <img
-          src={url}
-          alt=""
-          className="block w-full max-w-full select-none"
-          draggable={false}
-        />
+      {img ? (
+        <img src={img.url} alt="" className="block w-full max-w-full select-none" draggable={false} />
       ) : (
-        // A fixed aspect box so the page does not jump when the image lands.
-        // Failure says so rather than showing an empty frame: a participant
-        // staring at a blank exhibit should be able to tell the researcher
-        // something is wrong, not conclude the document is blank.
-        <div className="w-full grid place-items-center text-[11px] text-slate-400"
-             style={{ aspectRatio: '1 / 1.29' }}>
+        <div className="w-full h-full grid place-items-center text-[11px] text-slate-400">
           {failed ? t('evidence.pageUnavailable') : ''}
         </div>
       )}
+      {children}
     </div>
   )
 }
 
-export function PageView({ exhibit, page, pageCount, zoom, linkage, onOpenLightbox }: Props) {
+export function PageView({
+  exhibit,
+  page,
+  pageCount,
+  pageAspects,
+  zoom,
+  linkage,
+  onPageInView,
+  onOpenLightbox,
+}: Props) {
   const { t } = useTranslation()
+  const scrollRef = useRef<HTMLDivElement | null>(null)
   const boxRef = useRef<HTMLDivElement | null>(null)
-  const snippet = linkage?.snippet
-  // Only box the passage when it is on the page being looked at. Turning to
-  // another page must not leave a rectangle behind on unrelated text (C-11).
-  const box =
-    snippet && snippet.exhibit === exhibit && snippet.page === page ? snippet.bbox : null
+  // True while this component is scrolling itself. Without it, following a
+  // citation also reports a scroll, and the log stops telling a move the
+  // participant made from one made for them.
+  const programmatic = useRef(false)
+  /** Last page the observer reported, so an outside jump can tell whether it
+   *  needs to move at all -- and so reporting cannot re-trigger scrolling. */
+  const inView = useRef(0)
+  const [loupe, setLoupe] = useState(false)
+  const [citedImg, setCitedImg] = useState<PageImage | null>(null)
 
-  // Bring the located passage to the middle of the panel rather than leaving it
-  // wherever it happens to fall. A citation on page 9 of a twelve-page exhibit
-  // otherwise lands off-screen, and "follow the citation" quietly becomes
-  // "follow the citation, then hunt".
+  const snippet = linkage?.snippet
+  const citedPage = snippet && snippet.exhibit === exhibit ? snippet.page : null
+  const box = snippet && citedPage !== null ? snippet.bbox : null
+  const interactive = !!box && !linkage?.preview
+
+  const aspectOf = (n: number) => pageAspects?.[n - 1] ?? FALLBACK_ASPECT
+
+  // Bring the located passage to the middle of the panel. A citation on page 9
+  // of a twelve-page exhibit otherwise lands wherever the scroller happens to
+  // be, and "follow the citation" quietly becomes "follow it, then hunt".
   useEffect(() => {
     if (!box || !boxRef.current) return
+    programmatic.current = true
+    inView.current = citedPage ?? inView.current
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     boxRef.current.scrollIntoView({
       block: 'center',
       inline: 'nearest',
       behavior: reduce ? 'auto' : 'smooth',
     })
-  }, [exhibit, page, snippet?.snippet_id, box])
+    const id = window.setTimeout(
+      () => {
+        programmatic.current = false
+      },
+      reduce ? 80 : 900,
+    )
+    return () => window.clearTimeout(id)
+  }, [exhibit, snippet?.snippet_id, box, citedPage])
+
+  // Which page is being read, observed rather than commanded.
+  useEffect(() => {
+    const root = scrollRef.current
+    if (!root || !onPageInView) return
+    const visible = new Map<number, number>()
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          visible.set(Number((e.target as HTMLElement).dataset.page), e.intersectionRatio)
+        })
+        if (programmatic.current) return
+        let best = 0
+        let bestRatio = 0
+        visible.forEach((ratio, n) => {
+          if (ratio > bestRatio) {
+            bestRatio = ratio
+            best = n
+          }
+        })
+        if (best && bestRatio > 0.5 && best !== inView.current) {
+          inView.current = best
+          onPageInView(best)
+        }
+      },
+      { root, threshold: [0, 0.25, 0.5, 0.75, 1] },
+    )
+    root.querySelectorAll('[data-page]').forEach((el) => io.observe(el))
+    return () => io.disconnect()
+  }, [exhibit, pageCount, onPageInView])
+
+  // A jump from the pager, or a citation landing on a page with no box on it.
+  // Skipped when the located passage is on that page: the box's own centring is
+  // more precise and would otherwise fight this.
+  useEffect(() => {
+    const root = scrollRef.current
+    if (!root || page === inView.current) return
+    if (box && citedPage === page) return
+    const el = root.querySelector(`[data-page="${page}"]`)
+    if (!el) return
+    programmatic.current = true
+    inView.current = page
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    el.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' })
+    const id = window.setTimeout(
+      () => {
+        programmatic.current = false
+      },
+      reduce ? 80 : 900,
+    )
+    return () => window.clearTimeout(id)
+  }, [page, exhibit, box, citedPage])
+
+  const onCitedLoaded = useCallback((img: PageImage) => setCitedImg(img), [])
+
+  useEffect(() => {
+    setLoupe(false)
+    setCitedImg(null)
+  }, [exhibit, snippet?.snippet_id])
+
+  // The loupe shows the boxed region alone, scaled to the panel's width. Both
+  // the crop and its shape come from the same 0-1000 coordinates the box uses,
+  // so the two can never point at different parts of the page.
+  const lens = (() => {
+    if (!box || !citedImg) return null
+    const [x1, y1, x2, y2] = box
+    const w = (x2 - x1) / 10
+    const h = (y2 - y1) / 10
+    if (w <= 0 || h <= 0) return null
+    return {
+      crop: { aspectRatio: `${(w / 100) * citedImg.w} / ${(h / 100) * citedImg.h}` },
+      img: {
+        width: `${(100 / w) * 100}%`,
+        height: `${(100 / h) * 100}%`,
+        left: `${-(x1 / 10 / w) * 100}%`,
+        top: `${-(y1 / 10 / h) * 100}%`,
+      },
+      // Below the passage when there is room beneath it, above it otherwise.
+      below: y2 / 10 < 60,
+    }
+  })()
 
   return (
-    <div className="scroll bg-slate-50 p-3">
-      <div className="paper relative overflow-hidden" style={{ zoom, padding: 0 }}>
-        {onOpenLightbox && (
-          <button
-            onClick={() => onOpenLightbox('page_button')}
-            className="absolute top-2 right-2 z-20 w-6 h-6 rounded border border-slate-200 bg-white text-slate-400 flex items-center justify-center hover:text-blue-600 hover:border-blue-300"
-            aria-label={t('lightbox.open')}
+    <div ref={scrollRef} className="scroll bg-slate-50 p-3 flex flex-col gap-2.5">
+      {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
+        <div key={n} style={{ zoom }}>
+          <Page
+            exhibit={exhibit}
+            page={n}
+            aspect={aspectOf(n)}
+            onLoaded={n === citedPage ? onCitedLoaded : undefined}
           >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="7" />
-              <path d="M20 20l-3.5-3.5M11 8v6M8 11h6" />
-            </svg>
-          </button>
-        )}
+            {box && n === citedPage && (
+              <>
+                <div
+                  ref={boxRef}
+                  onMouseEnter={() => interactive && setLoupe(true)}
+                  onMouseLeave={() => setLoupe(false)}
+                  className={`bbox absolute rounded-sm border-2 border-blue-500 bg-blue-500/10 ${
+                    linkage?.preview ? 'border-dashed pointer-events-none' : 'is-live'
+                  }`}
+                  style={{
+                    left: `${box[0] / 10}%`,
+                    top: `${box[1] / 10}%`,
+                    width: `${(box[2] - box[0]) / 10}%`,
+                    height: `${(box[3] - box[1]) / 10}%`,
+                  }}
+                >
+                  {interactive && onOpenLightbox && (
+                    <button
+                      type="button"
+                      className="bbox-zoom"
+                      aria-label={t('lightbox.open')}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onOpenLightbox()
+                      }}
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="M20 20l-3.5-3.5M11 8v6M8 11h6" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
 
-        <div className="relative">
-          <Page exhibit={exhibit} page={page} />
-          {box && (
-            // The box itself is the way into the magnifier: hovering it says so,
-            // and it takes a click. A hover preview stays inert -- the pointer
-            // is only passing over an evidence card, and arming a control under
-            // the cursor there would open the magnifier by accident.
-            <div
-              ref={boxRef}
-              role={onOpenLightbox && !linkage?.preview ? 'button' : undefined}
-              tabIndex={onOpenLightbox && !linkage?.preview ? 0 : undefined}
-              aria-label={onOpenLightbox ? t('lightbox.open') : undefined}
-              onClick={onOpenLightbox && !linkage?.preview ? () => onOpenLightbox('bbox') : undefined}
-              onKeyDown={
-                onOpenLightbox && !linkage?.preview
-                  ? (e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        onOpenLightbox('bbox')
-                      }
+                {loupe && lens && citedImg && (
+                  <div
+                    className="loupe"
+                    style={
+                      lens.below
+                        ? { top: `calc(${box[3] / 10}% + 10px)` }
+                        : { bottom: `calc(${100 - box[1] / 10}% + 10px)` }
                     }
-                  : undefined
-              }
-              className={`bbox absolute rounded-sm border-2 border-blue-500 bg-blue-500/10 ${
-                linkage?.preview
-                  ? 'border-dashed pointer-events-none'
-                  : onOpenLightbox
-                    ? 'is-zoomable'
-                    : 'pointer-events-none'
-              }`}
-              style={{
-                left: `${box[0] / 10}%`,
-                top: `${box[1] / 10}%`,
-                width: `${(box[2] - box[0]) / 10}%`,
-                height: `${(box[3] - box[1]) / 10}%`,
-              }}
-            >
-              {onOpenLightbox && !linkage?.preview && (
-                <span className="bbox-zoom" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                    <circle cx="11" cy="11" r="7" />
-                    <path d="M20 20l-3.5-3.5M11 8v6M8 11h6" />
-                  </svg>
-                </span>
-              )}
-            </div>
-          )}
+                    aria-hidden="true"
+                  >
+                    <div className="loupe-crop" style={lens.crop}>
+                      <img src={citedImg.url} alt="" style={lens.img} draggable={false} />
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </Page>
         </div>
-      </div>
-
-      {/* Continuous paging: the next page sits below, dimmed, as in the mockup.
-          It reports nothing. An earlier version fired page_change{via:"scroll"}
-          on mouseenter as a stand-in for real scroll detection -- that would
-          have written a navigation the participant never made into the event
-          log. */}
-      {page < pageCount && (
-        <div className="paper mt-2.5 overflow-hidden" style={{ zoom, padding: 0 }}>
-          <Page exhibit={exhibit} page={page + 1} dim />
-        </div>
-      )}
+      ))}
     </div>
   )
 }

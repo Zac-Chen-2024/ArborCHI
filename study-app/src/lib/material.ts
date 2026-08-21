@@ -18,6 +18,10 @@ export interface Exhibit {
   id: string
   pages: number
   title: string
+  /** Height/width of each rendered page, in order. The evidence viewer scrolls
+   *  a whole exhibit at once and reserves each page's space before its image
+   *  arrives; without this the document resizes under someone reading it. */
+  page_aspects?: number[]
 }
 
 export interface Snippet {

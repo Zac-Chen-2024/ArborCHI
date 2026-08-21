@@ -13,14 +13,30 @@
  */
 import { getToken } from './api'
 
-const cache = new Map<string, Promise<string>>()
+export interface PageImage {
+  url: string
+  /** Natural pixel size, which the hover loupe needs to crop a region to shape. */
+  w: number
+  h: number
+}
+
+const cache = new Map<string, Promise<PageImage>>()
 
 function key(exhibit: string, page: number): string {
   return `${exhibit}/${page}`
 }
 
-/** The object URL for one page. Rejects if the page is not available. */
-export function pageImageUrl(exhibit: string, page: number): Promise<string> {
+function measure(url: string): Promise<PageImage> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve({ url, w: img.naturalWidth, h: img.naturalHeight })
+    img.onerror = () => reject(new Error('decode failed'))
+    img.src = url
+  })
+}
+
+/** One page, with its natural size. Rejects if the page is not available. */
+export function pageImage(exhibit: string, page: number): Promise<PageImage> {
   const k = key(exhibit, page)
   const hit = cache.get(k)
   if (hit) return hit
@@ -31,7 +47,7 @@ export function pageImageUrl(exhibit: string, page: number): Promise<string> {
   })
     .then(async (res) => {
       if (!res.ok) throw new Error(String(res.status))
-      return URL.createObjectURL(await res.blob())
+      return measure(URL.createObjectURL(await res.blob()))
     })
     .catch((e) => {
       // Not kept: a page that failed once (a dropped request, a server
@@ -48,7 +64,7 @@ export function pageImageUrl(exhibit: string, page: number): Promise<string> {
 /** Drop every cached page. Used when the bundle changes (practice -> real). */
 export function clearPageImages(): void {
   for (const pending of cache.values()) {
-    void pending.then((url) => URL.revokeObjectURL(url)).catch(() => {})
+    void pending.then((p) => URL.revokeObjectURL(p.url)).catch(() => {})
   }
   cache.clear()
 }
