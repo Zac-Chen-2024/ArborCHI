@@ -25,6 +25,7 @@
 
 import { create } from 'zustand'
 
+import { api } from './api'
 import { logger } from './logger'
 import type { Argument, NodeState, SubArgument, Tree } from './material'
 
@@ -60,6 +61,8 @@ interface TreeStore {
   loaded: boolean
 
   load: (tree: Tree) => void
+  /** Replace the working tree with one restored from the server. */
+  hydrate: (args: WorkingArg[]) => void
 
   rename: (nodeId: string, title: string) => void
   splitNode: (nodeId: string) => void
@@ -133,6 +136,13 @@ export const useTree = create<TreeStore>((set, get) => {
   return {
     args: [],
     loaded: false,
+
+    hydrate(args) {
+      // No log entry: this is the same tree the participant already built,
+      // arriving back from storage. The operations that produced it were
+      // logged when they happened.
+      set({ loaded: true, args })
+    },
 
     load(tree) {
       set({
@@ -355,3 +365,76 @@ export const useTree = create<TreeStore>((set, get) => {
     },
   }
 })
+
+
+// ---------------------------------------------------------------------------
+// Durability
+// ---------------------------------------------------------------------------
+
+/**
+ * The working tree, kept on the server.
+ *
+ * It used to live only here, in memory. A reload -- a refresh, a crash, a stray
+ * Back button -- put every sub-argument back to `proposed` and undid every
+ * rename and every move, and the next generation ran against the machine's
+ * original proposal. Nothing said so: the letter still rendered, the phase
+ * still advanced, and the log still contained every `tree_op` the participant
+ * had performed. The session looked complete. In the verification phase it was
+ * worse than losing work, because the letter under review was silently rebuilt
+ * from a tree the participant had not organised.
+ *
+ * Debounced rather than per-operation: a rename fires on every keystroke, and
+ * the interesting artefact is the settled tree, not each intermediate one. The
+ * log already holds the intermediate ones.
+ */
+const PERSIST_DEBOUNCE_MS = 800
+let persistTimer: number | null = null
+let persistMaterialId = ''
+
+/** Told by the workspace which bundle the current tree belongs to. */
+export function setTreeMaterial(materialId: string): void {
+  persistMaterialId = materialId
+}
+
+function schedulePersist(args: WorkingArg[]): void {
+  if (persistTimer !== null) window.clearTimeout(persistTimer)
+  persistTimer = window.setTimeout(() => {
+    persistTimer = null
+    // Failure is survivable and must never interrupt the task: the next
+    // mutation schedules another attempt, and the log of what was done is
+    // already safe by its own route.
+    void api.put('/tree', { tree: args, material_id: persistMaterialId }).catch(() => {})
+  }, PERSIST_DEBOUNCE_MS)
+}
+
+useTree.subscribe((state, prev) => {
+  if (!state.loaded || state.args === prev.args) return
+  schedulePersist(state.args)
+})
+
+/** Flush a pending save immediately -- used before leaving a phase. */
+export async function flushTree(): Promise<void> {
+  if (persistTimer === null) return
+  window.clearTimeout(persistTimer)
+  persistTimer = null
+  try {
+    await api.put('/tree', { tree: useTree.getState().args, material_id: persistMaterialId })
+  } catch {
+    /* the next mutation retries */
+  }
+}
+
+export interface StoredTree {
+  tree: WorkingArg[] | null
+  material_id: string | null
+  saved_at: string | null
+}
+
+export async function fetchStoredTree(): Promise<WorkingArg[] | null> {
+  try {
+    const res = await api.get<StoredTree>('/tree')
+    return res.tree?.length ? res.tree : null
+  } catch {
+    return null
+  }
+}

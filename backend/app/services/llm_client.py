@@ -202,10 +202,12 @@ async def _complete(req: LLMRequest, caller: str, prompt_meta: Dict[str, Any]) -
 
 def _build_request(prompt: str, system_prompt: Optional[str], provider: Optional[str], model: Optional[str],
                    temperature: float, max_tokens: int, timeout: float,
-                   json_mode: bool, json_schema: Optional[Dict]) -> LLMRequest:
+                   json_mode: bool, json_schema: Optional[Dict],
+                   reasoning_effort: Optional[str] = None) -> LLMRequest:
     provider = provider or settings.llm_provider
     if provider not in DEFAULT_MODELS:
-        raise ConfigError(f"Unknown provider: {provider}. Use 'deepseek', 'openai' or 'anthropic'.")
+        raise ConfigError(
+            f"Unknown provider: {provider}. Use one of {', '.join(DEFAULT_MODELS)}.")
     messages: List[Dict[str, str]] = []
     if system_prompt:
         messages.append({"role": "system", "content": str(system_prompt)})
@@ -214,6 +216,11 @@ def _build_request(prompt: str, system_prompt: Optional[str], provider: Optional
         provider=provider, model=model or DEFAULT_MODELS[provider], messages=messages,
         temperature=temperature, max_tokens=max_tokens, timeout=timeout,
         json_mode=json_mode, json_schema=json_schema or None,
+        # Reasoning models take effort instead of temperature. Threaded through
+        # rather than read from settings: it is a per-call property recorded in
+        # the material manifest, and a study session must use the value its
+        # manifest names, not whatever the server happens to default to.
+        reasoning_effort=reasoning_effort,
     )
 
 
@@ -246,10 +253,11 @@ async def call_llm_text(
     provider: str = None,
     model: str = None,
     caller: str = None,
+    reasoning_effort: str = None,
 ) -> str:
     """统一 LLM 文本调用。返回纯文本。"""
     req = _build_request(prompt, system_prompt, provider, model, temperature, max_tokens, timeout,
-                         json_mode=False, json_schema=None)
+                         json_mode=False, json_schema=None, reasoning_effort=reasoning_effort)
     return await _complete(req, caller or _infer_caller(), _prompt_meta(prompt, system_prompt))
 
 

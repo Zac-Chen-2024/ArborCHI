@@ -23,6 +23,13 @@ interface Props {
   canSubmit: boolean
   onHelp: () => void
   onSubmit: () => void
+  /** From the material bundle, not the translation file: the practice phase is
+   *  deliberately a different criterion, and fixed strings here displayed the
+   *  real case's criterion and statute above the practice material. Empty
+   *  falls back to the translation, so a bundle that omits them still renders. */
+  caseLabel?: string
+  criterion?: string
+  cfr?: string
 }
 
 function formatClock(ms: number): string {
@@ -32,7 +39,10 @@ function formatClock(ms: number): string {
   return `${m}:${String(s).padStart(2, '0')}`
 }
 
-export function TopBar({ condition, track, phaseLabel, remainingMs, canSubmit, onHelp, onSubmit }: Props) {
+export function TopBar({
+  condition, track, phaseLabel, remainingMs, canSubmit, onHelp, onSubmit,
+  caseLabel, criterion, cfr,
+}: Props) {
   const { t } = useTranslation()
 
   return (
@@ -48,12 +58,14 @@ export function TopBar({ condition, track, phaseLabel, remainingMs, canSubmit, o
         </span>
       )}
       <span className="w-px h-5 bg-slate-200 flex-shrink-0" />
-      <span className="text-[13px] text-slate-500 truncate flex-shrink-0">{t('app.case')}</span>
+      <span className="text-[13px] text-slate-500 truncate flex-shrink-0">
+        {caseLabel || t('app.case')}
+      </span>
       <span className="w-px h-5 bg-slate-200 flex-shrink-0" />
       <div className="flex items-baseline gap-2 min-w-0">
-        <h1 className="text-[15px] font-bold truncate">{t('app.criterion')}</h1>
+        <h1 className="text-[15px] font-bold truncate">{criterion || t('app.criterion')}</h1>
         <span className="mono text-[11.5px] text-slate-400 flex-shrink-0 hidden xl:inline">
-          {t('app.cfr')}
+          {cfr || t('app.cfr')}
         </span>
       </div>
 

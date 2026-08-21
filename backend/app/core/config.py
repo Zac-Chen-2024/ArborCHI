@@ -16,7 +16,8 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     anthropic_api_base: str = ""
 
-    # LLM Provider: "deepseek" (default), "openai" or "anthropic"
+    # LLM Provider: one of llm_providers.PROVIDERS (that tuple is the
+    # authority; this file must not keep a second copy of the list).
     llm_provider: str = "deepseek"
 
     # Content-addressed LLM response cache (data/llm_cache). Dev: on; prod: off.
@@ -64,7 +65,12 @@ class Settings(BaseSettings):
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
 
     def api_key_for(self, provider: str) -> str:
+        # openai_responses speaks a different wire protocol (/responses rather
+        # than /chat/completions) but authenticates with the same key, so it
+        # deliberately shares openai_api_key rather than adding a second one
+        # nobody would remember to fill in.
         return {"deepseek": self.deepseek_api_key, "openai": self.openai_api_key,
+                "openai_responses": self.openai_api_key,
                 "anthropic": self.anthropic_api_key}.get(provider, "")
 
     def validate_llm_config(self) -> None:
@@ -73,8 +79,17 @@ class Settings(BaseSettings):
         Requests may still override `provider`; a missing key for that
         provider surfaces as a 400 at request time (see llm_client).
         """
-        if self.llm_provider not in ("deepseek", "openai", "anthropic"):
-            raise SystemExit(f"LLM_PROVIDER must be 'deepseek', 'openai' or 'anthropic', got {self.llm_provider!r}")
+        # Imported here, not at module scope: config is imported by almost
+        # everything and the provider registry pulls in httpx. The list must
+        # come from the registry -- when these two drifted apart, a provider
+        # that was fully implemented could not be selected, and the failure was
+        # a startup SystemExit that read like a typo in .env.
+        from app.services.llm_providers import PROVIDERS
+
+        if self.llm_provider not in PROVIDERS:
+            raise SystemExit(
+                f"LLM_PROVIDER must be one of {', '.join(PROVIDERS)}, got {self.llm_provider!r}"
+            )
         if not self.api_key_for(self.llm_provider):
             raise SystemExit(
                 f"{self.llm_provider.upper()}_API_KEY is not set (LLM_PROVIDER={self.llm_provider}). "

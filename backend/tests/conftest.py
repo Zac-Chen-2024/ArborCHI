@@ -94,3 +94,29 @@ def walk_to():
         raise AssertionError(f"never reached {phase}")
 
     return _walk
+
+
+@pytest.fixture(autouse=True)
+def _no_real_llm_calls(monkeypatch):
+    """The study's live generator never reaches a provider by default.
+
+    Once backend/.env carries a real key, a study test that forgets to inject a
+    fake generator quietly starts making paid, non-deterministic calls -- and
+    the same test on CI, where there is no key, takes a different branch and
+    passes without checking anything. Both failures are silent, which is why
+    this is a fixture rather than a rule. It cost one test exactly this way:
+    it ran green in 8 seconds locally and would have asserted nothing on CI.
+
+    A test that wants live generation to succeed replaces this in its own body,
+    which applies after the fixture. The provider layer itself is tested in
+    test_llm_client.py through respx, below this seam and unaffected.
+    """
+    from app.services import study_generator
+
+    async def refuse(node_id, *_args, **_kwargs):
+        raise study_generator.GenerationError(
+            f"test tried to generate {node_id} for real -- inject a fake "
+            f"generator (see test_study_generate.py)"
+        )
+
+    monkeypatch.setattr(study_generator, "generate_live_sentences", refuse)

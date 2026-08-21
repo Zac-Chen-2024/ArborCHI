@@ -31,6 +31,9 @@ import { EditReporter } from '../../lib/textEdit'
 
 interface Props {
   sentences: LetterSentence[]
+  /** From the bundle, so the practice phase does not show the real case's
+   *  criterion in the letter heading. */
+  criterion: string
   /** Present once the participant starts editing; until then the rendered,
    *  citation-clickable view is shown. */
   editedText: string | null
@@ -53,6 +56,7 @@ const IS_CITE = /^\[Exhibit\s+[^\]]+\]$/
 
 export function LetterPanel({
   sentences,
+  criterion,
   editedText,
   focusedSub,
   argumentTitles,
@@ -68,10 +72,19 @@ export function LetterPanel({
   const plainText = useMemo(() => sentences.map((s) => s.text).join(' '), [sentences])
 
   const reporter = useMemo(
-    () => new EditReporter('letter', (payload) => logger.log('text_edit', payload), plainText),
+    () => new EditReporter(
+      'letter',
+      (payload) => logger.log('text_edit', payload),
+      plainText,
+      // Seeded with the server's sent_ids so the lineage in the log is in the
+      // same id space as the draft snapshot and the probe (红线 #2). Minting
+      // fresh ids here left the two unjoinable.
+      sentences,
+    ),
     // Recreated only when a NEW letter is generated: the reporter holds the
     // sentence list lineage is measured against, so rebuilding it mid-edit
     // would break the chain (红线 #2).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [plainText],
   )
   useEffect(() => () => reporter.flushNow(), [reporter])
@@ -96,7 +109,7 @@ export function LetterPanel({
     >
       <div className="phead" style={{ justifyContent: 'space-between' }}>
         <span className="text-[13.5px] font-bold text-slate-700">
-          {t('letter.title', { criterion: t('app.criterion') })}
+          {t('letter.title', { criterion: criterion || t('app.criterion') })}
         </span>
         <button
           onClick={onRegenerate}
@@ -106,7 +119,10 @@ export function LetterPanel({
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24">
             <path d="M16 9h5V4M3 15v5h5M4 9a8 8 0 0113-3l4 3M20 15a8 8 0 01-13 3l-4-3" />
           </svg>
-          {t('letter.regenAll')}
+          {/* Nothing has been written yet the first time this is pressed, and
+              "Regenerate" above an empty panel reads like a retry of something
+              that already happened. */}
+          {sentences.length === 0 ? t('letter.generateFirst') : t('letter.regenAll')}
         </button>
       </div>
 

@@ -264,9 +264,16 @@ def check_event_volume(
     quietly select the sample toward people who behave like the mean.
     """
     count = sum(1 for e in events if e.get("source") == "client")
-    if not baseline or baseline.get("n", 0) < 2 or not baseline.get("sd"):
+    # A z-score needs a cohort, not two sessions. With n=2 the SD is whatever
+    # those two happened to differ by, and the first real session scored
+    # z=+51 against a mean of 3 -- a flag that says nothing about the session
+    # and, repeated, teaches the moderator to ignore this row. The floor is the
+    # pre-registered pilot size (PR-4/PR-5), not a number chosen here.
+    min_n = int(integrity_config().get("event_count_min_baseline_n", 4))
+    if not baseline or baseline.get("n", 0) < min_n or not baseline.get("sd"):
+        have = baseline.get("n", 0) if baseline else 0
         return _check("event_volume", PASS,
-                      f"{count} client events; no baseline yet",
+                      f"{count} client events; baseline needs {min_n} sessions, has {have}",
                       count=count, baseline=baseline or None)
 
     sigma = float(integrity_config()["event_count_sigma"])

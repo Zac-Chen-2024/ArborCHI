@@ -101,6 +101,53 @@ def test_snapshot_exists_before_the_participant_can_edit(auth_client, participan
     assert snaps[0]["payload"]["trigger"] == "generation"
 
 
+def test_regenerating_does_not_overwrite_the_baseline(auth_client, participant, monkeypatch):
+    """红线 #1 is about the FIRST draft, and regenerating is normal use.
+
+    `initial.json` used to be rewritten by every /generate. Nothing looked
+    wrong -- the ordering inside each request was still snapshot-before-return,
+    each generation still logged its own sha256, and the integrity check still
+    reported "initial and final present, hashes match". But the file every
+    edit measure is computed against had become the last draft the participant
+    asked for, and entering the verification phase regenerates automatically,
+    so the baseline was routinely gone before the phase that needs it began.
+    """
+    # Injected, so this test never reaches a provider: a real call would make
+    # the assertion depend on the network and on a key being present, and on CI
+    # (no key) the second generate would 503 and the test would pass having
+    # checked nothing.
+    async def fake_live(node_id, submitted, **_kwargs):
+        return [{"sent_id": f"{node_id}_0",
+                 "text": f"Rewritten text for {submitted['title']}. [Exhibit B1, p.4]",
+                 "snippet_ids": list(submitted.get("snippet_ids") or []),
+                 "exhibit_refs": [{"exhibit": "B1", "page": 4}],
+                 "sentence_type": "unclassified"}]
+
+    monkeypatch.setattr(study_generator, "generate_live_sentences", fake_live)
+
+    hdr = _hdr(participant["join_token"])
+    first = auth_client.post("/api/study/generate", headers=hdr,
+                             json={"node_states": _unchanged_states()})
+    assert first.status_code == 200, first.text
+
+    changed = _unchanged_states()
+    changed["s4"]["title"] = "Budget and hiring authority"
+    second = auth_client.post("/api/study/generate", headers=hdr, json={
+        "node_states": changed})
+    assert second.status_code == 200, second.text
+    assert second.json()["text"] != first.json()["text"]
+
+    session = study.load_session(participant["session_id"])
+    baseline = study_snapshots.read_snapshot(session, "initial")
+    assert baseline["text"] == first.json()["text"]
+    assert session["initial_snapshot_hash"] == baseline["sha256"]
+
+    # The later draft is kept too -- under its own id, so nothing is lost.
+    later = study_snapshots.read_snapshot(session, "draft_1")
+    assert later is not None
+    assert later["text"] == second.json()["text"]
+
+
 def test_snapshot_carries_per_sentence_provenance(auth_client, participant):
     """Every question about verification behaviour is asked per sentence, so the
     baseline has to be per sentence too."""
@@ -224,12 +271,40 @@ def test_a_changed_node_without_a_generator_fails_loudly():
         study_generator.assemble(states, generate_live=None)
 
 
-def test_generate_returns_503_when_live_generation_is_unavailable(auth_client, participant):
+def test_generate_returns_503_when_live_generation_is_unavailable(
+    auth_client, participant, monkeypatch
+):
+    """A provider that cannot answer must surface as 503, not as frozen text.
+
+    The failure is injected rather than inferred from the environment. This
+    test used to rely on the route's generator being a stub that returned
+    None, which meant it passed for a reason that disappeared the moment live
+    generation was wired up -- and would have passed on CI (no API key) while
+    failing on any machine that had one. What it has to prove is the routing of
+    a failure, so the failure is made to happen.
+    """
+    async def unavailable(*_args, **_kwargs):
+        raise study_generator.GenerationError("provider unavailable")
+
+    monkeypatch.setattr(study_generator, "generate_live_sentences", unavailable)
+
     r = auth_client.post("/api/study/generate", headers=_hdr(participant["join_token"]),
                          json={"node_states": {**_unchanged_states(),
                                                "s2": {"title": "Changed", "parent_id": "a1",
                                                       "snippet_ids": ["c3"], "state": "edited"}}})
     assert r.status_code == 503
+    assert "not available" in r.json()["detail"]
+
+
+def test_generate_refuses_an_empty_tree_rather_than_blanking_the_baseline(
+    auth_client, participant
+):
+    """`node_states: {}` assembles an empty letter, and writing that over
+    `initial.json` destroys the only baseline the analysis has -- with a 200 and
+    nothing in the log to say anything went wrong."""
+    r = auth_client.post("/api/study/generate", headers=_hdr(participant["join_token"]),
+                         json={"node_states": {}})
+    assert r.status_code == 400
 
 
 def test_generating_twice_does_not_poison_the_cached_bundle():
@@ -358,3 +433,60 @@ def test_bbox_is_normalised_not_pixels():
     for s in snippets["snippets"].values():
         assert len(s["bbox"]) == 4
         assert all(0 <= v <= 1000 for v in s["bbox"]), s
+
+
+# ---------------------------------------------------------------------------
+# The working tree survives a reload
+# ---------------------------------------------------------------------------
+
+def test_the_working_tree_round_trips(auth_client, participant):
+    """Without this the organisation phase was lost on any reload.
+
+    The tree lived only in the browser: a refresh put every sub-argument back
+    to `proposed` and undid every rename and move, and the next generation ran
+    against the machine's original proposal. Nothing surfaced -- the letter
+    still rendered, the phase still advanced, the log still held every
+    `tree_op` -- so the session looked complete and would have been analysed as
+    one, built on a structure the participant had not organised.
+    """
+    hdr = _hdr(participant["join_token"])
+    assert auth_client.get("/api/study/tree", headers=hdr).json()["tree"] is None
+
+    tree = [{"id": "a1", "title": "The organisation has a distinguished reputation",
+             "subs": [{"id": "s4", "title": "Budget and hiring authority",
+                       "state": "edited", "renamed": True, "snippet_ids": ["c5"]}]}]
+    saved = auth_client.put("/api/study/tree", headers=hdr,
+                            json={"tree": tree, "material_id": "case_v1"})
+    assert saved.status_code == 200
+
+    got = auth_client.get("/api/study/tree", headers=hdr).json()
+    # Verbatim: a restored session has to be the interrupted one, not a
+    # reconstruction that has to be trusted.
+    assert got["tree"] == tree
+    assert got["material_id"] == "case_v1"
+    assert got["saved_at"]
+
+
+def test_a_practice_tree_is_not_restored_over_the_real_material(auth_client, participant):
+    """The practice phase serves a different bundle. A practice tree handed back
+    for the real case would be a wrong tree that looks like a right one."""
+    hdr = _hdr(participant["join_token"])
+    auth_client.put("/api/study/tree", headers=hdr, json={
+        "tree": [{"id": "pa1", "subs": []}], "material_id": "practice_v1"})
+
+    got = auth_client.get("/api/study/tree", headers=hdr).json()
+    assert got["tree"] is None
+
+
+def test_the_tree_is_frozen_once_the_draft_is_handed_in(auth_client, participant):
+    hdr = _hdr(participant["join_token"])
+    auth_client.post("/api/study/generate", headers=hdr,
+                     json={"node_states": _unchanged_states()})
+    session = study.load_session(participant["session_id"])
+    text = study_snapshots.read_snapshot(session, "initial")["text"]
+    auth_client.post("/api/study/submit", headers=hdr, json={
+        "text": text, "final_text_hash": study_snapshots.sha256(text)})
+
+    r = auth_client.put("/api/study/tree", headers=hdr,
+                        json={"tree": [], "material_id": "case_v1"})
+    assert r.status_code == 409

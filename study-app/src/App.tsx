@@ -92,6 +92,18 @@ function PhaseScreen({ state, want }: { state: StudyState; want: Condition }) {
   }
   if (state.phase === 'done') return <PhaseWait phaseKey="phase.done" />
 
+  // Before the practice phase there is nothing for the participant to do: the
+  // moderator is briefing them. Rendering the workspace here showed the real
+  // exhibits -- the case they are about to be measured on -- during the
+  // minutes when nobody was watching what they read, and under the
+  // verification phase's heading at that. The practice phase exists to teach
+  // the interface, and it does so on a different bundle for this reason.
+  // The server refuses the real material in these phases as well
+  // (_material_for_phase); this is the half a participant can see.
+  if (state.phase === 'setup' || state.phase === 'tutorial') {
+    return <PhaseWait phaseKey={`phase.${state.phase}`} />
+  }
+
   return want === 'c' ? <ConditionC state={state} /> : <ConditionB state={state} />
 }
 

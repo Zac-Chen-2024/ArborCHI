@@ -12,6 +12,7 @@ import json
 import pytest
 
 from app.core import alignment, probe, study, study_snapshots, workspace
+from app.core.alignment import align_to_baseline
 
 CFG = {"target_items": 14, "min_items": 12, "max_items": 15, "max_planted_ratio": 0.6}
 
@@ -341,3 +342,77 @@ def test_confidence_cannot_be_submitted_twice(auth_client, submitted):
         "likert_1_7": 5, "est_problem_count": 0}).status_code == 200
     assert auth_client.post("/api/study/confidence", headers=token, json={
         "likert_1_7": 1, "est_problem_count": 9}).status_code == 409
+
+
+# ---------------------------------------------------------------------------
+# Alignment: who is allowed to inherit a baseline sentence
+# ---------------------------------------------------------------------------
+
+def _sentence(sent_id, text, planted_id=None, sub="s1"):
+    return {"sent_id": sent_id, "text": text, "planted_id": planted_id,
+            "subargument_id": sub, "source": "frozen"}
+
+
+def test_new_sentence_does_not_inherit_an_intact_baseline():
+    """A sentence the participant typed must not become a planted sentence.
+
+    Dice over character bigrams runs high on short strings that share citation
+    brackets and common words: a nine-word sentence typed into paragraph one
+    scored 0.43 -- inside the pre-registered `rewritten` band -- against a
+    baseline sentence two paragraphs away that was itself still present,
+    untouched, matching at 1.0. It inherited that sentence's sent_id,
+    subargument_id and planted_id, and the probe then asked about the
+    participant's own prose with an answer key that called it a planted error.
+    """
+    baseline = [
+        # The real baseline text from the walkthrough that produced this: the
+        # score depends on length, so a paraphrase here would not reproduce it.
+        _sentence("s1_0", "Northwind Data Systems is a data-infrastructure firm "
+                          "reporting $320M in revenue and 1,800 employees across "
+                          "eleven offices. [Exhibit B2, p.5]"),
+        _sentence("s3_1", "The arrangement is documented in the company's "
+                          "organisational chart. [Exhibit B1, p.2]",
+                  planted_id="p9", sub="s3"),
+    ]
+    final = [
+        baseline[0]["text"],
+        "Separately, the record supports this. [Exhibit B2, p.5]",
+        baseline[1]["text"],
+    ]
+
+    rows = align_to_baseline(final, baseline)
+
+    typed = rows[1]
+    assert typed["match"] == "new"
+    assert typed["sent_id"] is None
+    assert typed["planted_id"] is None
+    # Why it was refused, so the call is auditable rather than invisible.
+    assert typed["displaced_from"] == "s3_1"
+    # The sentence that actually is s3_1 keeps everything.
+    assert rows[2]["sent_id"] == "s3_1"
+    assert rows[2]["planted_id"] == "p9"
+
+
+def test_a_real_split_still_lets_both_halves_inherit():
+    """The rule above must not cost us the case it was written around.
+
+    When one sentence genuinely becomes two, neither half matches at `same` or
+    `edited`, so nothing is claiming the baseline intact and both halves
+    inherit -- including the planted id, which either half may still carry.
+    """
+    baseline = [_sentence(
+        "s2_0",
+        "The petitioner led the retrieval rebuild that cut query latency by 40 "
+        "percent across the platform. [Exhibit C1, p.1]",
+        planted_id="p2", sub="s2",
+    )]
+    final = [
+        "The petitioner led the retrieval rebuild. [Exhibit C1, p.1]",
+        "That rebuild cut query latency by 40 percent across the platform. "
+        "[Exhibit C1, p.1]",
+    ]
+
+    rows = align_to_baseline(final, baseline)
+
+    assert [r["sent_id"] for r in rows] == ["s2_0", "s2_0"]
+    assert [r["planted_id"] for r in rows] == ["p2", "p2"]

@@ -242,7 +242,12 @@ def create_session(
         "phase_deadline_ms": None,   # server-side; only some phases expose it
         "softlock": False,
         "submitted": False,
-        "seq_acked": 0,
+        # -1, not 0: this is "nothing acknowledged yet", and find_gaps starts
+        # looking from seq_acked + 1. Starting at 0 meant the first expected seq
+        # was 1, so a session whose very first client event never arrived showed
+        # no gap at all -- the one loss that is invisible is the one at the
+        # start, where the join and the first actions are.
+        "seq_acked": -1,
         "last_seen_ms": None,
     }
     _index_add(session_id, {

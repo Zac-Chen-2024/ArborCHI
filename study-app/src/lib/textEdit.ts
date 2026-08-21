@@ -102,7 +102,9 @@ export function alignSentences(before: Sentence[], afterText: string): EditDiff 
   const claims = new Map<string, string[]>() // old id -> new ids claiming it
   const after: Sentence[] = []
 
-  for (const text of afterRaw) {
+  // Score everything first: whether a claim is allowed depends on what else
+  // claims the same sentence, which is not knowable one sentence at a time.
+  const scored = afterRaw.map((text) => {
     let bestId: string | null = null
     let best = 0
     for (const old of before) {
@@ -112,6 +114,27 @@ export function alignSentences(before: Sentence[], afterText: string): EditDiff 
         bestId = old.id
       }
     }
+    return { text, bestId, best }
+  })
+
+  // Old sentences that some new sentence still matches at `same` or `edited`:
+  // they survived whole, so they were not also split. A different sentence
+  // landing in the loose `rewritten` band against one of them is new prose
+  // that happens to share vocabulary -- citation brackets and common words
+  // carry the Dice score a long way on short strings. Mirrors the same rule in
+  // backend/app/core/alignment.py, which is where it matters most: there the
+  // false claim also inherits `planted_id`, and the probe would ask about a
+  // sentence the participant wrote with an answer key calling it planted.
+  const intact = new Set<string>()
+  for (const { bestId, best } of scored) {
+    if (bestId !== null && best >= STRONG) intact.add(bestId)
+  }
+
+  for (const { text, bestId: rawId, best } of scored) {
+    const kindBand: MatchKind =
+      best === 1 ? 'same' : best >= STRONG ? 'edited' : 'rewritten'
+    const bestId =
+      rawId !== null && kindBand === 'rewritten' && intact.has(rawId) ? null : rawId
 
     if (bestId !== null && best >= WEAK) {
       const already = claims.get(bestId) ?? []
@@ -120,8 +143,7 @@ export function alignSentences(before: Sentence[], afterText: string): EditDiff 
       // second gets a fresh id whose lineage points back at the original.
       const id = already.length === 0 ? bestId : newId()
       claims.set(bestId, [...already, id])
-      const kind: MatchKind = best === 1 ? 'same' : best >= STRONG ? 'edited' : 'rewritten'
-      after.push({ id, text, kind })
+      after.push({ id, text, kind: kindBand })
     } else {
       after.push({ id: newId(), text, kind: 'new' })
     }
@@ -167,12 +189,32 @@ export class EditReporter {
   private timer: number | null = null
   private pending: string | null = null
 
+  /**
+   * @param initialSentences the server's own sentences, in order. Supply these
+   * whenever they exist.
+   *
+   * Without them this seeded itself by re-splitting the plain text and minting
+   * a fresh id per sentence, so the lineage in `text_edit` lived in a private
+   * id space with *no overlap* at all against the `sent_id`s in the draft
+   * snapshot and the probe (`s1_0`, `s4_1`, ...). The log recorded, correctly
+   * and uselessly, that `s_mt29wwt3_e` had been split in two. Nothing could
+   * then answer the question the verification phase exists to ask -- which
+   * planted sentence did the participant change -- because the join between
+   * the edit log and the answer key did not exist.
+   *
+   * The server's list is used verbatim rather than re-derived, because a frozen
+   * sentence is authored by hand and need not survive a round trip through the
+   * splitter as one piece.
+   */
   constructor(
     private readonly surface: string,
     private readonly emit: (payload: Record<string, unknown>) => void,
     initialText = '',
+    initialSentences?: ReadonlyArray<{ sent_id: string; text: string }>,
   ) {
-    this.before = splitSentences(initialText).map((text) => ({ id: newId(), text }))
+    this.before = initialSentences?.length
+      ? initialSentences.map((s) => ({ id: s.sent_id, text: s.text }))
+      : splitSentences(initialText).map((text) => ({ id: newId(), text }))
   }
 
   /** Current sentence list, for callers that need to render provenance. */

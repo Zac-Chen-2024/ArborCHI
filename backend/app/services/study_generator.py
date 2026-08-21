@@ -29,9 +29,12 @@ either -- position does not alter what a paragraph says.
 from __future__ import annotations
 
 import logging
+import re
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from ..core import materials
+from ..core.sentences import split_sentences
+from .llm_client import call_llm_text
 
 logger = logging.getLogger(__name__)
 
@@ -133,6 +136,112 @@ def assemble(
     return {"text": text, "sentences": sentences, "stats": counts}
 
 
+# Parses "[Exhibit B2, p.5]" / "[Exhibit B2 p. 5]" back out of generated prose.
+_CITE_PARTS = re.compile(r"\[Exhibit\s+([A-Za-z0-9\-]+)\s*,?\s*p\.?\s*(\d+)\s*\]")
+
+_SYSTEM = """You are drafting one paragraph of an EB-1A petition letter.
+
+Rules, all of them hard:
+- Write only about the sub-argument you are given. Do not introduce other topics.
+- Every factual claim must be supported by one of the supplied evidence excerpts
+  and must carry its citation in the form [Exhibit B2, p.5] at the end of the
+  sentence that makes the claim.
+- Never state a fact the excerpts do not contain. Do not round, extrapolate or
+  strengthen a number. If an excerpt says a team did something, do not write
+  that the petitioner did it.
+- Do not invent exhibit numbers or page numbers. Use only those supplied.
+- Formal legal-brief register. No headings, no bullet points, no preamble, no
+  closing remark. Output the paragraph and nothing else.
+- 2 to 4 sentences."""
+
+
+def _node_snippets(
+    submitted: Dict[str, Any], material_id: str
+) -> List[Dict[str, Any]]:
+    """The evidence this node is allowed to cite, in the participant's order."""
+    pool = materials.public_snippets(material_id).get("snippets") or {}
+    out = []
+    for sid in submitted.get("snippet_ids") or []:
+        snip = pool.get(sid)
+        if snip:
+            out.append(snip)
+    return out
+
+
+def _build_prompt(
+    node_id: str, submitted: Dict[str, Any], material_id: str,
+) -> Tuple[str, List[Dict[str, Any]]]:
+    bundle = materials.load_bundle(material_id)
+    criterion = bundle["manifest"].get("criterion", "")
+    snippets = _node_snippets(submitted, material_id)
+
+    parent_title = ""
+    for arg in bundle["tree"]["arguments"]:
+        if arg["id"] == submitted.get("parent_id"):
+            parent_title = arg["title"]
+            break
+
+    lines = [
+        f"Criterion: {criterion}",
+        f"Argument: {parent_title}" if parent_title else "",
+        f"Sub-argument to draft: {submitted.get('title', node_id)}",
+        "",
+        "Evidence excerpts available (cite by exhibit and page exactly as shown):",
+    ]
+    for snip in snippets:
+        lines.append(
+            f"- [Exhibit {snip['exhibit']}, p.{snip['page']}] {snip['text']}"
+        )
+    if not snippets:
+        # A node the participant stripped of evidence. Saying so beats letting
+        # the model fill the gap from its own knowledge, which is exactly the
+        # failure the planted-error measure would then be unable to distinguish.
+        lines.append("- (none)")
+    return "\n".join(line for line in lines if line != ""), snippets
+
+
+def _sentences_from_text(
+    node_id: str, text: str, snippets: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Turn generated prose into the same sentence records frozen text produces.
+
+    Citations are parsed back out of the prose rather than asked for as
+    structured ids: the model is reliable at repeating "[Exhibit B2, p.5]" that
+    it was shown, and unreliable at inventing our internal snippet ids. Mapping
+    (exhibit, page) -> snippet_id here means a hallucinated exhibit yields an
+    empty snippet_ids list -- visible in the data -- instead of a plausible id
+    pointing at the wrong excerpt.
+
+    The splitter is the shared one (core/sentences.py), so a live sentence and a
+    frozen sentence are divided by identical rules. 红线 #3 is about more than
+    styling: if the two were segmented differently, sent_id lineage across an
+    edit would mean different things depending on which kind of sentence it was.
+    """
+    by_ref = {(s["exhibit"], int(s["page"])): s["snippet_id"] for s in snippets}
+    records: List[Dict[str, Any]] = []
+    for i, sent in enumerate(split_sentences(text)):
+        refs, ids = [], []
+        for exhibit, page in _CITE_PARTS.findall(sent):
+            ref = {"exhibit": exhibit, "page": int(page)}
+            if ref not in refs:
+                refs.append(ref)
+            sid = by_ref.get((exhibit, int(page)))
+            if sid and sid not in ids:
+                ids.append(sid)
+        records.append({
+            "sent_id": f"{node_id}_{i}",
+            "text": sent,
+            "snippet_ids": ids,
+            "exhibit_refs": refs,
+            # Frozen text distinguishes claim/evidence sentences by hand. Live
+            # text gets the same key with a value that says it was not judged,
+            # rather than a guess that would be silently mixed into any
+            # analysis grouping by sentence_type.
+            "sentence_type": "unclassified",
+        })
+    return records
+
+
 async def generate_live_sentences(
     node_id: str,
     submitted: Dict[str, Any],
@@ -145,17 +254,41 @@ async def generate_live_sentences(
     participants must be working with the same system, and a deploy that
     changed the default model between them would otherwise go unrecorded.
 
-    NOT WIRED UP YET. The provider is deliberately unchosen (the LLM decision is
-    still open), and the prompt asset lands with the real bundle at M5. Until
-    then this raises, and `assemble` is called with an injected generator in
-    tests -- which is enough to prove the frozen/live decision path, the
-    stamping and 红线 #1, all of which are what M1 has to demonstrate.
+    Reasoning models expose neither temperature nor seed, so this call is not
+    replayable. That is recorded in the manifest's `reproducibility` field and
+    is why only frozen text is used for anything the two conditions are
+    compared on -- live text exists because a participant who restructures the
+    tree must see their change reflected, not because it is measurable.
     """
     manifest = materials.load_bundle(material_id)["manifest"]
-    raise GenerationError(
-        f"live generation is not configured yet (node {node_id}, "
-        f"model={manifest.get('model')!r}); see M5"
-    )
+    params = manifest.get("model_params") or {}
+    prompt, snippets = _build_prompt(node_id, submitted, material_id)
+
+    try:
+        text = await call_llm_text(
+            prompt,
+            system_prompt=_SYSTEM,
+            provider=manifest.get("provider"),
+            model=manifest.get("model"),
+            max_tokens=params.get("max_output_tokens", 800),
+            reasoning_effort=params.get("reasoning_effort"),
+            caller="study_generator.live",
+        )
+    except Exception as e:                      # provider/config/network alike
+        # Deliberately widened: assemble()'s contract is that a failure here
+        # becomes a 503 the moderator can act on. Letting a provider exception
+        # escape would surface as a 500 that reads like a bug in the study
+        # platform rather than a missing key or a rate limit.
+        raise GenerationError(f"live generation failed for {node_id}: {e}") from e
+
+    text = (text or "").strip()
+    if not text:
+        raise GenerationError(f"live generation returned nothing for {node_id}")
+
+    records = _sentences_from_text(node_id, text, snippets)
+    if not records:
+        raise GenerationError(f"live generation produced no sentences for {node_id}")
+    return records
 
 
 __all__ = ["GenerationError", "NODE_STATES", "node_is_changed", "assemble",

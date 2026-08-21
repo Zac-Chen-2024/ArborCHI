@@ -100,7 +100,8 @@
     "cite": "[Exhibit {{ex}}, p.{{i}}]",
     "notYet": "生成结构后,申请信会显示在这里。",
     "editHint": "双击正文即可编辑。",
-    "generateFailed": "生成不可用,请告知主试。"
+    "generateFailed": "生成不可用,请告知主试。",
+    "generateFirst": "生成"
   },
   "chat": {
     "title": "写作助手",
@@ -196,8 +197,14 @@
     "done": "都完成了 —— 主试会带你继续。",
     "gate": {
       "lightbox": "打开放大镜",
-      "linkage": "顺着引证找到原文",
+      "linkage": "点一张证据卡,看它挂在哪个分论点下",
       "manual_page": "手动翻到另一页"
     }
+  },
+  "submit": {
+    "confirmTitle": "确认提交这份稿件?",
+    "confirmBody": "提交之后就不能再修改这封信了。",
+    "confirmYes": "确认提交",
+    "confirmNo": "继续检查"
   }
 }

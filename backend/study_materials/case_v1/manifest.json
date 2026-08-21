@@ -15,5 +15,6 @@
   "reproducibility": "frozen-by-hash; live generation is not replayable (reasoning models expose no temperature or seed)",
   "frozen_at": null,
   "candidate_trees_archived": 0,
-  "selection_rule": "docs/预注册_pre-registration.md PR-1"
+  "selection_rule": "docs/预注册_pre-registration.md PR-1",
+  "case_label": "EB-1A · Dr. Wei Li"
 }

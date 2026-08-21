@@ -65,6 +65,15 @@ export interface Relations {
 }
 
 export interface Material {
+  /** Which bundle this is. The practice phase serves a different one, and the
+   *  stored working tree is stamped with it so a practice tree is never
+   *  restored over the real material. */
+  material_id: string
+  /** Shown in the top bar and the letter heading. From the bundle so the
+   *  practice phase shows the practice criterion. */
+  criterion: string
+  cfr: string
+  case_label: string
   tree: Tree
   relations: Relations
   bbox_space: number

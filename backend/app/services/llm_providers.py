@@ -393,7 +393,7 @@ def get_provider(name: str):
         return OpenAIResponsesProvider(settings.openai_api_key, settings.openai_api_base)
     if name == "anthropic":
         return AnthropicProvider(settings.anthropic_api_key, settings.anthropic_api_base or None)
-    raise ConfigError(f"Unknown provider: {name}. Use 'deepseek', 'openai' or 'anthropic'.")
+    raise ConfigError(f"Unknown provider: {name}. Use one of {', '.join(PROVIDERS)}.")
 
 
 PROVIDERS = ("deepseek", "openai", "openai_responses", "anthropic")

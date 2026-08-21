@@ -33,7 +33,7 @@ import {
 } from '../../lib/material'
 import { usePractice } from '../../lib/practice'
 import { visibleRemainingMs } from '../../lib/session'
-import { useTree } from '../../lib/treeStore'
+import { fetchStoredTree, setTreeMaterial, useTree } from '../../lib/treeStore'
 import { HelpDrawer } from '../common/HelpDrawer'
 import { PracticeGate } from '../common/PracticeGate'
 import { LetterPanel } from './LetterPanel'
@@ -79,6 +79,10 @@ export function ConditionC({ state }: Props) {
   const closeDwell = useRef<(() => void) | null>(null)
   const hoverDwell = useRef<(() => void) | null>(null)
   const generatedOnce = useRef(false)
+  /** The tree the current letter was written from, for stale detection. */
+  const generatedFrom = useRef<Record<string, {
+    title: string; parent_id: string; snippet_ids: string[]
+  }> | null>(null)
 
   // --- material ------------------------------------------------------------
   useEffect(() => {
@@ -87,7 +91,17 @@ export function ConditionC({ state }: Props) {
     void (async () => {
       const m = await fetchMaterial()
       setMaterial(m)
+      setTreeMaterial(m.material_id)
+
+      // The pristine tree first, then whatever the participant had already
+      // made of it. Restoring is not a special case of a crash: it is what
+      // happens on any reload, and without it the organisation phase silently
+      // reverted to the machine's proposal and the letter was regenerated from
+      // it (see lib/treeStore.ts).
       useTree.getState().load(m.tree)
+      const saved = await fetchStoredTree()
+      if (saved) useTree.getState().hydrate(saved)
+
       setCommittedChip(null)
       if (m.exhibits[0]) setExhibit(m.exhibits[0].id)
     })()
@@ -135,14 +149,36 @@ export function ConditionC({ state }: Props) {
     return Object.keys(snippets).filter((id) => !used.has(id))
   }, [snippets, tree.args])
 
-  /** Nodes with no paragraph in the current letter (C-09). */
+  /** Nodes whose paragraph no longer matches the node (C-09).
+   *
+   * Two ways that happens, and only the first used to be detected: a node with
+   * no paragraph at all (added since the last generation), and a node whose
+   * paragraph exists but was written from a different title, parent or set of
+   * evidence. Renaming and re-parenting are the commonest edits in the
+   * organisation phase and both leave the paragraph in place, so the letter
+   * quietly stopped matching the structure and the stale banner never
+   * appeared -- through the whole verification phase, where the letter under
+   * review is the object of the task.
+   */
   const staleNodeIds = useMemo(() => {
     if (!letter) return []
     const rendered = new Set(letter.sentences.map((s) => s.subargument_id))
+    const from = generatedFrom.current
+    const changedSince = (id: string, sub: { title: string; snippet_ids: string[] }, parentId: string) => {
+      const was = from?.[id]
+      if (!was) return true
+      return (
+        was.title !== sub.title ||
+        was.parent_id !== parentId ||
+        JSON.stringify(was.snippet_ids) !== JSON.stringify(sub.snippet_ids)
+      )
+    }
     return tree.args
-      .flatMap((a) => a.subs)
-      .filter((s) => s.state !== 'removed' && !rendered.has(s.id))
-      .map((s) => s.id)
+      .flatMap((a) => a.subs.map((s) => ({ sub: s, parentId: a.id })))
+      .filter(({ sub, parentId }) =>
+        sub.state !== 'removed' &&
+        (!rendered.has(sub.id) || changedSince(sub.id, sub, parentId)))
+      .map(({ sub }) => sub.id)
   }, [letter, tree.args])
 
   // --- generation ----------------------------------------------------------
@@ -151,7 +187,9 @@ export function ConditionC({ state }: Props) {
     setGenerateFailed(false)
     logger.log('generate_trigger', { scope: 'letter', trigger })
     try {
-      const built = await generateLetter(useTree.getState().nodeStates())
+      const states = useTree.getState().nodeStates()
+      const built = await generateLetter(states)
+      generatedFrom.current = states
       setLetter(built)
       // Back to the rendered view, not a textarea: the participant has to be
       // able to click a citation before they can be said to have checked one.
@@ -171,7 +209,16 @@ export function ConditionC({ state }: Props) {
   }, [material, state.phase, runGeneration])
 
   // --- linkage -------------------------------------------------------------
-  const commitChip = useCallback((chipId: string, via: 'click' | 'linkage') => {
+  /** Select an evidence chip and say what selected it.
+   *
+   * `via` is not decoration. Pressing the magnifier also selects the chip --
+   * deliberately, so the linkage panels follow the thing being magnified --
+   * and that selection used to be logged as `via: "click"`, identical to
+   * clicking the card itself. Any count of "evidence cards the participant
+   * opened" was then inflated by one for every magnifier press, and no field
+   * in the log could separate the two.
+   */
+  const commitChip = useCallback((chipId: string, via: 'click' | 'linkage' | 'chip_magnifier') => {
     const target = snippets[chipId]
     if (!target) return
     logger.log(via === 'linkage' ? 'cite_click' : 'chip_click', {
@@ -185,7 +232,9 @@ export function ConditionC({ state }: Props) {
     })
     logger.log('page_change', {
       exhibit: target.exhibit, page: target.page, via: 'linkage',
-      reason: via === 'linkage' ? 'citation' : 'evidence chip',
+      reason: via === 'linkage' ? 'citation'
+        : via === 'chip_magnifier' ? 'evidence chip magnifier'
+        : 'evidence chip',
     })
     setCommittedChip(chipId)
     setPreviewChip(null)
@@ -266,7 +315,14 @@ export function ConditionC({ state }: Props) {
   }
 
   // --- submit --------------------------------------------------------------
+  /** Handing in is irreversible: the server refuses further log writes and the
+   *  verification phase is over. It was one click on a button that sits beside
+   *  Help in the top bar, with nothing between the click and the end of the
+   *  measured task. */
+  const [confirmSubmit, setConfirmSubmit] = useState(false)
+
   const onSubmit = async () => {
+    setConfirmSubmit(false)
     const text = editedText ?? letter?.sentences.map((s) => s.text).join(' ') ?? ''
     logger.log('declare_done', { condition: 'c', char_count: text.length })
     // The declaration has to be in the log before the session locks, or the
@@ -280,7 +336,7 @@ export function ConditionC({ state }: Props) {
   const crumb = snippet ? (
     <>
       <span className="px-1.5 py-0.5 rounded bg-slate-100">
-        {parentTitles[focusedSub ?? ''] ?? t('app.criterion')}
+        {parentTitles[focusedSub ?? ''] ?? material.criterion ?? t('app.criterion')}
       </span>
       <span className="text-slate-300">{CRUMB_SEP}</span>
       <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-medium">
@@ -295,12 +351,18 @@ export function ConditionC({ state }: Props) {
     <span className="text-slate-400">{t('crumb.nothing')}</span>
   )
 
-  const phaseLabel =
-    state.phase === 'organization'
-      ? t('phase.organization')
-      : state.phase === 'generation'
-        ? t('phase.generation')
-        : t('phase.verify')
+  // Explicit per phase rather than a ternary chain ending in `verify`. That
+  // default put "Review & revise - Submit when ready" above the practice
+  // phase, and above setup and tutorial before those were routed elsewhere:
+  // the heading told the participant which task they were doing, and it was
+  // naming the wrong one.
+  const PHASE_LABELS: Record<string, string> = {
+    practice: 'phase.practice',
+    organization: 'phase.organization',
+    generation: 'phase.generation',
+    verification: 'phase.verify',
+  }
+  const phaseLabel = t(PHASE_LABELS[state.phase] ?? 'phase.waiting')
 
   const lightboxExhibit = lightboxChip ? snippets[lightboxChip]?.exhibit : viewExhibit
   const lightboxPages =
@@ -320,13 +382,19 @@ export function ConditionC({ state }: Props) {
         condition="c"
         track={state.track}
         phaseLabel={phaseLabel}
+        caseLabel={material.case_label}
+        criterion={material.criterion}
+        cfr={material.cfr}
         remainingMs={visibleRemainingMs(state)}
         canSubmit={state.can_submit}
         onHelp={() => {
           logger.log('panel_focus', { panel: 'topbar', target: 'help' })
           setHelpOpen((v) => !v)
         }}
-        onSubmit={() => void onSubmit()}
+        onSubmit={() => {
+          logger.log('panel_focus', { panel: 'topbar', target: 'submit_intent' })
+          setConfirmSubmit(true)
+        }}
       />
 
       {inPractice && practice.loaded && (
@@ -430,7 +498,7 @@ export function ConditionC({ state }: Props) {
             void usePractice.getState().clear('linkage')
           }}
           onChipZoom={(id) => {
-            commitChip(id, 'click')
+            commitChip(id, 'chip_magnifier')
             openLightbox(id, snippets[id]?.page ?? 1, 'chip_magnifier')
           }}
           registerSubRef={(id, el) => {
@@ -440,6 +508,7 @@ export function ConditionC({ state }: Props) {
 
         <LetterPanel
           sentences={letter?.sentences ?? []}
+          criterion={material.criterion}
           editedText={editedText}
           focusedSub={focusedSub}
           argumentTitles={argumentTitles}
@@ -457,6 +526,31 @@ export function ConditionC({ state }: Props) {
           }}
         />
       </div>
+
+      {confirmSubmit && (
+        <div className="fixed inset-0 z-[95] bg-slate-900/45 backdrop-blur-[2px] grid place-items-center">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 px-8 py-6 text-center max-w-[420px]">
+            <p className="text-[14px] font-semibold text-slate-800 mb-1">
+              {t('submit.confirmTitle')}
+            </p>
+            <p className="text-[12.5px] text-slate-500 mb-4">{t('submit.confirmBody')}</p>
+            <div className="flex items-center justify-center gap-2">
+              <button
+                className="px-3 py-1.5 rounded-md border border-slate-200 text-[12.5px] font-semibold text-slate-600"
+                onClick={() => setConfirmSubmit(false)}
+              >
+                {t('submit.confirmNo')}
+              </button>
+              <button
+                className="px-3 py-1.5 rounded-md bg-slate-900 text-white text-[12.5px] font-semibold"
+                onClick={() => void onSubmit()}
+              >
+                {t('submit.confirmYes')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {generateFailed && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[95] px-4 py-2 rounded-lg bg-rose-600 text-white text-[12.5px] shadow-lg">

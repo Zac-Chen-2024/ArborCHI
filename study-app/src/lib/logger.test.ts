@@ -19,8 +19,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { setToken } from './api'
+import { mirrorKeyFor } from './logger'
 
 const ENDPOINT = '/api/study/log/batch'
+/** Every test authenticates as 'test-token', so the mirror lands here. */
+const MIRROR = mirrorKeyFor('test-token')
 
 /** A fresh logger module per test: it is a singleton holding a queue.
  *
@@ -52,8 +55,15 @@ beforeEach(() => {
   vi.stubGlobal('navigator', { ...navigator, sendBeacon: vi.fn(() => true) })
 })
 
-afterEach(() => {
+afterEach(async () => {
   current?.stop()
+  // stop() cancels the timers, not a flush already awaiting its response. That
+  // flush still calls writeMirror() when it lands -- and if it lands after the
+  // next test's beforeEach has cleared localStorage, it restores the previous
+  // test's events into the next test's mirror. Which is exactly how it
+  // presented: a test asserting that a foreign mirror is never replayed saw two
+  // events belonging to a test three cases earlier.
+  await new Promise((r) => setTimeout(r, 20))
   current = null
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
@@ -159,7 +169,7 @@ describe('closing the tab', () => {
 
     // A beacon can be dropped silently by the browser. The mirror stays so the
     // next boot replays it: duplicates are removable in analysis, losses are not.
-    const mirror = JSON.parse(localStorage.getItem('arbor.study.logqueue') ?? '[]')
+    const mirror = JSON.parse(localStorage.getItem(MIRROR) ?? '[]')
     expect(mirror.length).toBeGreaterThan(0)
     logger.stop()
   })
@@ -181,7 +191,7 @@ describe('surviving a crash', () => {
     first.log('hover_start', { snippet_id: 'c8' })
     await first.flush()
     first.stop()
-    expect(JSON.parse(localStorage.getItem('arbor.study.logqueue')!)).toHaveLength(2)
+    expect(JSON.parse(localStorage.getItem(MIRROR)!)).toHaveLength(2)
 
     // The tab dies here. A new one boots onto the same localStorage.
     const sent: { seq: number; event: string }[] = []
@@ -232,7 +242,7 @@ describe('surviving a crash', () => {
   })
 
   it('boots cleanly when the mirror is corrupt', async () => {
-    localStorage.setItem('arbor.study.logqueue', '{not json')
+    localStorage.setItem(MIRROR, '{not json')
     const logger = await freshLogger()
     vi.stubGlobal('fetch', vi.fn(async () => okResponse(0)))
 
@@ -290,5 +300,129 @@ describe('the envelope', () => {
     // silent hole.
     expect(logger.pending()).toBe(2000)
     logger.stop()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// The next participant on the same machine
+// ---------------------------------------------------------------------------
+
+describe('a mirror left by a different session', () => {
+  it('is neither replayed nor allowed to carry the seq forward', async () => {
+    // Participant N ended with unsent events under their own token.
+    localStorage.setItem(
+      mirrorKeyFor('participant-N-token'),
+      JSON.stringify([
+        { seq: 106, event: 'chip_click', payload: { snippet_id: 'c4' } },
+        { seq: 107, event: 'declare_done', payload: {} },
+      ]),
+    )
+
+    // Participant N+1 boots in the same browser profile, with their own token.
+    setToken('test-token')
+    const logger = await freshLogger()
+    const sent: { seq: number; event: string }[] = []
+    vi.stubGlobal('fetch', vi.fn(async (_url: string, init: RequestInit) => {
+      const body = JSON.parse(init.body as string) as { events: typeof sent }
+      sent.push(...body.events)
+      return okResponse(Math.max(...body.events.map((e) => e.seq)))
+    }))
+
+    logger.start('test-build')
+    await new Promise((r) => setTimeout(r, 50))
+    logger.log('heartbeat', {})
+    await logger.flush()
+
+    // Not one of N's events may appear under N+1's token...
+    expect(sent.map((e) => e.event)).not.toContain('chip_click')
+    expect(sent.map((e) => e.event)).not.toContain('declare_done')
+    // ...and the series starts at 0, so the server does not record a gap of
+    // 108 events in a session that has lost nothing. That phantom gap was
+    // enough to fail a complete session on the log-loss check.
+    expect(sent[0].seq).toBe(0)
+    // N's mirror is gone rather than lingering to be picked up later.
+    expect(localStorage.getItem(mirrorKeyFor('participant-N-token'))).toBeNull()
+  })
+
+  it('still recovers this session own mirror across a reload', async () => {
+    setToken('test-token')
+    const first = await freshLogger()
+    vi.stubGlobal('fetch', vi.fn(async () => {
+      throw new TypeError('Failed to fetch')
+    }))
+    first.start('test-build')
+    first.log('cite_click', { snippet_id: 'c9' })
+    await first.flush()
+    first.stop()
+
+    // Same token: a reload, not a new participant.
+    const sent: { event: string }[] = []
+    vi.stubGlobal('fetch', vi.fn(async (_url: string, init: RequestInit) => {
+      const body = JSON.parse(init.body as string) as { events: { seq: number; event: string }[] }
+      sent.push(...body.events)
+      return okResponse(Math.max(...body.events.map((e) => e.seq)))
+    }))
+    const second = await freshLogger()
+    second.start('test-build')
+    await new Promise((r) => setTimeout(r, 50))
+
+    expect(sent.map((e) => e.event)).toContain('cite_click')
+  })
+})
+
+describe('the sequence number across a reload', () => {
+  it('continues rather than restarting once the queue has drained', async () => {
+    setToken('test-token')
+    const first = await freshLogger()
+    vi.stubGlobal('fetch', vi.fn(async () => okResponse(2)))
+    first.start('test-build')
+    for (let i = 0; i < 3; i++) first.log('heartbeat', {})
+    await first.flush()
+    // Everything acknowledged: the mirror is empty, which is the ordinary case.
+    expect(first.pending()).toBe(0)
+    first.stop()
+
+    // The page reloads. Nothing was lost, so nothing is in the mirror to carry
+    // the counter -- and this used to restart the series at 0, which the server
+    // reads as neither a gap nor new events. A whole session after the first
+    // reload became invisible to the log-loss check that decides validity.
+    const seen: number[] = []
+    vi.stubGlobal('fetch', vi.fn(async (_url: string, init: RequestInit) => {
+      const body = JSON.parse(init.body as string) as { events: { seq: number }[] }
+      seen.push(...body.events.map((e) => e.seq))
+      return okResponse(Math.max(...body.events.map((e) => e.seq)))
+    }))
+    const second = await freshLogger()
+    second.start('test-build')
+    second.log('heartbeat', {})
+    await second.flush()
+
+    expect(seen).toEqual([3])
+    second.stop()
+  })
+
+  it('does not inherit the counter from a different session', async () => {
+    setToken('participant-N-token')
+    const theirs = await freshLogger()
+    vi.stubGlobal('fetch', vi.fn(async () => okResponse(99)))
+    theirs.start('test-build')
+    for (let i = 0; i < 100; i++) theirs.log('heartbeat', {})
+    await theirs.flush()
+    theirs.stop()
+
+    setToken('test-token')
+    const seen: number[] = []
+    vi.stubGlobal('fetch', vi.fn(async (_url: string, init: RequestInit) => {
+      const body = JSON.parse(init.body as string) as { events: { seq: number }[] }
+      seen.push(...body.events.map((e) => e.seq))
+      return okResponse(Math.max(...body.events.map((e) => e.seq)))
+    }))
+    const mine = await freshLogger()
+    mine.start('test-build')
+    mine.log('heartbeat', {})
+    await mine.flush()
+
+    expect(seen).toEqual([0])
+    mine.stop()
   })
 })

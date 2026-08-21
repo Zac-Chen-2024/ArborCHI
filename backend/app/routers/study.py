@@ -20,7 +20,10 @@ instead of a silent no-op.
 
 from __future__ import annotations
 
+import asyncio
+import json
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -143,6 +146,20 @@ class CheckpointBody(BaseModel):
     gate: str = Field(..., pattern="^[a-z_]{1,32}$")
 
 
+class TreeStateBody(BaseModel):
+    """The participant's working tree, verbatim.
+
+    Opaque to the server on purpose. This is a resume point, not a measurement:
+    what a node IS for the purposes of frozen-vs-live is decided from the
+    `node_states` that /generate receives and checked against tree.frozen.json,
+    and nothing here is allowed to influence that. Storing the client's own
+    structure means a restored session is byte-identical to the one that was
+    interrupted, rather than a reconstruction that has to be trusted.
+    """
+    tree: Any
+    material_id: str = ""
+
+
 class ConfidenceBody(BaseModel):
     likert_1_7: int = Field(..., ge=1, le=7)
     est_problem_count: int = Field(..., ge=0, le=500)
@@ -156,10 +173,33 @@ class ProbeAnswerBody(BaseModel):
 
 
 def _live_generator():
-    """Live generation is not wired to a provider yet (M5). Returning None makes
-    a changed node a loud 503 rather than a quiet substitution of frozen text --
-    which would look like success while falsifying `source`."""
-    return None
+    """Adapter from assemble()'s synchronous callback to the async generator.
+
+    assemble() is deliberately synchronous: it is a pure function of the tree
+    and the bundle, and keeping it that way is what lets the frozen/live
+    decision be tested without a network. The one place that needs I/O is this
+    callback, so the bridge lives here rather than colouring the whole call
+    chain async.
+
+    `anyio.from_thread.run` is not usable -- we are on the event loop, not in a
+    worker thread -- so the coroutine is driven on a private loop in a worker
+    thread. Generation happens once per changed node at a phase boundary, so
+    the cost of a thread is irrelevant next to the model call it wraps.
+
+    Returning None here (as this did while the provider was unchosen) makes a
+    changed node a loud 503 rather than a quiet substitution of frozen text,
+    which would look like success while falsifying `source`. That property is
+    preserved: a failure inside generate_live_sentences raises GenerationError,
+    which /generate turns into the same 503.
+    """
+    def run(node_id: str, submitted: Dict[str, Any]) -> List[Dict[str, Any]]:
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            return pool.submit(
+                asyncio.run,
+                study_generator.generate_live_sentences(node_id, submitted),
+            ).result()
+
+    return run
 
 
 # ---------------------------------------------------------------------------
@@ -287,7 +327,7 @@ async def log_batch(request: Request) -> Dict[str, Any]:
                 "reason": e.reason,
             })
 
-    previous_max = int(session.get("seq_acked", 0))
+    previous_max = int(session.get("seq_acked", -1))
     gaps = study_log.find_gaps(previous_max, [r["seq"] for r in accepted])
 
     append_jsonl_many(path, accepted)
@@ -295,7 +335,7 @@ async def log_batch(request: Request) -> Dict[str, Any]:
     highest = max([previous_max] + [r["seq"] for r in accepted])
 
     def _bump(rec):
-        rec["seq_acked"] = max(rec.get("seq_acked", 0), highest)
+        rec["seq_acked"] = max(rec.get("seq_acked", -1), highest)
         rec["event_count"] = rec.get("event_count", 0) + len(accepted)
         if gaps:
             # Registered, not fatal -- integrity.json reports these at close.
@@ -350,9 +390,18 @@ def get_material() -> Dict[str, Any]:
     """
     session = _participant_session()
     material_id = _material_for_phase(session)
+    # criterion / cfr / case come from the bundle, not from the interface's
+    # translation file. They were fixed strings there, so the practice phase --
+    # which is a different criterion on purpose, to teach the interface without
+    # teaching the case -- displayed the real case's criterion and statute
+    # above the practice material.
+    manifest = materials.load_bundle(material_id)["manifest"]
     return {
         "material_id": material_id,
         "practice": session["phase"] == "practice",
+        "criterion": manifest.get("criterion") or "",
+        "cfr": manifest.get("cfr") or "",
+        "case_label": manifest.get("case_label") or "",
         "tree": materials.public_tree(material_id),
         "relations": materials.public_relations(material_id),
         **materials.public_snippets(material_id),
@@ -368,7 +417,13 @@ def _material_for_phase(session: Dict[str, Any]) -> str:
     exhibits -- which is precisely the part of the session the two conditions
     are being compared on.
     """
-    if session["phase"] == "practice":
+    # setup and tutorial are before the practice phase: the moderator is
+    # briefing, and there is nothing the participant is meant to be reading.
+    # The real bundle was served in those phases, so anyone whose client
+    # rendered the workspace could read the case they were about to be measured
+    # on, unobserved and untimed. The practice bundle is the right answer here
+    # for the same reason it is the right answer during practice.
+    if session["phase"] in ("setup", "tutorial", "practice"):
         return session.get("practice_material_id") or "practice_v1"
     return session.get("material_id") or "case_v1"
 
@@ -396,6 +451,15 @@ def generate(body: GenerateBody) -> Dict[str, Any]:
     if session.get("submitted"):
         raise HTTPException(status_code=409, detail="Session already submitted")
 
+    # A generate with no nodes assembles an empty letter, and an empty letter
+    # written over the baseline destroys it without anything looking wrong --
+    # 200, no sentences, `initial.json` now the sha256 of "". No client sends
+    # this (a participant who deletes every sub-argument still reports them as
+    # `removed`), so it is a malformed request, and the baseline is worth more
+    # than the tolerance.
+    if not body.node_states:
+        raise HTTPException(status_code=400, detail="node_states must not be empty")
+
     material_id = _material_for_phase(session)
     try:
         built = study_generator.assemble(
@@ -410,23 +474,49 @@ def generate(body: GenerateBody) -> Dict[str, Any]:
         raise HTTPException(status_code=503, detail="Generation is not available")
 
     # 红线 #1 -- before the participant can edit anything.
+    #
+    # The FIRST generation is the baseline and is written once, under the id
+    # `initial`. Later regenerations get ids of their own.
+    #
+    # This used to write `initial` every time. Nothing about that looked wrong:
+    # the ordering inside the request was still assemble -> snapshot -> log, the
+    # event log still recorded a sha256 per generation, and the integrity check
+    # still reported "initial and final present, hashes match". But `initial` on
+    # disk was whatever the participant last pressed Regenerate on -- and every
+    # measure that asks "what did the letter say before they touched it" is
+    # computed against that file. Regenerating is normal use, and entering the
+    # verification phase regenerates automatically, so the baseline was
+    # routinely gone before the phase that needs it even started.
+    generation_index = int(session.get("generation_count") or 0)
+    snapshot_id = "initial" if generation_index == 0 else f"draft_{generation_index}"
+
     meta = study_snapshots.write_snapshot(
         session,
-        "initial",
+        snapshot_id,
         "draft",
         built["text"],
         sentences=built["sentences"],
-        extra={"stats": built["stats"], "material_id": material_id},
+        extra={
+            "stats": built["stats"],
+            "material_id": material_id,
+            "generation_index": generation_index,
+        },
     )
     write_server_event(session, "draft_snapshot", {
-        "snapshot_id": "initial",
+        "snapshot_id": snapshot_id,
+        "generation_index": generation_index,
         "trigger": "generation",
         **meta,
     })
 
     def _mark(rec):
         rec["generated_at"] = study.now_iso()
-        rec["initial_snapshot_hash"] = meta["sha256"]
+        rec["generation_count"] = generation_index + 1
+        # Set once, by the same rule that decides the snapshot id: the hash the
+        # analysis compares against must name the baseline, not the latest draft.
+        if generation_index == 0:
+            rec["initial_snapshot_hash"] = meta["sha256"]
+        rec["latest_snapshot_hash"] = meta["sha256"]
         return rec
 
     study.update_session(session["session_id"], _mark)
@@ -505,6 +595,68 @@ PRACTICE_GATES = {
     "c": ("lightbox", "linkage"),
     "b": ("manual_page",),
 }
+
+
+@router.put("/tree")
+def save_tree(body: TreeStateBody) -> Dict[str, Any]:
+    """Persist the working tree so a reload does not erase the organisation phase.
+
+    The tree lived only in the browser. A refresh -- or a crash, or a stray
+    Back -- reset all of it to the machine's original proposal, and the next
+    generation ran against that pristine tree. Nothing surfaced: the letter
+    still appeared, the phase still advanced, the log still held every
+    `tree_op` the participant had performed. The session looked complete and
+    would have been analysed as one, while the structure it was built on was
+    not the participant's.
+
+    No event is written here. Every mutation is already logged at the moment it
+    happens (lib/treeStore.ts); this is the same state reaching durable storage,
+    not a new action by the participant, and the event dictionary stays closed.
+    """
+    session = _participant_session()
+    if session.get("submitted"):
+        raise HTTPException(status_code=409, detail="Session already submitted")
+
+    # Bounded so a malformed client cannot grow the session record without
+    # limit. A real tree is a few kilobytes.
+    if len(json.dumps(body.tree, ensure_ascii=False)) > 256_000:
+        raise HTTPException(status_code=413, detail="Tree state too large")
+
+    saved_at = study.now_iso()
+
+    # Stamped with the bundle it belongs to. The practice phase serves a
+    # different bundle, and a practice tree restored over the real material
+    # would be a wrong tree that looks like a right one.
+    material_id = body.material_id or _material_for_phase(session)
+
+    def _store(rec):
+        rec["tree_state"] = {
+            "tree": body.tree, "material_id": material_id, "saved_at": saved_at,
+        }
+        return rec
+
+    study.update_session(session["session_id"], _store)
+    return {"success": True, "saved_at": saved_at}
+
+
+@router.get("/tree")
+def load_tree() -> Dict[str, Any]:
+    """The stored tree, or null when the participant has not changed anything.
+
+    Null rather than 404: "nothing saved yet" is the normal state at the start
+    of the organisation phase, and a client that treats an error and an empty
+    result differently would have two paths through the same situation.
+    """
+    session = _participant_session()
+    stored = session.get("tree_state") or {}
+    # Only hand back a tree that belongs to the bundle this phase serves.
+    if stored and stored.get("material_id") != _material_for_phase(session):
+        return {"tree": None, "saved_at": None, "material_id": None}
+    return {
+        "tree": stored.get("tree"),
+        "material_id": stored.get("material_id"),
+        "saved_at": stored.get("saved_at"),
+    }
 
 
 @router.post("/checkpoint")
@@ -785,7 +937,7 @@ def monitor(session_id: str) -> Dict[str, Any]:
         "softlock": session["softlock"],
         "submitted": session["submitted"],
         "started": session.get("started_at") is not None,
-        "seq_acked": session.get("seq_acked", 0),
+        "seq_acked": session.get("seq_acked", -1),
         "heartbeat_age_ms": (now - last_seen) if last_seen else None,
         # Moderator-only clock.
         "phase_remaining_ms": (deadline - now) if deadline else None,

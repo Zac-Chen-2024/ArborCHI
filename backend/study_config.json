@@ -1,7 +1,6 @@
 {
   "_comment": "Study parameters. NOT hardcoded anywhere -- pilot exists to change these, and every logged event carries this file's hash so any session's actual values can be recovered from the log alone. See docs/预注册_pre-registration.md PR-6. Values below are pre-pilot defaults, not final.",
   "config_version": "2026-08-20.1",
-
   "phases": {
     "organization": {
       "_comment": "Hard time limit. The participant sees a countdown (红线 #4 permits it here and only here).",
@@ -24,7 +23,6 @@
       "visible_clock": false
     }
   },
-
   "probe": {
     "_comment": "PR-2. Algorithm is pre-registered; these are its parameters.",
     "target_items": 14,
@@ -32,21 +30,19 @@
     "max_items": 15,
     "max_planted_ratio": 0.6
   },
-
   "session": {
     "_comment": "Told to participants and used to set compensation. Longer than the sum of the phases because verification is not hard-locked.",
     "announced_minutes_min": 90,
     "announced_minutes_max": 95,
     "fixed_overhead_minutes": 46
   },
-
   "integrity": {
     "_comment": "PR-4. ±3σ only flags for human review; invalidation is the separate loss rule.",
     "event_count_sigma": 3,
-    "invalidate_if_log_loss_above": 0.20,
-    "heartbeat_coverage_min": 0.95
+    "invalidate_if_log_loss_above": 0.2,
+    "heartbeat_coverage_min": 0.95,
+    "event_count_min_baseline_n": 4
   },
-
   "sample": {
     "_comment": "PR-5. B is an optional arm: build C to 24 first.",
     "condition_c_target": 24,

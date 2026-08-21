@@ -38,7 +38,9 @@
 import { getToken } from './api'
 
 const ENDPOINT = '/api/study/log/batch'
-const MIRROR_KEY = 'arbor.study.logqueue'
+const MIRROR_PREFIX = 'arbor.study.logqueue'
+/** High-water mark of `seq`, kept separately from the queue -- see `seqKey`. */
+const SEQ_PREFIX = 'arbor.study.logseq'
 const FLUSH_INTERVAL_MS = 5_000
 const FLUSH_AT_COUNT = 20
 const HEARTBEAT_MS = 30_000
@@ -67,6 +69,28 @@ interface Context {
   track: string
 }
 
+/** Namespace for one session's crash mirror.
+ *
+ * localStorage is shared by every session that ever runs in this browser
+ * profile, and a study runs 24 participants through one lab machine. With a
+ * single fixed key, participant N's unsent queue was restored into participant
+ * N+1's logger and posted under N+1's token, and the seq series continued
+ * across the boundary -- so N+1's session opened at seq 108 and the server
+ * dutifully recorded a 107-event gap in a session that had lost nothing. The
+ * integrity check then failed that session for 59% log loss.
+ *
+ * Derived from the join token because that is what identifies the session on
+ * the very first call, before /state has answered. It is a namespace, not a
+ * secret: a non-cryptographic hash keeps the credential itself out of a key
+ * that is readable by anything on the origin.
+ */
+export function mirrorKeyFor(token: string | null): string {
+  if (!token) return `${MIRROR_PREFIX}.anon`
+  let h = 5381
+  for (let i = 0; i < token.length; i++) h = ((h << 5) + h + token.charCodeAt(i)) | 0
+  return `${MIRROR_PREFIX}.${(h >>> 0).toString(36)}`
+}
+
 class Logger {
   private queue: LoggedEvent[] = []
   private seq = 0
@@ -77,6 +101,8 @@ class Logger {
   private backoff = 0
   private sending = false
   private started = false
+  private mirrorKey = `${MIRROR_PREFIX}.anon`
+  private seqKey = `${SEQ_PREFIX}.anon`
 
   /** Monotonic origin. performance.now() is immune to wall-clock jumps (NTP
    *  correction, the participant's laptop resuming from sleep), which is why
@@ -87,6 +113,11 @@ class Logger {
     if (this.started) return
     this.started = true
     this.build = build
+    const token = getToken()
+    this.mirrorKey = mirrorKeyFor(token)
+    this.seqKey = mirrorKeyFor(token).replace(MIRROR_PREFIX, SEQ_PREFIX)
+    this.dropForeignMirrors()
+    this.restoreSeq()
     this.restoreMirror()
 
     this.timer = window.setInterval(() => void this.flush(), FLUSH_INTERVAL_MS)
@@ -129,7 +160,7 @@ class Logger {
    */
   log(event: string, payload: Record<string, unknown> = {}): void {
     const record: LoggedEvent = {
-      seq: this.seq++,
+      seq: this.nextSeq(),
       ts_mono: Math.round(performance.now() - this.monoOrigin),
       ts_wall: new Date().toISOString(),
       phase: this.ctx.phase,
@@ -149,6 +180,41 @@ class Logger {
     }
     this.writeMirror()
     if (this.queue.length >= FLUSH_AT_COUNT) void this.flush()
+  }
+
+  /**
+   * The next sequence number, remembered across reloads.
+   *
+   * The counter used to live only in the queue's mirror, which is emptied as
+   * soon as the server acknowledges a batch. So a participant who reloaded --
+   * with everything already delivered, the ordinary case -- started again at
+   * seq 0. The server keeps a high-water mark, so those repeats registered
+   * neither as gaps nor as new events: `seq_continuity` reported 13 events for
+   * a session that had logged 26, and any real loss after the first reload was
+   * invisible to the check that decides whether a session is usable (PR-4).
+   *
+   * Kept separately from the queue for that reason: what has been *numbered*
+   * and what is still *unsent* are different facts, and only one of them is
+   * cleared by a successful flush.
+   */
+  private nextSeq(): number {
+    const seq = this.seq++
+    try {
+      localStorage.setItem(this.seqKey, String(this.seq))
+    } catch {
+      /* private mode: the in-memory counter still holds for this page */
+    }
+    return seq
+  }
+
+  private restoreSeq(): void {
+    try {
+      const raw = localStorage.getItem(this.seqKey)
+      const stored = raw === null ? NaN : Number(raw)
+      if (Number.isFinite(stored) && stored > this.seq) this.seq = stored
+    } catch {
+      /* unreadable: start from 0 and accept a collision rather than fail boot */
+    }
   }
 
   /** Send what is queued. Safe to call concurrently; overlapping calls no-op. */
@@ -213,9 +279,33 @@ class Logger {
 
   // -- crash mirror ---------------------------------------------------------
 
+  /** Remove mirrors left by other sessions.
+   *
+   * They cannot be delivered -- they would need the token they were written
+   * under, which is gone -- and leaving them is how the cross-session bleed
+   * happened. Dropping is bounded and honest; the alternative was posting one
+   * participant's actions into another participant's file.
+   */
+  private dropForeignMirrors(): void {
+    try {
+      const stale: string[] = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (!key) continue
+        const isOurs = key === this.mirrorKey || key === this.seqKey
+        if ((key.startsWith(MIRROR_PREFIX) || key.startsWith(SEQ_PREFIX)) && !isOurs) {
+          stale.push(key)
+        }
+      }
+      stale.forEach((k) => localStorage.removeItem(k))
+    } catch {
+      /* private mode: nothing to clean */
+    }
+  }
+
   private writeMirror(): void {
     try {
-      localStorage.setItem(MIRROR_KEY, JSON.stringify(this.queue))
+      localStorage.setItem(this.mirrorKey, JSON.stringify(this.queue))
     } catch {
       /* quota or private mode: the in-memory queue still works */
     }
@@ -223,7 +313,7 @@ class Logger {
 
   private restoreMirror(): void {
     try {
-      const raw = localStorage.getItem(MIRROR_KEY)
+      const raw = localStorage.getItem(this.mirrorKey)
       if (!raw) return
       const events = JSON.parse(raw) as LoggedEvent[]
       if (Array.isArray(events) && events.length) {

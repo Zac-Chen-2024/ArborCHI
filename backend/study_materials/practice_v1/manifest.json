@@ -13,5 +13,6 @@
     "reasoning_effort": "low",
     "max_output_tokens": 400
   },
-  "frozen_at": null
+  "frozen_at": null,
+  "case_label": "EB-1A · Dr. A. Moreau"
 }

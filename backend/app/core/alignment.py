@@ -93,20 +93,66 @@ def align_to_baseline(
 
     A baseline sentence claimed by two final sentences is a split: both inherit,
     because both descend from it and both may still carry the planted error.
-    Over-inclusion is the safe direction here -- a planted sentence missed by
-    the probe is a hole in the measurement, while one asked about twice is
-    caught by the de-duplication in probe.py.
+    Over-inclusion is the safe direction -- a planted sentence missed by the
+    probe is a hole in the measurement.
+
+    With one exception, which is what the second pass below is for. **A sentence
+    that survived intact was not also split.** If some final sentence matches a
+    baseline sentence at `same` or `edited`, that baseline sentence is still
+    there, whole; a *different* final sentence scoring in the loose `rewritten`
+    band against it is not a second half of a split, it is new prose that
+    happens to share vocabulary.
+
+    That case is not hypothetical. A participant typed one short new sentence
+    into the first paragraph; it scored 0.43 against a baseline sentence
+    belonging to a different sub-argument two paragraphs away (citation
+    brackets and common words carry the Dice score a long way on short
+    strings), while that baseline sentence sat elsewhere in the text matching
+    itself at 1.0. Without this rule the new sentence inherited the other one's
+    sent_id and subargument_id -- and would have inherited its planted_id, so
+    the probe would have asked "does the cited evidence support this?" about a
+    sentence the participant wrote, with an answer key saying it was a planted
+    error.
+
+    The thresholds themselves are untouched: STRONG/WEAK are pre-registered
+    (PR-3) and this rule does not move them, it only refuses one claim that two
+    of them together would otherwise allow.
     """
+    scored: List[Tuple[Optional[Dict[str, Any]], float]] = [
+        best_match(text, baseline) for text in final_sentences
+    ]
+
+    # Baseline sentences that some final sentence still matches at `same` or
+    # `edited`. Keyed by identity, not sent_id: a baseline list with a repeated
+    # id would otherwise take the wrong one out of contention.
+    intact: Dict[int, int] = {}
+    for index, (match, score) in enumerate(scored):
+        if match is not None and score >= STRONG:
+            intact.setdefault(id(match), index)
+
     out: List[Dict[str, Any]] = []
-    for text in final_sentences:
-        match, score = best_match(text, baseline)
+    for index, (text, (match, score)) in enumerate(zip(final_sentences, scored)):
         kind = classify(score)
+        displaced = None
+        if (
+            match is not None
+            and kind == "rewritten"
+            and intact.get(id(match), index) != index
+        ):
+            # Claimed by an intact match elsewhere: this is new prose.
+            displaced = match.get("sent_id")
+            match, kind = None, "new"
+
         if match is None or kind == "new":
-            out.append({
+            record: Dict[str, Any] = {
                 "text": text, "sent_id": None, "planted_id": None,
                 "subargument_id": None, "source": None,
                 "match": "new", "similarity": round(score, 4),
-            })
+            }
+            if displaced is not None:
+                # Kept so the decision is auditable rather than invisible.
+                record["displaced_from"] = displaced
+            out.append(record)
             continue
         out.append({
             "text": text,

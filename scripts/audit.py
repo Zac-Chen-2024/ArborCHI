@@ -254,6 +254,26 @@ if missing:
 
 
 # ---------------------------------------------------------------------------
+# NUL bytes in source
+#
+# A source file containing a NUL byte is treated as binary by git: it stops
+# showing diffs, git grep skips it, and a review sees "Binary file changed".
+# It has happened twice, both times from a tool writing an escape sequence
+# that collapsed into a real 0x00 instead of the characters that were meant --
+# including once in this file, while adding this check. Nothing looks wrong
+# until someone tries to read a diff, which is usually when it matters.
+
+NUL = bytes([0])
+SOURCE_SUFFIXES = ('.py', '.ts', '.tsx', '.json', '.css', '.md', '.yml', '.yaml')
+for path in tracked:
+    if not path.endswith(SOURCE_SUFFIXES):
+        continue
+    full = os.path.join(ROOT, path)
+    if os.path.exists(full) and NUL in open(full, 'rb').read():
+        note('BINARY', f'{path} contains a NUL byte -- git will treat it as binary')
+
+
+# ---------------------------------------------------------------------------
 
 def main() -> int:
     print(f'i18n     : {len(en)} keys, {len(used)} referenced in components')

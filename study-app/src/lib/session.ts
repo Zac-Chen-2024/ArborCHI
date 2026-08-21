@@ -50,7 +50,23 @@ export const useSession = create<SessionStore>((set, get) => ({
   startPolling() {
     void get().refresh()
     const id = window.setInterval(() => void get().refresh(), POLL_MS)
-    return () => window.clearInterval(id)
+
+    // Browsers throttle timers in a background tab -- Chrome to roughly once a
+    // minute once the tab has been hidden a while. A participant who switches
+    // away (an email, the moderator's video window taking focus) and comes back
+    // was then looking at a phase the session had already left: either a soft
+    // lock the moderator had already released, or a workspace for a phase that
+    // had ended. Refreshing on the way back costs one request and removes the
+    // whole class.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void get().refresh()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+
+    return () => {
+      window.clearInterval(id)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
   },
 }))
 

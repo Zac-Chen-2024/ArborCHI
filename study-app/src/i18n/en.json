@@ -100,7 +100,8 @@
     "cite": "[Exhibit {{ex}}, p.{{i}}]",
     "notYet": "The letter appears here once the structure is generated.",
     "editHint": "Double-click the text to edit it.",
-    "generateFailed": "Generation is unavailable. Please tell the researcher."
+    "generateFailed": "Generation is unavailable. Please tell the researcher.",
+    "generateFirst": "Generate"
   },
   "chat": {
     "title": "Writing Assistant",
@@ -196,8 +197,14 @@
     "done": "All done — the researcher will move you on.",
     "gate": {
       "lightbox": "Open the magnifier",
-      "linkage": "Follow a citation to its source",
+      "linkage": "Click an evidence card to see where it belongs",
       "manual_page": "Turn to another page"
     }
+  },
+  "submit": {
+    "confirmTitle": "Submit this draft?",
+    "confirmBody": "You will not be able to change the letter after this.",
+    "confirmYes": "Submit final",
+    "confirmNo": "Keep checking"
   }
 }

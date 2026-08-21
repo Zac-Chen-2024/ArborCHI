@@ -256,7 +256,15 @@ def summarise(record: Dict[str, Any]) -> Optional[str]:
         op = p.get("op")
         title = p.get("node_title") or p.get("node_id")
         if op == "move":
-            return f"moved “{title}” under “{p.get('to_parent_title') or p.get('to_parent')}”"
+            # Both ends. The interview question this exists to make possible is
+            # "you moved X out from under Y and put it under Z -- why?", and Y
+            # is in the payload; leaving it out of the sentence threw away the
+            # half that says what the participant changed their mind about.
+            src = p.get("from_parent_title") or p.get("from_parent")
+            dst = p.get("to_parent_title") or p.get("to_parent")
+            if src:
+                return f"moved “{title}” out from under “{src}” and under “{dst}”"
+            return f"moved “{title}” under “{dst}”"
         if op == "rename":
             return f"renamed “{p.get('from_title')}” to “{p.get('to_title')}”"
         if op == "split":
