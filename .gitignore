@@ -82,3 +82,13 @@ nul
 
 # build artifacts relocated to D:\ArborCHI-build via junction (F: is full)
 backend/.venv/
+
+# Material bundles built from a real person's petition file.
+#
+# study_materials/judging_v1 is derived from data/Dehuan Liu. Every exhibit in
+# it is published material -- that is why exhibit group C was the one chosen --
+# but it is still a named individual's immigration case assembled in one place,
+# and this repository is public. The build is reproducible from the source
+# corpus (backend/scripts/build_case_bundle.py), so nothing is lost by keeping
+# it out; putting it in cannot be undone.
+backend/study_materials/judging_v1/

@@ -236,10 +236,12 @@ async def call_llm(
     provider: str = None,
     model: str = None,
     caller: str = None,
+    reasoning_effort: str = None,
 ) -> Dict:
     """统一 LLM JSON 调用。返回解析后的 Dict。"""
     req = _build_request(prompt, system_prompt, provider, model, temperature, max_tokens, timeout,
-                         json_mode=True, json_schema=json_schema)
+                         json_mode=True, json_schema=json_schema,
+                         reasoning_effort=reasoning_effort)
     content = await _complete(req, caller or _infer_caller(), _prompt_meta(prompt, system_prompt))
     return extract_json(content)
 
