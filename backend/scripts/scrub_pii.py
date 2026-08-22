@@ -51,6 +51,16 @@ RULES: List[Tuple[str, re.Pattern]] = [
     # outcome worse than none, because it looks handled.
     ("mobile", re.compile(r"\b(?:\+?86[-\s]?)?1[3-9]\d{9}\b")),
     ("phone", re.compile(r"\b(?:\+?86[-\s]?)?(?:0\d{2,3}[-\s]?)?\d{7,8}\b")),
+    # A URL path that lost its host. The OCR breaks a long link across a line
+    # and leaves the slug loose in the text, where it is still a sentence:
+    # "baidus-iqiyi-video-service-raises-1-53-billion/" names two companies and
+    # a sum, in lower case, inside hyphens -- past every name rule there is.
+    # Four or more segments, with a letter AND a digit somewhere in it. The
+    # digit keeps ordinary hyphenation out -- state-of-the-art, follow-up --
+    # and the letter keeps this rule off the ISBN the rule above just wrote,
+    # which is all digits and hyphens and was being eaten as a slug.
+    ("slug", re.compile(r"\b(?=[A-Za-z0-9-]*[A-Za-z])(?=[A-Za-z0-9-]*[0-9])"
+                        r"[A-Za-z0-9]+(?:-[A-Za-z0-9]+){3,}/?")),
 ]
 
 # Deliberately not in the rules above: a bare four-digit year, a page number, a
@@ -145,10 +155,12 @@ def _url(seed: str, original: str) -> str:
     host = HOSTS[int(d[:3]) % len(HOSTS)]
     if original.lower().startswith("www."):
         return f"www.{host}"
-    scheme = original.split("://", 1)[0]
-    tail = original.split("://", 1)[1] if "://" in original else ""
-    path = tail.split("/", 1)[1] if "/" in tail else ""
-    return f"{scheme}://{host}" + (f"/{path}" if path else "")
+    # The path goes too. A slug is not decoration: one in this corpus reads
+    # /2017/02/21/baidus-iqiyi-video-service-raises-1-53-billion/, which names
+    # two companies and a sum. Keeping paths let a company name through in a
+    # form no name table could reach -- inside a word, in lower case.
+    scheme = original.split("://", 1)[0] if "://" in original else ""
+    return f"{scheme}://{host}" if scheme else host
 
 
 def replacement(kind: str, original: str) -> str:
@@ -172,6 +184,11 @@ def replacement(kind: str, original: str) -> str:
         for ch in original[len(head):]:
             out.append(next(digits) if ch in _DIGITS else ch)
         return head + "".join(out)
+    if kind == "slug":
+        d = _stream(seed)
+        words = ["review", "report", "notice", "update", "release", "feature"]
+        pick = [words[int(d[i:i + 2]) % len(words)] for i in (0, 2, 4)]
+        return "-".join(pick) + f"-{d[6:10]}" + ("/" if original.endswith("/") else "")
     if kind == "isbn":
         prefix = original[:original.lower().index("isbn") + 4]
         return f"{prefix} {_isbn13(seed)}"

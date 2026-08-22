@@ -71,6 +71,143 @@ FONTS = {
 # Commerce" must be replaced before "China", or the long name is left holding a
 # substituted fragment.
 SUBSTITUTIONS: list[tuple[str, str]] = [
+    # -- organisations the second pass turned up ---------------------------
+    #
+    # Found by running the table over the corpus and then scanning what came
+    # out for anything still shaped like an organisation. The first pass
+    # answers a watch list, which only knows what it was told; this answers the
+    # output, which knows what is actually there.
+    ("Chinese Academy of Social Sciences", "Cathay Academy of Social Sciences"),
+    ("Chinese Academy", "Cathay Academy"),
+    ("Communication University of China", "Riverside University of China"),
+    ("Communication University", "Riverside University"),
+    ("China Communication Association", "Cathay Communication Council"),
+    ("Communication Association of China", "Cathay Communication Council"),
+    ("Communication Association", "Communication Council"),
+    ("China News Culture Promotion Association", "Cathay Media Culture Council"),
+    ("All- China Journalists Association", "National Journalists Association"),
+    ("All-China Journalists Association", "National Journalists Association"),
+    ("China Marketing Research Association", "China Market Study Council"),
+    ("Marketing Research Association", "Market Study Council"),
+    ("China Shippers' Association", "China Carriers' Council"),
+    ("Agricultural & Applied Economics Association",
+     "Agricultural & Applied Economics Society"),
+    ("Association for Education in Journalism", "Association for Studies in Journalism"),
+    ("Internet Society", "Internet Council"),
+    ("BBI Business Brand Institute", "Brand Standards Institute"),
+    ("Alimama Marketing Institute", "Cloudmart Marketing Institute"),
+    ("Media Effects Research Laboratory", "Audience Effects Laboratory"),
+
+    # Presses and publishers.
+    ("China Machine Press", "Ironworks Press"),
+    ("Higher Education Press", "Advanced Studies Press"),
+    ("Economy & Management Publishing House", "Meridian Economics Press"),
+    ("Minzu University Press", "Highlands University Press"),
+    ("B.C. Forbes Publishing Company", "B.C. Ashworth Publishing Company"),
+    ("Forbes", "Ashworth"),
+    ("Wiley Press Room", "Aldwych Press Room"),
+    ("The Wiley Network", "The Aldwych Network"),
+    ("Wiley", "Aldwych"),
+
+    # Universities outside the ones already handled.
+    ("The Chinese University of Hong Kong", "Harbour University of Hong Kong"),
+    ("Beijing Broadcasting Institute", "Nanqiao Broadcasting Institute"),
+    ("Beihang University", "Skyward University"),
+    ("Bangalore University", "Kestrel University"),
+    ("Indiana University", "Fairmont University"),
+    ("Boston College", "Harborough College"),
+
+    # Rankings and funders.
+    ("QS World University Rankings", "Global University Rankings"),
+    ("Ford Foundation", "Aldridge Foundation"),
+
+    # -- the rest of the filing (groups A, B, D, E, F, G, H) ----------------
+    #
+    # Written against `leak_check.py`, not from memory: it runs the table over
+    # all 334 pages and reports what is still standing, so every entry below
+    # answers a line of its output rather than a recollection.
+    #
+    # Fragments as well as full names. Five exhibits say "Professor Dehuan"
+    # without the surname, and an OCR read the Peking University logo as
+    # "PENGUang" 206 times in one exhibit -- neither is reachable from a table
+    # of complete names.
+    ("PENGUang", "NANHUang"),
+    ("PENGuang", "NANHuang"),
+    ("PENGueng", "NANHueng"),
+    ("liudehuan", "rfang"),
+    ("Dehuan", "Ruiheng"),
+    ("pku", "nhu"),
+
+    # Universities and institutes. Real ones, including two outside China that
+    # a letter of support is written on the paper of.
+    ("Fu Jen Catholic University", "Sanctae Rosae Catholic University"),
+    ("Fu Jen", "Sanctae Rosae"),
+    ("University of Pittsburgh", "University of Fairhaven"),
+    ("Pittsburgh", "Fairhaven"),
+    ("Penn State", "Norfield State"),
+    ("Pennsylvania State University", "Norfield State University"),
+    ("Harvard University", "Ashfield University"),
+    ("Harvard", "Ashfield"),
+    ("Donghua University", "Meixi University"),
+    ("Donghua", "Meixi"),
+    ("dhu.edu", "mxu.edu"),
+    ("China Renmin University", "Beihe University"),
+    ("Renmin", "Beihe"),
+
+    # People named in letters, notices and bylines.
+    ("S. Shyam Sundar", "K. Anselm Rivas"),
+    ("Shyam Sundar", "Anselm Rivas"),
+    ("Sundar", "Rivas"),
+    ("Shyam", "Anselm"),
+    ("Lingfei Wu", "Yuwen Shen"),
+    ("Lingfei", "Yuwen"),
+    ("Bangchang Xie", "Wenzhao Xun"),
+    ("Bangchang", "Wenzhao"),
+    ("Gang Chen", "Ruilin Bai"),
+    ("Ni Xiang", "Ning Xu"),
+    ("Bin Li", "Hao Qin"),
+    # A head of state, quoted in a journal's editorial matter. Fabricated
+    # material that puts words in the mouth of a real one is worse than
+    # fabricated material that names nobody.
+    ("Xi Jinping", "Lin Zhaoming"),
+
+    # Companies and platforms the exhibits are about, as opposed to the ones
+    # they mention in passing.
+    ("Beijing iQIYI Science & Technology", "Beijing Starlark Technology"),
+    ("iQIYI", "Starlark"),
+    ("Qiyi", "Starlark"),
+    ("Mixue Bingcheng", "Snowbell Tea"),
+    ("Mixuebingcheng", "Snowbelltea"),
+    ("Mixue", "Snowbell"),
+    ("BitAuto", "MotorMart"),
+    ("NIO", "Aurelia"),
+    ("TikTok", "Vibely"),
+    ("ByteDance", "Northbeam"),
+    ("Umeng+", "Datalink+"),
+    ("Umeng", "Datalink"),
+    ("UBDC", "DBDC"),
+    ("Crunchbase", "Ventureboard"),
+    ("crunchbase", "ventureboard"),
+    ("Procter", "Halcyon"),
+
+    # Awards, publications and imprints.
+    ("Data Awards", "Insight Awards"),
+    ("Journal of Advertising Study", "Journal of Advertising Enquiry"),
+    ("Advertising Panorama", "Advertising Horizon"),
+    ("Sociological Studies", "Studies in Sociology"),
+    ("People's Daily Online", "National Herald Online"),
+    ("People's Daily", "National Herald"),
+    ("Salary Expert", "PayScope"),
+    ("salaryexpert", "payscope"),
+    ("SAGE", "THORNWOOD"),
+    ("Sage", "Thornwood"),
+
+    # Places precise enough to be an address.
+    ("Yiheyuan", "Cloudspring"),
+    ("Zhongguancun", "Nanqiao"),
+    ("Haidian", "Xihe"),
+    ("Boya Postdoctoral", "Cloudgate Postdoctoral"),
+
     # -- the book (G-5) and the paper (D-8) --------------------------------
     #
     # Publications, their catalogue entries, and the people credited in them.
@@ -357,7 +494,59 @@ ALL_SUBSTITUTIONS.sort(key=lambda pair: -len(pair[0]))
 #
 # The replacement follows the case it found: an all-capitals match gets an
 # all-capitals replacement, everything else gets the name as written.
-_COMPILED = [(re.compile(re.escape(old), re.I), new) for old, new in ALL_SUBSTITUTIONS]
+def _bounded(text: str) -> str:
+    """A pattern that matches the name and not the inside of another word.
+
+    A boundary on each side, but only where a boundary can exist. Without them
+    "NIO" turned "opinion" into "opiAurelian", "Sage" turned "passage" into
+    "pasThornwood", and "Renmin" turned the currency into "Beihebi": the table
+    was quietly rewriting ordinary prose, which no audit for surviving originals
+    can see, because what it produces is not an original.
+
+    Only where one can exist. "Umeng+" ends in a plus, and a trailing \b after
+    a non-word character never matches, so anchoring both ends unconditionally
+    would have replaced the exact entries that were added for a reason.
+    """
+    # Not \b. A word boundary is defined against Unicode word characters,
+    # and CJK are word characters, so there is no boundary between the last
+    # ideograph of a Chinese name and the first letter of its romanisation.
+    # The corpus is bilingual and writes them adjacently, and seven names
+    # survived on exactly that: CAAC beside its Chinese name, Baidu beside
+    # its own. What is wanted is "not inside a Latin word", which is this.
+    # Two ways a name can legitimately begin. After a non-word character is
+    # the ordinary one. The other is a camel-case seam: the OCR runs a name
+    # onto the end of the previous word -- "About PR NewswirePR Newswire" --
+    # and refusing those leaves the second copy standing.
+    #
+    # The seam is only allowed when the name itself starts with a capital,
+    # checked case-sensitively. Without that condition the same rule lets
+    # "NIO" match the middle of "opinion", which is what it is here to stop.
+    seam = r"(?:(?<![A-Za-z0-9_])|(?<=[a-z0-9])(?=(?-i:[A-Z])))"
+    head = (seam if text[:1].isupper()
+            else r"(?<![A-Za-z0-9_])") if text[:1].isalnum() or text[:1] == "_" else ""
+    # The tail blocks a lower-case letter but allows a capital. The OCR runs
+    # words together where a line broke -- CAACDate, NewswirePR, Gang Chen
+    # followed straight by the next name in a list -- and a symmetric rule
+    # refuses those, leaving four real names visible. A capital after a name
+    # is the next word; a lower-case letter is the middle of this one, which
+    # is what keeps Renminbi out of the table.
+    # Scoped (?-i:) around the lower-case class. The patterns are compiled
+    # IGNORECASE, and under that flag [a-z] matches capitals too, so the
+    # lookahead meant to allow "CAACDate" silently rejected it and the rule
+    # was identical to the symmetric one it replaced.
+    tail = r"(?-i:(?![a-z0-9_]))" if text[-1:].isalnum() or text[-1:] == "_" else ""
+    return head + re.escape(text) + tail
+
+
+# Entries whose lower-case form is an ordinary English word. Case folding is
+# right for almost everything -- the corpus writes one organisation three
+# different ways -- but it cannot tell the publisher Sage from the herb, and
+# "the seasoning was sage" is not a leak. These match exactly; both spellings
+# the corpus actually uses are listed so nothing is lost by it.
+CASE_SENSITIVE = {'Sage', 'SAGE'}
+
+_COMPILED = [(re.compile(_bounded(old), 0 if old in CASE_SENSITIVE else re.I), new)
+             for old, new in ALL_SUBSTITUTIONS]
 
 
 def substitute(text: str) -> str:

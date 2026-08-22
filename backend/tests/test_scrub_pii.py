@@ -123,10 +123,12 @@ def test_a_mobile_is_still_a_mobile():
     assert re.fullmatch(r"1[3-9]\d{9}", out)
 
 
-def test_a_url_keeps_its_scheme_and_path():
+def test_a_url_keeps_its_scheme_and_loses_its_path():
+    """The path goes with the host. A slug is not decoration: one in this
+    corpus names two companies and a sum."""
     out = pii.scrub("see https://example.org/faculty/profile for more")
-    assert out.startswith("see https://") and out.endswith("/faculty/profile for more")
-    assert "example.org" not in out
+    assert out.startswith("see https://") and out.endswith(" for more")
+    assert "example.org" not in out and "faculty" not in out
 
 
 # --- the audit can see what the substitution missed ------------------------
@@ -154,3 +156,35 @@ def test_a_partial_replacement_would_be_caught():
     """The failure mode worth guarding: eight digits of an eleven-digit mobile
     replaced, three of the original's left standing. It looks handled."""
     assert pii.residuals("139" + "01234567", set())
+
+
+# --- a URL path that lost its host -----------------------------------------
+#
+# The OCR breaks a long link across a line, so the slug is left loose in the
+# text. It is still a sentence: one in this corpus reads
+# "baidus-iqiyi-video-service-raises-1-53-billion/", which names two companies
+# and a sum -- in lower case, inside hyphens, past every name rule there is.
+
+def test_a_loose_slug_is_replaced():
+    out = pii.scrub("see baidus-iqiyi-video-service-raises-1-53-billion/ for more")
+    assert "iqiyi" not in out and "baidu" not in out
+
+
+def test_ordinary_hyphenation_is_left_alone():
+    for text in ("a state-of-the-art solution", "the well-known follow-up plan"):
+        assert pii.scrub(text) == text
+
+
+def test_the_slug_rule_does_not_eat_the_isbn_rule_s_output():
+    """Rules run in sequence over the same text, so a later one sees what an
+    earlier one wrote. The replacement ISBN is digits and hyphens, which is
+    slug-shaped; requiring a letter keeps them apart."""
+    out = pii.scrub("Standard Book number: ISBN 978- 7- 301- 10091- 2")
+    assert "ISBN" in out
+    digits = [c for c in out.split("ISBN")[1] if c.isdigit()]
+    assert len(digits) == 13
+
+
+def test_a_url_path_does_not_survive_its_host():
+    out = pii.scrub("https://techcrunch.com/2017/02/21/baidus-iqiyi-video/")
+    assert "techcrunch" not in out and "iqiyi" not in out
