@@ -1,0 +1,519 @@
+{
+  "schema_version": 1,
+  "exhibit": "C-9",
+  "page": 3,
+  "doc_title": "C-9",
+  "fonts_missing": [],
+  "page_px": [
+    2000,
+    2606
+  ],
+  "scan_level": "light",
+  "seed": 3895,
+  "homography": [
+    [
+      0.9993076023197159,
+      -0.005450672554698098,
+      8.098642969105416
+    ],
+    [
+      0.0040848463826547955,
+      0.9994710924754147,
+      -6.860020733814015
+    ],
+    [
+      2.904882748161026e-07,
+      -7.210419863849314e-07,
+      1.0000043760739517
+    ]
+  ],
+  "coordinate_convention": "normalized 0-1000, origin top-left",
+  "provenance": "rendered-from-html; bbox measured from DOM, never OCR'd",
+  "snippets": [
+    {
+      "snippet_id": "C-9_p3_p3_b0",
+      "exhibit": "C-9",
+      "page": 3,
+      "text": "Translation",
+      "label": "text: Translation",
+      "bbox_norm": [
+        100.59247084245237,
+        42.38952427278686,
+        153.32991880256367,
+        53.293197921249124
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              100.66675111272544,
+              42.38952427278686
+            ],
+            [
+              153.32991880256367,
+              42.55344706849793
+            ],
+            [
+              153.25670404639385,
+              53.293197921249124
+            ],
+            [
+              100.59247084245237,
+              53.129600673677665
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-9_p3_p3_b1",
+      "exhibit": "C-9",
+      "page": 3,
+      "text": "Smart Retail Committee of China Digital Commerce Association Was Established in Beijing_China Digital Commerce Association",
+      "label": "text: Smart Retail Committee of China Digital Commerce Association",
+      "bbox_norm": [
+        100.42060331729428,
+        64.16979639940851,
+        872.6230256207086,
+        80.36707149540035
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              100.51611489378271,
+              64.16979639940851
+            ],
+            [
+              872.6230256207086,
+              66.563328851667
+            ],
+            [
+              872.547591706297,
+              80.36707149540035
+            ],
+            [
+              100.42060331729428,
+              77.9796765315671
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-9_p3_p3_b3",
+      "exhibit": "C-9",
+      "page": 3,
+      "text": "Closely surrounding the national strategies of \"Belt and Road Initiative\", \"Made in China 2025\" and \"Internet +\", as well as the initiatives of the Ministry of Trade on cultivating Chinese brands, the Committee is committed to promoting the Internet transformation of China's traditional industries, accelerating the development of the Internet industry itself, enhancing the ability of Chinese enterprises to use the Internet to build brands, building a platform for technical exchange and resource integration in the field of smart retail, training professionals in the industry, assisting relevant parties to formulate smart retail industry standards, promoting the healthy, benign and orderly development of China's smart retail, and building the most credible smart retail industry organization in China.",
+      "label": "text: Closely surrounding the national strategies of \"Belt and Roa",
+      "bbox_norm": [
+        14.363467752711003,
+        449.8854352717357,
+        774.2922438047757,
+        660.6836767597249
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              15.839615757328032,
+              449.8854352717357
+            ],
+            [
+              754.5441322750108,
+              452.00965371845604
+            ],
+            [
+              754.43938460102,
+              470.44273944242383
+            ],
+            [
+              15.709234201736713,
+              468.32636756968066
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              15.67145921192365,
+              473.669194064877
+            ],
+            [
+              732.9858212142861,
+              475.72198412041996
+            ],
+            [
+              732.8803210509051,
+              494.156943840149
+            ],
+            [
+              15.541066005916477,
+              492.1117741766485
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              15.503287640593975,
+              497.45507809781793
+            ],
+            [
+              774.2922438047757,
+              499.6160656720265
+            ],
+            [
+              774.1881718322401,
+              518.0522317328563
+            ],
+            [
+              15.372882782609318,
+              515.8993062442898
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              15.33510104132491,
+              521.243087655428
+            ],
+            [
+              769.1922992024475,
+              523.379603828783
+            ],
+            [
+              769.0880456718585,
+              541.8174694656882
+            ],
+            [
+              15.204684529800867,
+              539.6889640575135
+            ]
+          ]
+        },
+        {
+          "line": 4,
+          "quad_norm": [
+            [
+              15.16689941210201,
+              545.0332230226279
+            ],
+            [
+              761.1091498909227,
+              547.1369898529861
+            ],
+            [
+              761.0046112913636,
+              565.5765870057503
+            ],
+            [
+              15.03647124547639,
+              563.4807479012796
+            ]
+          ]
+        },
+        {
+          "line": 5,
+          "quad_norm": [
+            [
+              14.998682750910456,
+              568.825484484389
+            ],
+            [
+              735.3775824489494,
+              570.8471906801743
+            ],
+            [
+              735.2721464510471,
+              589.2887071819936
+            ],
+            [
+              14.868242927620797,
+              587.2746580605989
+            ]
+          ]
+        },
+        {
+          "line": 6,
+          "quad_norm": [
+            [
+              14.830451055735077,
+              592.6198723257334
+            ],
+            [
+              757.3879539825483,
+              594.6935491206909
+            ],
+            [
+              757.2832769520468,
+              613.1364777349828
+            ],
+            [
+              14.699999574218635,
+              611.0706948205334
+            ]
+          ]
+        },
+        {
+          "line": 7,
+          "quad_norm": [
+            [
+              14.662204324560342,
+              616.4163868317344
+            ],
+            [
+              745.7576419308728,
+              618.4479396555078
+            ],
+            [
+              745.6525566933452,
+              636.8926382119021
+            ],
+            [
+              14.531741183254095,
+              634.868858466196
+            ]
+          ]
+        },
+        {
+          "line": 8,
+          "quad_norm": [
+            [
+              14.493942555370356,
+              640.2150282875165
+            ],
+            [
+              745.9032603648652,
+              642.2373332277944
+            ],
+            [
+              745.7981754939692,
+              660.6836767597249
+            ],
+            [
+              14.363467752711003,
+              658.66914928275
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-9_p3_p3_b4",
+      "exhibit": "C-9",
+      "page": 3,
+      "text": "At present, the new round of scientific and technological revolution and industrial transformation form a historic intersection with the accelerated transformation of China's economic development mode. The industrial division pattern at home and abroad is being reshaped. The global economy is facing a transition. China's industry is developing in the direction of intelligence and digitalization, and brand competition is becoming more and more global. In the era of \"Internet +\", China's brand construction needs more professional collaboration between smart retail and traditional marketing.",
+      "label": "text: At present, the new round of scientific and technological re",
+      "bbox_norm": [
+        15.859190427052823,
+        721.570291436756,
+        755.1707601423598,
+        873.095683230026
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              16.920735579968454,
+              721.570291436756
+            ],
+            [
+              654.828757320873,
+              723.3039008990713
+            ],
+            [
+              654.725006647121,
+              740.987943855792
+            ],
+            [
+              16.795759128637428,
+              739.2608379467188
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              16.76468353204155,
+              743.6596209258263
+            ],
+            [
+              718.3650871389674,
+              745.5573134569158
+            ],
+            [
+              718.2634455089717,
+              763.2421735563339
+            ],
+            [
+              16.639696714192404,
+              761.3516348271971
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              16.608618539891594,
+              765.7507826831161
+            ],
+            [
+              723.3002032402607,
+              767.6531693269941
+            ],
+            [
+              723.1987215553247,
+              785.3394441873991
+            ],
+            [
+              16.483621354234458,
+              783.4442641584778
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              16.452540601907966,
+              787.8437769366093
+            ],
+            [
+              710.7209457525481,
+              789.7038031381088
+            ],
+            [
+              710.6190414381425,
+              807.3916715578235
+            ],
+            [
+              16.32753304715276,
+              805.5387261685753
+            ]
+          ]
+        },
+        {
+          "line": 4,
+          "quad_norm": [
+            [
+              16.296449716479792,
+              809.9386039143286
+            ],
+            [
+              755.1707601423598,
+              811.9086430917363
+            ],
+            [
+              755.0703301983564,
+              829.597523573016
+            ],
+            [
+              16.171431791336207,
+              827.635021085542
+            ]
+          ]
+        },
+        {
+          "line": 5,
+          "quad_norm": [
+            [
+              16.14034588199592,
+              832.0352638443335
+            ],
+            [
+              683.214831537918,
+              833.8052953898188
+            ],
+            [
+              683.1120037426061,
+              851.4963755194824
+            ],
+            [
+              16.015317585173435,
+              849.733149137468
+            ]
+          ]
+        },
+        {
+          "line": 6,
+          "quad_norm": [
+            [
+              15.984229096844924,
+              854.1337569547214
+            ],
+            [
+              495.98173543372314,
+              855.4012269368668
+            ],
+            [
+              495.87267366847493,
+              873.095683230026
+            ],
+            [
+              15.859190427052823,
+              871.8331105524813
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-9_p3_p3_b5",
+      "exhibit": "C-9",
+      "page": 3,
+      "text": "www.caacchina.org/news/news/2018/0419/65. html",
+      "label": "text: www.caacchina.org/news/news/2018/0419/65. html",
+      "bbox_norm": [
+        105.79042041036048,
+        880.3665891544649,
+        396.8247926291422,
+        894.2108725388393
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              105.88063175314045,
+              880.3665891544649
+            ],
+            [
+              396.8247926291422,
+              881.1304520037602
+            ],
+            [
+              396.7417394908095,
+              894.2108725388393
+            ],
+            [
+              105.79042041036048,
+              893.4492040358775
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "kind": "image",
+      "bbox_norm": [
+        101.20900470782684,
+        107.61302708903357,
+        680.668373639259,
+        399.4130733757226
+      ]
+    }
+  ]
+}

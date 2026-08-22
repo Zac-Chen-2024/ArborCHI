@@ -1,0 +1,728 @@
+{
+  "schema_version": 1,
+  "exhibit": "C-5",
+  "page": 7,
+  "doc_title": "LUMEN Optics Won the Silver Award in the Marketing Case Category of the 9thBlue Lantern Awards",
+  "fonts_missing": [],
+  "page_px": [
+    2000,
+    2606
+  ],
+  "scan_level": "light",
+  "seed": 9514,
+  "homography": [
+    [
+      0.9967139510578598,
+      -0.00038231701967249114,
+      3.125148618375851
+    ],
+    [
+      0.0011395939853964861,
+      1.0004142938841187,
+      -2.342701207621089
+    ],
+    [
+      -5.45062853096478e-07,
+      2.335610617117947e-07,
+      0.9999995701737825
+    ]
+  ],
+  "coordinate_convention": "normalized 0-1000, origin top-left",
+  "provenance": "rendered-from-html; bbox measured from DOM, never OCR'd",
+  "snippets": [
+    {
+      "snippet_id": "C-5_p7_p7_b0",
+      "exhibit": "C-5",
+      "page": 7,
+      "text": "Translation",
+      "label": "text: Translation",
+      "bbox_norm": [
+        101.2130012428559,
+        44.94691279795018,
+        160.21202755126993,
+        56.5195231452717
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              101.21944570653127,
+              44.94691279795018
+            ],
+            [
+              160.21202755126993,
+              45.001571351077075
+            ],
+            [
+              160.20516926323023,
+              56.5195231452717
+            ],
+            [
+              101.2130012428559,
+              56.46412195675915
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p7_p7_b1",
+      "exhibit": "C-5",
+      "page": 7,
+      "text": "LUMEN Optics Won the Silver Award in the Marketing Case Category of the 9th Blue Lantern Awards - Newswire Asia",
+      "label": "text: LUMEN Optics Won the Silver Award in the Marketing Case Cate",
+      "bbox_norm": [
+        121.1264374540372,
+        67.77220044055852,
+        839.7830622755718,
+        100.1910341112761
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              121.1449551153659,
+              67.77220044055852
+            ],
+            [
+              839.7830622755718,
+              68.45596564167226
+            ],
+            [
+              839.7683321543635,
+              83.05577496089857
+            ],
+            [
+              121.13661521903589,
+              82.36055117617433
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              121.13477716968939,
+              85.57571206971733
+            ],
+            [
+              148.78469008069433,
+              85.60255856194816
+            ],
+            [
+              148.77610468648248,
+              100.1910341112761
+            ],
+            [
+              121.1264374540372,
+              100.16374675921794
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p7_p7_b2",
+      "exhibit": "C-5",
+      "page": 7,
+      "text": "LUMEN is committed to developing, manufacturing and distributing cutting- edge innovative industry measurement and quality guarantee solutions, microscope solutions regarding biology and materials science, and medical technology solutions applied in diagnosis and treatment of ophthalmology and microsurgery. LUMEN is also the industry benchmark of global photolithography, with its technologies applied in the manufacturing of semiconductor elements in the chip industry. In addition, LUMEN lens, camera lens, telescope and other innovative products have also been sold to the whole world.",
+      "label": "text: LUMEN is committed to developing, manufacturing and distribu",
+      "bbox_norm": [
+        99.11936657700308,
+        110.74680308650157,
+        885.2620809644018,
+        236.15358509943465
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              99.18889917082659,
+              110.74680308650157
+            ],
+            [
+              878.1982163122864,
+              111.52463885552729
+            ],
+            [
+              878.1799717752816,
+              129.19787604352948
+            ],
+            [
+              99.1790399303653,
+              128.40500532895066
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              99.17696362276372,
+              132.1237359644932
+            ],
+            [
+              880.2980480287964,
+              132.921941251261
+            ],
+            [
+              880.2797811071787,
+              150.59475926102434
+            ],
+            [
+              99.16710463877324,
+              149.78147885987735
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              99.16502838518278,
+              153.50011275981402
+            ],
+            [
+              874.4407581876259,
+              154.31046865491203
+            ],
+            [
+              874.4225546033866,
+              171.98271394014526
+            ],
+            [
+              99.15516965765309,
+              171.15739632605667
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              99.15309345807167,
+              174.87593349416193
+            ],
+            [
+              885.2620809644018,
+              175.71598942013006
+            ],
+            [
+              885.2437610404842,
+              193.3879838683566
+            ],
+            [
+              99.14323498699277,
+              192.5327577491856
+            ]
+          ]
+        },
+        {
+          "line": 4,
+          "quad_norm": [
+            [
+              99.14115884141825,
+              196.25119818923375
+            ],
+            [
+              850.136888603168,
+              197.07128649785716
+            ],
+            [
+              850.11894729984,
+              214.74214347797462
+            ],
+            [
+              99.13130062678013,
+              213.90756315096007
+            ]
+          ]
+        },
+        {
+          "line": 5,
+          "quad_norm": [
+            [
+              99.12922453521044,
+              217.62590686672524
+            ],
+            [
+              867.432093653876,
+              218.4828539964409
+            ],
+            [
+              867.4139662788666,
+              236.15358509943465
+            ],
+            [
+              99.11936657700308,
+              235.2818125530748
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p7_p7_b3",
+      "exhibit": "C-5",
+      "page": 7,
+      "text": "LUMEN's product portfolio and digitalization, medical and industrial 4.0 and other future growth areas have consistent trends under a powerful brand. Based on this, LUMEN is shaping technological progress with its solutions, and constantly expanding the boundaries of optics and related fields. The Company's sustained and substantial investment in research and development has laid a solid foundation for its success, constant expansion of technology, and leading market position. LUMEN has invested 12\\% of its revenue in research and development - such high- level investment in research and development is a tradition of LUMEN with long history, which also represents the Company's investment in the future.",
+      "label": "text: LUMEN's product portfolio and digitalization, medical and in",
+      "bbox_norm": [
+        101.00159236926878,
+        292.8431765917535,
+        890.5916429559176,
+        435.2969877233186
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              101.08073515215538,
+              292.8431765917535
+            ],
+            [
+              866.4344468934449,
+              293.7597885744838
+            ],
+            [
+              866.4171187290053,
+              310.66066951788645
+            ],
+            [
+              101.07128615395017,
+              309.72993306249236
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              101.06911854893345,
+              313.60376362603034
+            ],
+            [
+              881.8575857812374,
+              314.55658760455805
+            ],
+            [
+              881.8400989239799,
+              331.4573261859833
+            ],
+            [
+              101.05966978946688,
+              330.4900934354819
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              101.0575022392166,
+              334.3638261233209
+            ],
+            [
+              877.9047752276938,
+              335.3294774379885
+            ],
+            [
+              877.8873293186955,
+              352.2297160994943
+            ],
+            [
+              101.04805371847966,
+              351.2497292876552
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              101.04588622299372,
+              355.1233641035043
+            ],
+            [
+              855.731606917499,
+              356.07860109377776
+            ],
+            [
+              855.7143896793308,
+              372.97800364190584
+            ],
+            [
+              101.03643794097738,
+              372.0088406388904
+            ]
+          ]
+        },
+        {
+          "line": 4,
+          "quad_norm": [
+            [
+              101.0342705002537,
+              375.8823775864589
+            ],
+            [
+              890.5916429559176,
+              376.8996776422911
+            ],
+            [
+              890.5740667708392,
+              393.7992965020759
+            ],
+            [
+              101.02482245694885,
+              392.767427509065
+            ]
+          ]
+        },
+        {
+          "line": 5,
+          "quad_norm": [
+            [
+              101.0226550709854,
+              396.6408665920619
+            ],
+            [
+              860.4002050832531,
+              397.6365206440822
+            ],
+            [
+              860.3829401810955,
+              414.5351554973292
+            ],
+            [
+              101.01320726638303,
+              413.5254899180552
+            ]
+          ]
+        },
+        {
+          "line": 6,
+          "quad_norm": [
+            [
+              101.01103993517769,
+              417.3988311401892
+            ],
+            [
+              850.8168966253612,
+              418.3989565854211
+            ],
+            [
+              850.7997306719735,
+              435.2969877233186
+            ],
+            [
+              101.00159236926878,
+              434.28302788573643
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p7_p7_b4",
+      "exhibit": "C-5",
+      "page": 7,
+      "text": "LUMEN has over 35,000 employees throughout the world, about 60 sales and service companies, 30 manufacturing bases and 27 research and development bases in nearly 50 countries. Established in Jena in 1846, LUMEN is headquartered in Oberkochen, Germany. Carl LUMEN Foundation, as one of the largest foundations in Germany, is committed to promoting the development of science and technology. In addition, it's the sole owner of holding company Carl LUMEN Co., Ltd. (as of Sep. 30, 2023).",
+      "label": "text: LUMEN has over 35,000 employees throughout the world, about ",
+      "bbox_norm": [
+        103.90183135263864,
+        494.8420811825895,
+        891.5012082951415,
+        595.2533109907675
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              103.95761613113162,
+              494.8420811825895
+            ],
+            [
+              856.1506791625029,
+              495.9090919794547
+            ],
+            [
+              856.1334590694462,
+              512.805629017694
+            ],
+            [
+              103.94813870454888,
+              511.72474174602246
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              103.94603861933588,
+              515.4657388928864
+            ],
+            [
+              890.6491388859362,
+              516.5994465880149
+            ],
+            [
+              890.6315635999155,
+              533.496195924548
+            ],
+            [
+              103.93656143065998,
+              532.34797565983
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              103.93446139816396,
+              536.0888788990125
+            ],
+            [
+              891.5012082951415,
+              537.2415934837309
+            ],
+            [
+              891.4836244510981,
+              554.137934424382
+            ],
+            [
+              103.92498444738592,
+              552.970691885424
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              103.92288446760493,
+              556.7115012204612
+            ],
+            [
+              843.3757661326754,
+              557.8104711541816
+            ],
+            [
+              843.358678286546,
+              574.7055002782218
+            ],
+            [
+              103.91340775471579,
+              573.5928904422972
+            ]
+          ]
+        },
+        {
+          "line": 4,
+          "quad_norm": [
+            [
+              103.91130782764782,
+              577.3336058767245
+            ],
+            [
+              784.0749290704902,
+              578.3597997333171
+            ],
+            [
+              784.0584522632134,
+              595.2533109907675
+            ],
+            [
+              103.90183135263864,
+              594.2145713499408
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p7_p7_b5",
+      "exhibit": "C-5",
+      "page": 7,
+      "text": "About LUMEN Optics",
+      "label": "sub_title: About LUMEN Optics",
+      "bbox_norm": [
+        188.56754966067757,
+        661.1872032805546,
+        350.43382029431865,
+        678.3300138132367
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              188.5778964420349,
+              661.1872032805546
+            ],
+            [
+              350.43382029431865,
+              661.446221204973
+            ],
+            [
+              350.42180839017436,
+              678.3300138132367
+            ],
+            [
+              188.56754966067757,
+              678.068010872268
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p7_p7_b6",
+      "exhibit": "C-5",
+      "page": 7,
+      "text": "LUMEN Optics focuses on the visual optics industry, with its research & development and manufacturing covering product supply throughout the ophthalmic optical value chain, to be specific: Lens and accessories, optic examination and eye measuring instruments, which are sold throughout the world in the brand of LUMEN. As an excellent manufacturer of precision optical components, LUMEN Optics is committed to integrating professional technical knowledge and innovative concepts, and bringing consumers brand new visual experience.",
+      "label": "text: LUMEN Optics focuses on the visual optics industry, with its",
+      "bbox_norm": [
+        107.75188493927539,
+        717.8325270350014,
+        890.3183328421961,
+        836.4730000957525
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              107.81847147925666,
+              717.8325270350014
+            ],
+            [
+              872.642447891651,
+              719.103960818546
+            ],
+            [
+              872.6250602563738,
+              735.996216807424
+            ],
+            [
+              107.80895563380813,
+              734.7106792803534
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              107.80705654317,
+              738.0790758239006
+            ],
+            [
+              807.8544514018081,
+              739.2583259021313
+            ],
+            [
+              807.8377312987295,
+              756.1489709085466
+            ],
+            [
+              107.79754093225671,
+              754.9568120765902
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              107.79564188842484,
+              758.3251256004093
+            ],
+            [
+              890.3183328421961,
+              759.6606334677288
+            ],
+            [
+              890.300763558796,
+              776.5523827921562
+            ],
+            [
+              107.78612651203812,
+              775.2024458758156
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              107.78422751501074,
+              778.5706763829755
+            ],
+            [
+              819.7125443684656,
+              779.8014653178715
+            ],
+            [
+              819.6957025484328,
+              796.6914964959199
+            ],
+            [
+              107.77471237314198,
+              795.4475806964773
+            ]
+          ]
+        },
+        {
+          "line": 4,
+          "quad_norm": [
+            [
+              107.77281342291741,
+              798.8157281900475
+            ],
+            [
+              822.1873865453415,
+              800.066632403291
+            ],
+            [
+              822.1705194437116,
+              816.9562929902685
+            ],
+            [
+              107.76329851555788,
+              815.6922165570219
+            ]
+          ]
+        },
+        {
+          "line": 5,
+          "quad_norm": [
+            [
+              107.76139961213435,
+              819.060281040071
+            ],
+            [
+              407.30854374094406,
+              819.5914048768421
+            ],
+            [
+              407.2959477979945,
+              836.4730000957525
+            ],
+            [
+              107.75188493927539,
+              835.9363534758951
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": []
+}

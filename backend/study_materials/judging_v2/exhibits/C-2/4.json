@@ -1,0 +1,746 @@
+{
+  "schema_version": 1,
+  "exhibit": "C-2",
+  "page": 4,
+  "doc_title": "About CDCA",
+  "fonts_missing": [],
+  "page_px": [
+    2000,
+    2606
+  ],
+  "scan_level": "medium",
+  "seed": 2117,
+  "homography": [
+    [
+      1.0053972860097724,
+      0.0002463463715406437,
+      -2.595467850176402
+    ],
+    [
+      -0.0017546669247393792,
+      0.9989655122049805,
+      1.2371928042370965
+    ],
+    [
+      1.9052907622533725e-06,
+      -1.0149327790405771e-06,
+      0.99999995191073
+    ]
+  ],
+  "coordinate_convention": "normalized 0-1000, origin top-left",
+  "provenance": "rendered-from-html; bbox measured from DOM, never OCR'd",
+  "snippets": [
+    {
+      "snippet_id": "C-2_p4_p4_b1",
+      "exhibit": "C-2",
+      "page": 4,
+      "text": "With the restructuring of governmental organizations, CDCFT changed its name into China Digital Commerce Association under the approval of the Ministry of Trade and the Ministry of Public Affairs. Its business focus during these years was to assist the MOC and help the local enterprise on brand building. In December 2005, supported by MOC and driven by CDCA, also with the active effort by the affluent in the industry, The Association of Accredited Advertising Agencies of China (China 4A) was born as the high end industrial organization. It was composed of the joint venture agencies, foreign agencies and local comprehensive ad agencies who believe in \"First class of service, First class of innovation, First class of capability, First class of credit\". China 4A is the first subordinate branch of CDCA. It lives to raise up the position and improve the public image of the entire China advertising industry. Secondly, it lives to bring up advertising talents for the field. Thirdly, it lives to standardize the industrial practice and strengthen self- discipline. Finally, it lives to enhance the economy development.",
+      "label": "text: With the restructuring of governmental organizations, CDCFT ",
+      "bbox_norm": [
+        330.16461515179634,
+        79.56312000252186,
+        954.1796166251961,
+        298.7709596585321
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              330.16461515179634,
+              80.58988469985725
+            ],
+            [
+              953.6124215953497,
+              79.56312000252186
+            ],
+            [
+              953.658090528365,
+              95.6123221967492
+            ],
+            [
+              330.1838431579898,
+              96.67719318859227
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              330.1865615350332,
+              98.95155120811737
+            ],
+            [
+              953.6645470149906,
+              97.88129264295429
+            ],
+            [
+              953.7102203771773,
+              113.932051358472
+            ],
+            [
+              330.205791410465,
+              115.04042361428566
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              330.2085100517802,
+              117.31500273944845
+            ],
+            [
+              953.7166774899964,
+              116.20124186461493
+            ],
+            [
+              953.7623552819986,
+              132.25355732787122
+            ],
+            [
+              330.2277417967229,
+              133.40543929111396
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              330.23046070234824,
+              135.68023955415876
+            ],
+            [
+              953.7688130211023,
+              134.5229679259679
+            ],
+            [
+              953.8144952435648,
+              150.57684036345498
+            ],
+            [
+              330.2496943170746,
+              151.77224047942974
+            ]
+          ]
+        },
+        {
+          "line": 4,
+          "quad_norm": [
+            [
+              330.25241348704867,
+              154.04726191260718
+            ],
+            [
+              953.8209536090437,
+              152.84647108552744
+            ],
+            [
+              953.8666402626112,
+              168.9019007237815
+            ],
+            [
+              330.2716489718314,
+              170.14082743963633
+            ]
+          ]
+        },
+        {
+          "line": 5,
+          "quad_norm": [
+            [
+              330.27436840619293,
+              172.41607007520324
+            ],
+            [
+              953.8730992545568,
+              171.1717516018581
+            ],
+            [
+              953.9187903398738,
+              187.22873866745917
+            ],
+            [
+              330.2936057613045,
+              188.5112004321875
+            ]
+          ]
+        },
+        {
+          "line": 6,
+          "quad_norm": [
+            [
+              330.296325460092,
+              190.78666430240702
+            ],
+            [
+              953.9252499583771,
+              189.49880973357432
+            ],
+            [
+              953.9709454760887,
+              205.55735445314656
+            ],
+            [
+              330.3155646858055,
+              206.88335971758787
+            ]
+          ]
+        },
+        {
+          "line": 7,
+          "quad_norm": [
+            [
+              330.3182846490573,
+              209.15904485472936
+            ],
+            [
+              953.9774057212409,
+              207.82764573934102
+            ],
+            [
+              954.023105671992,
+              223.8877483395523
+            ],
+            [
+              330.33752574564556,
+              225.25730555639254
+            ]
+          ]
+        },
+        {
+          "line": 8,
+          "quad_norm": [
+            [
+              330.34024597340056,
+              227.5332119927317
+            ],
+            [
+              954.0295665438845,
+              226.15825987787315
+            ],
+            [
+              954.0752709283198,
+              242.21992058543546
+            ],
+            [
+              330.35948894113625,
+              243.63303820920734
+            ]
+          ]
+        },
+        {
+          "line": 9,
+          "quad_norm": [
+            [
+              330.36220943343295,
+              245.90916597702622
+            ],
+            [
+              954.0817324270437,
+              244.4906524079358
+            ],
+            [
+              954.1274412458092,
+              260.55387144960525
+            ],
+            [
+              330.3814542725892,
+              262.010557936689
+            ]
+          ]
+        },
+        {
+          "line": 10,
+          "quad_norm": [
+            [
+              330.384175029466,
+              264.2869070682757
+            ],
+            [
+              954.1339033714555,
+              262.82482358834443
+            ],
+            [
+              954.1796166251961,
+              278.88960119092087
+            ],
+            [
+              330.403421740316,
+              280.38986499954456
+            ]
+          ]
+        },
+        {
+          "line": 11,
+          "quad_norm": [
+            [
+              330.4061427618116,
+              282.6664355271937
+            ],
+            [
+              417.03463055596126,
+              282.45733420560316
+            ],
+            [
+              417.05756260462283,
+              298.55655493156166
+            ],
+            [
+              330.4253913446281,
+              298.7709596585321
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-2_p4_p4_b2",
+      "exhibit": "C-2",
+      "page": 4,
+      "text": "2018-2023",
+      "label": "sub_title: 2018-2023",
+      "bbox_norm": [
+        335.4844739115807,
+        332.3934013670101,
+        392.24624571258005,
+        344.8141081215561
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              335.4844739115807,
+              332.5411139348355
+            ],
+            [
+              392.22957504599503,
+              332.3934013670101
+            ],
+            [
+              392.24624571258005,
+              344.66374774722595
+            ],
+            [
+              335.49930587944124,
+              344.8141081215561
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-2_p4_p4_b3",
+      "exhibit": "C-2",
+      "page": 4,
+      "text": "2018 1 28 “ ” “ ” 4A IP ADFEST AWA D&D",
+      "label": "text: 2018 1 28 “ ” “ ” 4A IP ADFEST AWA D&D",
+      "bbox_norm": [
+        335.50347754392567,
+        347.44469464360924,
+        643.9979406517264,
+        368.9788944401433
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              335.50347754392567,
+              348.2660313220165
+            ],
+            [
+              643.9560580437885,
+              347.44469464360924
+            ],
+            [
+              643.9979406517264,
+              368.13326578848705
+            ],
+            [
+              335.52850913078976,
+              368.9788944401433
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-2_p4_p4_b4",
+      "exhibit": "C-2",
+      "page": 4,
+      "text": "On January 28, 2018, the 10th council of CDCA was elected. In line with the original intention of \"contributing to the development of China's advertising industry\", CDCA actively carry out the sorting and rectification of various internal work of the association, establish and improve various rules and regulations, clarify the mission of the association, and create a professional, learning, and innovative organization to serve members. The association adheres to integrity and innovation, and takes \"Professionalism, Innovation, Unity, Integrity, and Law-abiding\" as the behavior standard. We promote the professional, elite, high-end and international development of China 4A; guide the Smart Retail Committee to develop in the direction of specialization, standardization and function; leading the organization of entrepreneurs, experts and scholars in the advertising industry, and successively established the Content Marketing Committee, the Brand Development Strategy Committee, the We- Media Committee, the IP Ecology Commerce Committee, the SME Digital Promotion Committee, the Business Innovation Committee, the Creativity Industry Committee, the Commerce Design Force Committee, the Education & Training Committee, the Self- Discipline Committee, the Legal Working Committee, etc. We cooperate with international advertising organizations such as ADFEST, AWA, D&D, and have organized international visiting activities for the members. By holding various domestic professional forums and training to keep learning, CDCA has become a learning- oriented association initially.",
+      "label": "text: On January 28, 2018, the 10th council of CDCA was elected. I",
+      "bbox_norm": [
+        337.78657420894996,
+        573.1048247671612,
+        961.8495692394309,
+        886.2194894957998
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              337.78657420894996,
+              575.3013192547052
+            ],
+            [
+              961.0146475541035,
+              573.1048247671612
+            ],
+            [
+              961.0606899914087,
+              589.1956240494304
+            ],
+            [
+              337.8061518777288,
+              591.4303610426614
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              337.80891968881406,
+              593.7106192878966
+            ],
+            [
+              961.0671992829456,
+              591.4704754631005
+            ],
+            [
+              961.1132461913787,
+              607.5628373043431
+            ],
+            [
+              337.82849926326526,
+              609.841231062099
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              337.8312673437732,
+              612.1217112709975
+            ],
+            [
+              961.119756115041,
+              609.8379096315754
+            ],
+            [
+              961.1658074952535,
+              625.93183425941
+            ],
+            [
+              337.85084882417516,
+              628.253893260689
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              337.8536171741453,
+              630.5345954656618
+            ],
+            [
+              961.1723180511328,
+              628.2071275323856
+            ],
+            [
+              961.2183739037761,
+              644.3026151744748
+            ],
+            [
+              337.8732005607763,
+              646.6683479001298
+            ]
+          ]
+        },
+        {
+          "line": 4,
+          "quad_norm": [
+            [
+              337.8759691802479,
+              648.9492721335944
+            ],
+            [
+              961.2248850919649,
+              646.5781294253812
+            ],
+            [
+              961.2709454176903,
+              662.6751803094321
+            ],
+            [
+              337.8955544733862,
+              665.0845952421705
+            ]
+          ]
+        },
+        {
+          "line": 5,
+          "quad_norm": [
+            [
+              337.8983233623987,
+              667.3657415365502
+            ],
+            [
+              961.2774572382807,
+              664.9509155704636
+            ],
+            [
+              961.3235220377404,
+              681.0495299242272
+            ],
+            [
+              337.9179105623228,
+              683.5026355486115
+            ]
+          ]
+        },
+        {
+          "line": 6,
+          "quad_norm": [
+            [
+              337.92067972091536,
+              685.7840039363363
+            ],
+            [
+              961.330034490824,
+              683.3254862275834
+            ],
+            [
+              961.3761037646696,
+              699.4256642788553
+            ],
+            [
+              337.9402688279039,
+              701.9224690813041
+            ]
+          ]
+        },
+        {
+          "line": 7,
+          "quad_norm": [
+            [
+              337.94303825611604,
+              704.2040595948102
+            ],
+            [
+              961.3826168503389,
+              701.7018416567428
+            ],
+            [
+              961.4286905992221,
+              717.8035836333622
+            ],
+            [
+              337.96262927044734,
+              720.3440961021502
+            ]
+          ]
+        },
+        {
+          "line": 8,
+          "quad_norm": [
+            [
+              337.9653989683183,
+              722.6259087738802
+            ],
+            [
+              961.4352043175696,
+              720.0799821179938
+            ],
+            [
+              961.4812825421428,
+              736.1832882478453
+            ],
+            [
+              337.98499189027103,
+              738.7675168731031
+            ]
+          ]
+        },
+        {
+          "line": 9,
+          "quad_norm": [
+            [
+              337.9877618578405,
+              741.0495517355058
+            ],
+            [
+              961.4877968932602,
+              738.4599078714393
+            ],
+            [
+              961.5338795941753,
+              754.5647783824508
+            ],
+            [
+              338.0073566876932,
+              757.1927316561671
+            ]
+          ]
+        },
+        {
+          "line": 10,
+          "quad_norm": [
+            [
+              338.0101269250003,
+              759.4749887416979
+            ],
+            [
+              961.5403945781551,
+              756.8416191772327
+            ],
+            [
+              961.5864817560647,
+              772.9480542973764
+            ],
+            [
+              338.02972366303175,
+              775.6197407133975
+            ]
+          ]
+        },
+        {
+          "line": 11,
+          "quad_norm": [
+            [
+              338.03249417011585,
+              777.9022200545174
+            ],
+            [
+              961.5929973729992,
+              775.2251162955778
+            ],
+            [
+              961.6390890285555,
+              791.333116252871
+            ],
+            [
+              338.05209281660484,
+              794.0485443069005
+            ]
+          ]
+        },
+        {
+          "line": 12,
+          "quad_norm": [
+            [
+              338.05486359350556,
+              796.3312459360778
+            ],
+            [
+              961.6456052785367,
+              793.6103994867289
+            ],
+            [
+              961.6917014123926,
+              809.7199645092326
+            ],
+            [
+              338.07446414873084,
+              812.4791426988335
+            ]
+          ]
+        },
+        {
+          "line": 13,
+          "quad_norm": [
+            [
+              338.07723519548745,
+              814.7620666485423
+            ],
+            [
+              961.6982182955126,
+              811.9974690109914
+            ],
+            [
+              961.7443189083206,
+              828.1085993268108
+            ],
+            [
+              338.09683765972784,
+              830.9115361514049
+            ]
+          ]
+        },
+        {
+          "line": 14,
+          "quad_norm": [
+            [
+              338.09960897637984,
+              833.1946824541255
+            ],
+            [
+              961.7508364246721,
+              830.3863251287207
+            ],
+            [
+              961.7969415170849,
+              846.4990209660056
+            ],
+            [
+              338.1192133499143,
+              849.3457249268743
+            ]
+          ]
+        },
+        {
+          "line": 15,
+          "quad_norm": [
+            [
+              338.12198493650106,
+              851.6290936150937
+            ],
+            [
+              961.8034596667601,
+              848.776968100323
+            ],
+            [
+              961.8495692394309,
+              864.8912296872676
+            ],
+            [
+              338.1415912196085,
+              867.7817092875518
+            ]
+          ]
+        },
+        {
+          "line": 16,
+          "quad_norm": [
+            [
+              338.1443630761695,
+              870.0653003937633
+            ],
+            [
+              638.6965800489801,
+              868.6698322731697
+            ],
+            [
+              638.7289765309536,
+              884.8055357660037
+            ],
+            [
+              338.163971269129,
+              886.2194894957998
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": []
+}

@@ -1,0 +1,473 @@
+{
+  "bundle": "judging_v2",
+  "page_aspect": 1.3029,
+  "exhibits": [
+    {
+      "id": "C-1",
+      "title": "BLUE LANTERN",
+      "genre": "certificate",
+      "fonts": [
+        "Cormorant Garamond",
+        "EB Garamond",
+        "Inter"
+      ],
+      "pages": [
+        {
+          "html": "c1_p1.html",
+          "scan": "medium",
+          "fonts": [
+            "Inter"
+          ]
+        },
+        {
+          "html": "c1_p2.html",
+          "scan": "heavy",
+          "fonts": [
+            "Cormorant Garamond",
+            "EB Garamond"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "C-2",
+      "title": "About CDCA",
+      "genre": "brochure",
+      "fonts": [
+        "Inter",
+        "Source Sans 3",
+        "Source Serif 4"
+      ],
+      "pages": [
+        {
+          "html": "c2_p1.html",
+          "scan": "medium",
+          "fonts": [
+            "Inter"
+          ]
+        },
+        {
+          "html": "c2_p2.html",
+          "scan": "medium",
+          "fonts": [
+            "Source Sans 3",
+            "Source Serif 4"
+          ]
+        },
+        {
+          "html": "c2_p3.html",
+          "scan": "medium",
+          "fonts": [
+            "Source Sans 3",
+            "Source Serif 4"
+          ]
+        },
+        {
+          "html": "c2_p4.html",
+          "scan": "medium",
+          "fonts": [
+            "Source Sans 3",
+            "Source Serif 4"
+          ]
+        },
+        {
+          "html": "c2_p5.html",
+          "scan": "medium",
+          "fonts": [
+            "Source Sans 3",
+            "Source Serif 4"
+          ]
+        },
+        {
+          "html": "c2_p6.html",
+          "scan": "medium",
+          "fonts": [
+            "Source Sans 3",
+            "Source Serif 4"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "C-3",
+      "title": "Final Review of the 9th Blue Lantern Award Ended Successfully",
+      "genre": "portal",
+      "fonts": [
+        "Inter",
+        "Noto Sans"
+      ],
+      "pages": [
+        {
+          "html": "c3_p1.html",
+          "scan": "medium",
+          "fonts": [
+            "Inter"
+          ]
+        },
+        {
+          "html": "c3_p2.html",
+          "scan": "light",
+          "fonts": [
+            "Noto Sans"
+          ]
+        },
+        {
+          "html": "c3_p3.html",
+          "scan": "light",
+          "fonts": [
+            "Noto Sans"
+          ]
+        },
+        {
+          "html": "c3_p4.html",
+          "scan": "light",
+          "fonts": [
+            "Noto Sans"
+          ]
+        },
+        {
+          "html": "c3_p5.html",
+          "scan": "light",
+          "fonts": [
+            "Noto Sans"
+          ]
+        },
+        {
+          "html": "c3_p6.html",
+          "scan": "light",
+          "fonts": [
+            "Noto Sans"
+          ]
+        },
+        {
+          "html": "c3_p7.html",
+          "scan": "light",
+          "fonts": [
+            "Noto Sans"
+          ]
+        },
+        {
+          "html": "c3_p8.html",
+          "scan": "light",
+          "fonts": [
+            "Noto Sans"
+          ]
+        },
+        {
+          "html": "c3_p9.html",
+          "scan": "light",
+          "fonts": [
+            "Noto Sans"
+          ]
+        },
+        {
+          "html": "c3_p10.html",
+          "scan": "light",
+          "fonts": [
+            "Noto Sans"
+          ]
+        },
+        {
+          "html": "c3_p11.html",
+          "scan": "light",
+          "fonts": [
+            "Noto Sans"
+          ]
+        },
+        {
+          "html": "c3_p12.html",
+          "scan": "light",
+          "fonts": [
+            "Noto Sans"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "C-4",
+      "title": "CNBUSINESSREVIEW.COM",
+      "genre": "news",
+      "fonts": [
+        "IBM Plex Sans",
+        "IBM Plex Serif",
+        "Inter"
+      ],
+      "pages": [
+        {
+          "html": "c4_p1.html",
+          "scan": "medium",
+          "fonts": [
+            "Inter"
+          ]
+        },
+        {
+          "html": "c4_p2.html",
+          "scan": "light",
+          "fonts": [
+            "IBM Plex Sans",
+            "IBM Plex Serif"
+          ]
+        },
+        {
+          "html": "c4_p3.html",
+          "scan": "light",
+          "fonts": [
+            "IBM Plex Sans",
+            "IBM Plex Serif"
+          ]
+        },
+        {
+          "html": "c4_p4.html",
+          "scan": "light",
+          "fonts": [
+            "IBM Plex Sans",
+            "IBM Plex Serif"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "C-5",
+      "title": "LUMEN Optics Won the Silver Award in the Marketing Case Category of the 9thBlue Lantern Awards",
+      "genre": "newswire",
+      "fonts": [
+        "IBM Plex Mono",
+        "IBM Plex Sans",
+        "Inter"
+      ],
+      "pages": [
+        {
+          "html": "c5_p1.html",
+          "scan": "medium",
+          "fonts": [
+            "Inter"
+          ]
+        },
+        {
+          "html": "c5_p2.html",
+          "scan": "light",
+          "fonts": [
+            "IBM Plex Mono",
+            "IBM Plex Sans"
+          ]
+        },
+        {
+          "html": "c5_p3.html",
+          "scan": "light",
+          "fonts": [
+            "IBM Plex Mono",
+            "IBM Plex Sans"
+          ]
+        },
+        {
+          "html": "c5_p4.html",
+          "scan": "light",
+          "fonts": [
+            "IBM Plex Mono",
+            "IBM Plex Sans"
+          ]
+        },
+        {
+          "html": "c5_p5.html",
+          "scan": "light",
+          "fonts": [
+            "IBM Plex Mono",
+            "IBM Plex Sans"
+          ]
+        },
+        {
+          "html": "c5_p6.html",
+          "scan": "light",
+          "fonts": [
+            "IBM Plex Mono",
+            "IBM Plex Sans"
+          ]
+        },
+        {
+          "html": "c5_p7.html",
+          "scan": "light",
+          "fonts": [
+            "IBM Plex Mono",
+            "IBM Plex Sans"
+          ]
+        },
+        {
+          "html": "c5_p8.html",
+          "scan": "light",
+          "fonts": [
+            "IBM Plex Mono",
+            "IBM Plex Sans"
+          ]
+        },
+        {
+          "html": "c5_p9.html",
+          "scan": "light",
+          "fonts": [
+            "IBM Plex Mono",
+            "IBM Plex Sans"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "C-6",
+      "title": "School of Social Science, Jinling University",
+      "genre": "faculty",
+      "fonts": [
+        "Inter",
+        "Lora",
+        "Open Sans"
+      ],
+      "pages": [
+        {
+          "html": "c6_p1.html",
+          "scan": "medium",
+          "fonts": [
+            "Inter"
+          ]
+        },
+        {
+          "html": "c6_p2.html",
+          "scan": "light",
+          "fonts": [
+            "Lora",
+            "Open Sans"
+          ]
+        },
+        {
+          "html": "c6_p3.html",
+          "scan": "light",
+          "fonts": [
+            "Lora",
+            "Open Sans"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "C-7",
+      "title": "Smart Retail",
+      "genre": "programme",
+      "fonts": [
+        "Cormorant Garamond",
+        "Inter"
+      ],
+      "pages": [
+        {
+          "html": "c7_p1.html",
+          "scan": "medium",
+          "fonts": [
+            "Inter"
+          ]
+        },
+        {
+          "html": "c7_p2.html",
+          "scan": "medium",
+          "fonts": [
+            "Cormorant Garamond",
+            "Inter"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "C-8",
+      "title": "The First China Smart Retail Conference will be Held on March 18th",
+      "genre": "release",
+      "fonts": [
+        "EB Garamond",
+        "Inter"
+      ],
+      "pages": [
+        {
+          "html": "c8_p1.html",
+          "scan": "medium",
+          "fonts": [
+            "Inter"
+          ]
+        },
+        {
+          "html": "c8_p2.html",
+          "scan": "light",
+          "fonts": [
+            "EB Garamond"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "C-9",
+      "title": "The Organizational Structure of the First Smart Retail Committee of China",
+      "genre": "portal",
+      "fonts": [
+        "Inter",
+        "Noto Sans"
+      ],
+      "pages": [
+        {
+          "html": "c9_p1.html",
+          "scan": "medium",
+          "fonts": [
+            "Inter"
+          ]
+        },
+        {
+          "html": "c9_p2.html",
+          "scan": "light",
+          "fonts": [
+            "Noto Sans"
+          ]
+        },
+        {
+          "html": "c9_p3.html",
+          "scan": "light",
+          "fonts": [
+            "Noto Sans"
+          ]
+        },
+        {
+          "html": "c9_p4.html",
+          "scan": "light",
+          "fonts": [
+            "Noto Sans"
+          ]
+        },
+        {
+          "html": "c9_p5.html",
+          "scan": "light",
+          "fonts": [
+            "Noto Sans"
+          ]
+        },
+        {
+          "html": "c9_p6.html",
+          "scan": "light",
+          "fonts": [
+            "Noto Sans"
+          ]
+        },
+        {
+          "html": "c9_p7.html",
+          "scan": "light",
+          "fonts": [
+            "Noto Sans"
+          ]
+        },
+        {
+          "html": "c9_p8.html",
+          "scan": "light",
+          "fonts": [
+            "Noto Sans"
+          ]
+        },
+        {
+          "html": "c9_p9.html",
+          "scan": "light",
+          "fonts": [
+            "Noto Sans"
+          ]
+        }
+      ]
+    }
+  ]
+}

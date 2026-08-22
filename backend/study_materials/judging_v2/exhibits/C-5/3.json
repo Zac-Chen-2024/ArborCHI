@@ -1,0 +1,294 @@
+{
+  "schema_version": 1,
+  "exhibit": "C-5",
+  "page": 3,
+  "doc_title": "LUMEN Optics Won the Silver Award in the Marketing Case Category of the 9thBlue Lantern Awards",
+  "fonts_missing": [],
+  "page_px": [
+    2000,
+    2606
+  ],
+  "scan_level": "light",
+  "seed": 1619,
+  "homography": [
+    [
+      0.9991287075619839,
+      -0.0007510602528580732,
+      2.7045938680453614
+    ],
+    [
+      0.0006766107612671392,
+      1.0004352672112067,
+      -2.1115984467058446
+    ],
+    [
+      6.468187488653558e-07,
+      -5.34694525234255e-07,
+      1.000000224137461
+    ]
+  ],
+  "coordinate_convention": "normalized 0-1000, origin top-left",
+  "provenance": "rendered-from-html; bbox measured from DOM, never OCR'd",
+  "snippets": [
+    {
+      "snippet_id": "C-5_p3_p3_b0",
+      "exhibit": "C-5",
+      "page": 3,
+      "text": "Translation",
+      "label": "text: Translation",
+      "bbox_norm": [
+        101.20725521775935,
+        41.99521751828806,
+        156.30943544572472,
+        52.76924146276167
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              101.21625421201541,
+              41.99521751828806
+            ],
+            [
+              156.30943544572472,
+              42.020858510606935
+            ],
+            [
+              156.3012618138535,
+              52.76924146276167
+            ],
+            [
+              101.20725521775935,
+              52.7443669650505
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p3_p3_b1",
+      "exhibit": "C-5",
+      "page": 3,
+      "text": "LUMEN Optics Won the Silver Award in the Marketing Case Category of the 9th Blue Lantern Awards - Newswire Asia",
+      "label": "text: LUMEN Optics Won the Silver Award in the Marketing Case Cate",
+      "bbox_norm": [
+        124.14646479811852,
+        64.81156707659393,
+        842.9946936739979,
+        97.21596154399985
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              124.17254752903087,
+              64.81156707659393
+            ],
+            [
+              842.9918383769473,
+              65.12488503628958
+            ],
+            [
+              842.9946936739979,
+              79.70001348369844
+            ],
+            [
+              124.16080093111695,
+              79.40026936480295
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              124.15821197856843,
+              82.61562229042305
+            ],
+            [
+              151.86177609055662,
+              82.62705895404635
+            ],
+            [
+              151.8505921903342,
+              97.21596154399985
+            ],
+            [
+              124.14646479811852,
+              97.20504805998118
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p3_p3_b3",
+      "exhibit": "C-5",
+      "page": 3,
+      "text": "LUMEN Optics Won the Silver Award in the Marketing Case Category of the 9th Blue Lantern Award",
+      "label": "text: LUMEN Optics Won the Silver Award in the Marketing Case Cate",
+      "bbox_norm": [
+        105.84398313710341,
+        466.15230121713057,
+        894.7285485988182,
+        483.89875767136084
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              105.85866173482357,
+              466.2185113584086
+            ],
+            [
+              894.7238186906123,
+              466.15230121713057
+            ],
+            [
+              894.7285485988182,
+              483.81448445917454
+            ],
+            [
+              105.84398313710341,
+              483.89875767136084
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p3_p3_b4",
+      "exhibit": "C-5",
+      "page": 3,
+      "text": "As the most professionally influential comprehensive award in the digital field of Chinese brand marketing, this session's Blue Lantern Award selected out the winners upon online review by 540+ public jury, panel discussion and final review by 70+ final judging panel, and reexamination by 8+ executive members. After rounds of selection, LUMEN Optics won high recognition within and outside the industry based on its excellent innovative marketing case with new attempts, new methods, new products and new thoughts.",
+      "label": "text: As the most professionally influential comprehensive award i",
+      "bbox_norm": [
+        105.70947879105897,
+        546.1775770701136,
+        902.4187413998976,
+        645.908100359563
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              105.79215353224363,
+              546.3270766220983
+            ],
+            [
+              902.4140358306483,
+              546.1775770701136
+            ],
+            [
+              902.4187413998976,
+              563.0754171631933
+            ],
+            [
+              105.77811001813423,
+              563.2423701186043
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              105.77499801358142,
+              566.9907531773497
+            ],
+            [
+              891.305910258158,
+              566.8223155783849
+            ],
+            [
+              891.3103547832093,
+              583.7213701299219
+            ],
+            [
+              105.76095369170605,
+              583.9070196211172
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              105.75784150815193,
+              587.6556182854313
+            ],
+            [
+              896.9074460801024,
+              587.4648048793056
+            ],
+            [
+              896.912022443525,
+              604.3647078554733
+            ],
+            [
+              105.74379637844088,
+              604.5728577604065
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              105.74068401587002,
+              608.3216720488923
+            ],
+            [
+              856.1005123362219,
+              608.1206158790937
+            ],
+            [
+              856.104129253731,
+              625.0223843808243
+            ],
+            [
+              105.72663807825356,
+              625.2398846390315
+            ]
+          ]
+        },
+        {
+          "line": 4,
+          "quad_norm": [
+            [
+              105.72352553665048,
+              628.9889145702938
+            ],
+            [
+              881.8127625101595,
+              628.7601939067432
+            ],
+            [
+              881.8169841858935,
+              645.662370283017
+            ],
+            [
+              105.70947879105897,
+              645.908100359563
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "kind": "image",
+      "bbox_norm": [
+        180.84304068574437,
+        107.29330433062175,
+        809.8617393215513,
+        426.61883224099734
+      ]
+    }
+  ]
+}

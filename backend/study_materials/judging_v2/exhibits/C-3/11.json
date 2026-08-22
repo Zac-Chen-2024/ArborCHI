@@ -1,0 +1,435 @@
+{
+  "schema_version": 1,
+  "exhibit": "C-3",
+  "page": 11,
+  "doc_title": "Final Review of the 9th Blue Lantern Award Ended Successfully",
+  "fonts_missing": [],
+  "page_px": [
+    2000,
+    2606
+  ],
+  "scan_level": "light",
+  "seed": 3525,
+  "homography": [
+    [
+      1.0007727718306199,
+      -0.0001971977387082811,
+      -0.9283866899525518
+    ],
+    [
+      0.00042596450198865586,
+      1.0028454761091534,
+      -2.2609514375905175
+    ],
+    [
+      -6.519880495355858e-07,
+      1.1070688768904907e-06,
+      0.9999990674141389
+    ]
+  ],
+  "coordinate_convention": "normalized 0-1000, origin top-left",
+  "provenance": "rendered-from-html; bbox measured from DOM, never OCR'd",
+  "snippets": [
+    {
+      "snippet_id": "C-3_p11_p11_b0",
+      "exhibit": "C-3",
+      "page": 11,
+      "text": "Translation",
+      "label": "text: Translation",
+      "bbox_norm": [
+        94.59069347617722,
+        45.029082629982895,
+        152.05837723633786,
+        56.59477607992717
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              94.59679295110074,
+              45.029082629982895
+            ],
+            [
+              152.05837723633786,
+              45.051221554411356
+            ],
+            [
+              152.05036882101277,
+              56.59477607992717
+            ],
+            [
+              94.59069347617722,
+              56.571773816934005
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p11_p11_b1",
+      "exhibit": "C-3",
+      "page": 11,
+      "text": "Final Review of the 9th Blue Lantern Award Ended Successfully! _ Review _ Case _ Process discussion and friendly exchange, where they not only exercised their rights correctly and properly, but also fulfilled their responsibilities of the review meticulously;",
+      "label": "text: Final Review of the 9th Blue Lantern Award Ended Successfull",
+      "bbox_norm": [
+        94.55171723393218,
+        67.6568450729029,
+        888.6051421938968,
+        130.551145353534
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              94.58483582018903,
+              67.6568450729029
+            ],
+            [
+              888.6051421938968,
+              67.98617438815911
+            ],
+            [
+              888.5553089167678,
+              85.70063788576785
+            ],
+            [
+              94.57548467532209,
+              85.35302036617134
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              94.57295012007452,
+              90.14943135003189
+            ],
+            [
+              865.085687497263,
+              90.49158937581602
+            ],
+            [
+              865.0370576788242,
+              108.20321752648353
+            ],
+            [
+              94.56360018555107,
+              107.84331618038858
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              94.5610659583471,
+              112.63910637213986
+            ],
+            [
+              538.6570222028439,
+              112.84932590922709
+            ],
+            [
+              538.6250450396192,
+              130.551145353534
+            ],
+            [
+              94.55171723393218,
+              130.3307011842471
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p11_p11_b2",
+      "exhibit": "C-3",
+      "page": 11,
+      "text": "After the panel discussion, some judges instigated into the whole industry through the cases, sorted out and reviewed on the trends, changes, highlights and deficiencies shown on the market, to provide penetrating judgement for the review experts and even the industry.",
+      "label": "text: After the panel discussion, some judges instigated into the ",
+      "bbox_norm": [
+        95.49734943329197,
+        173.8795158065626,
+        874.0849350357057,
+        234.20352501524525
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              95.52922427400839,
+              173.8795158065626
+            ],
+            [
+              862.7565302654942,
+              174.30390679502707
+            ],
+            [
+              862.7101395498045,
+              191.23728472058696
+            ],
+            [
+              95.52023642034665,
+              190.79600637712008
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              95.5177789564912,
+              195.42132246509382
+            ],
+            [
+              874.0849350357057,
+              195.87383643164125
+            ],
+            [
+              874.0379944028072,
+              212.80536312748117
+            ],
+            [
+              95.50879221732005,
+              212.33571539695643
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              95.50633505817981,
+              216.96045796519235
+            ],
+            [
+              619.4774721632936,
+              217.27970055077367
+            ],
+            [
+              619.4429538348128,
+              234.20352501524525
+            ],
+            [
+              95.49734943329197,
+              233.87275364849543
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p11_p11_b4",
+      "exhibit": "C-3",
+      "page": 11,
+      "text": "No matter how it is or how it is performed, the 76 judges spared no effort and devoted themselves to define \"profession\" with the spirit of \"constantly striving for progress\".",
+      "label": "text: No matter how it is or how it is performed, the 76 judges sp",
+      "bbox_norm": [
+        107.24478972100488,
+        648.3952714443276,
+        893.6654896941894,
+        688.5753761277238
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              107.26714924269982,
+              648.3952714443276
+            ],
+            [
+              893.6654896941894,
+              649.3164061780304
+            ],
+            [
+              893.6154818305722,
+              666.9718123625951
+            ],
+            [
+              107.25716886324625,
+              666.0326557519548
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              107.25476884182278,
+              670.2739874958392
+            ],
+            [
+              652.1158303164085,
+              670.9277318730803
+            ],
+            [
+              652.0781283640745,
+              688.5753761277238
+            ],
+            [
+              107.24478972100488,
+              687.9091475352022
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p11_p11_b5",
+      "exhibit": "C-3",
+      "page": 11,
+      "text": "From the perspective of review, the strict standard in panel discussion is a process setting up the benchmark of the industry. Once the standards are set, all cases shall be subject to the quality. All judges score with the same ruler, and only the cases up to the standards could be selected out. From the perspective of competition participant, the process keeping moving toward the benchmark is also the process of self- improvement. Therefore, the competition of this session's Blue Lantern Award is the fiercest, for that each award- winning case is generated upon strict scoring and debate.",
+      "label": "text: From the perspective of review, the strict standard in panel",
+      "bbox_norm": [
+        108.14900303203841,
+        728.361484550556,
+        893.2381521286923,
+        855.7107136169151
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              108.22085570197619,
+              728.361484550556
+            ],
+            [
+              854.1358047268952,
+              729.3129071866769
+            ],
+            [
+              854.0878219278044,
+              746.9592678126828
+            ],
+            [
+              108.21082913940772,
+              745.9907628951855
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              108.20848612224424,
+              750.1103902809134
+            ],
+            [
+              861.3327437229607,
+              751.0923476268533
+            ],
+            [
+              861.2843973758994,
+              768.7366595376485
+            ],
+            [
+              108.19846081692344,
+              767.7374580605449
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              108.19611809354559,
+              771.8565688954271
+            ],
+            [
+              885.0270232608093,
+              772.8914441442116
+            ],
+            [
+              884.9774731706245,
+              790.5340853577857
+            ],
+            [
+              108.18609404523596,
+              789.4814265258138
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              108.18375161558855,
+              793.6000209069988
+            ],
+            [
+              893.2381521286923,
+              794.6680895926645
+            ],
+            [
+              893.1881869518083,
+              812.3087059408526
+            ],
+            [
+              108.1737288240537,
+              811.2226688037902
+            ]
+          ]
+        },
+        {
+          "line": 4,
+          "quad_norm": [
+            [
+              108.17138668808145,
+              815.3407468284003
+            ],
+            [
+              878.1968211838046,
+              816.4101783997347
+            ],
+            [
+              878.1476251370884,
+              834.0482381237202
+            ],
+            [
+              108.161365153085,
+              832.9611854071416
+            ]
+          ]
+        },
+        {
+          "line": 5,
+          "quad_norm": [
+            [
+              108.15902331073274,
+              837.0787471722763
+            ],
+            [
+              812.1302711746406,
+              838.0763774013286
+            ],
+            [
+              812.0844421684608,
+              855.7107136169151
+            ],
+            [
+              108.14900303203841,
+              854.6969768484082
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "kind": "image",
+      "bbox_norm": [
+        180.24601675199563,
+        274.7995467299041,
+        634.9784912868273,
+        608.4790746326113
+      ]
+    }
+  ]
+}

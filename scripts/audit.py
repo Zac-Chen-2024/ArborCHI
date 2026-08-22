@@ -274,6 +274,54 @@ for path in tracked:
 
 
 # ---------------------------------------------------------------------------
+# Rendered exhibits: V3, V4 and V6 of the render spec (§8).
+#
+# The bundles themselves are gitignored, so this runs against whatever is on
+# the machine and says nothing when there is nothing to check -- which is the
+# right behaviour for CI. The checks live in render_exhibits.py; importing them
+# rather than restating them means the audit and the build can never drift into
+# disagreeing about what a valid manifest is.
+
+def _check_rendered_bundles() -> None:
+    import glob
+    import importlib.util
+
+    script = os.path.join(ROOT, 'backend', 'scripts', 'render_exhibits.py')
+    manifests = glob.glob(os.path.join(
+        ROOT, 'backend', 'study_materials', '*', 'exhibits', '*', '*.json'))
+    if not manifests or not os.path.exists(script):
+        return
+    try:
+        spec = importlib.util.spec_from_file_location('render_exhibits', script)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+    except Exception as exc:
+        note('RENDER', f'cannot load render_exhibits.py: {exc}')
+        return
+
+    checked = 0
+    for path in sorted(manifests):
+        if path.endswith('.CHECK.png'):
+            continue
+        manifest = json.load(io.open(path, encoding='utf-8'))
+        if 'snippets' not in manifest or 'homography' not in manifest:
+            continue                              # not a render manifest
+        rel = os.path.relpath(path, ROOT).replace(os.sep, '/')
+        # V4 needs the template that produced it, which the manifest does not
+        # name; the set-level build checks that one. Here: V3, V6 and the
+        # collision check, all properties of the manifest alone.
+        for problem in module.check(manifest, set()) + module.check_layout(manifest):
+            note('RENDER', f'{rel}: {problem}')
+        checked += 1
+
+    if checked:
+        print(f'rendered : {checked} exhibit page manifest(s) checked (V3, V6, collisions)')
+
+
+_check_rendered_bundles()
+
+
+# ---------------------------------------------------------------------------
 
 def main() -> int:
     print(f'i18n     : {len(en)} keys, {len(used)} referenced in components')

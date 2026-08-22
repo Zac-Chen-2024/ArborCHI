@@ -1,0 +1,429 @@
+{
+  "schema_version": 1,
+  "exhibit": "C-3",
+  "page": 6,
+  "doc_title": "Final Review of the 9th Blue Lantern Award Ended Successfully",
+  "fonts_missing": [],
+  "page_px": [
+    2000,
+    2606
+  ],
+  "scan_level": "light",
+  "seed": 5310,
+  "homography": [
+    [
+      1.003165650125149,
+      0.0006854860198706729,
+      -1.044302344990267
+    ],
+    [
+      0.0027873965408106755,
+      1.0017626161487694,
+      -1.5042213755458076
+    ],
+    [
+      3.432610908928652e-07,
+      8.300948078402758e-07,
+      0.9999995214365495
+    ]
+  ],
+  "coordinate_convention": "normalized 0-1000, origin top-left",
+  "provenance": "rendered-from-html; bbox measured from DOM, never OCR'd",
+  "snippets": [
+    {
+      "snippet_id": "C-3_p6_p6_b0",
+      "exhibit": "C-3",
+      "page": 6,
+      "text": "Translation",
+      "label": "text: Translation",
+      "bbox_norm": [
+        114.86173015153788,
+        44.48036261953149,
+        172.4388097080674,
+        56.12970207545228
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              114.86173015153788,
+              44.48036261953149
+            ],
+            [
+              172.43282291974762,
+              44.601387923360726
+            ],
+            [
+              172.4388097080674,
+              56.12970207545228
+            ],
+            [
+              114.86915057280324,
+              56.00913403248835
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p6_p6_b1",
+      "exhibit": "C-3",
+      "page": 6,
+      "text": "Final Review of the 9th Blue Lantern Award Ended Successfully! _ Review _ Case _ Process",
+      "label": "text: Final Review of the 9th Blue Lantern Award Ended Successfull",
+      "bbox_norm": [
+        164.01444610184512,
+        66.40304429246896,
+        787.5658596082761,
+        83.06755131918983
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              164.01444610184512,
+              66.40304429246896
+            ],
+            [
+              787.5658596082761,
+              67.70455502247248
+            ],
+            [
+              787.5534280601928,
+              83.06755131918983
+            ],
+            [
+              164.02270753116343,
+              81.77264297611238
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p6_p6_b3",
+      "exhibit": "C-3",
+      "page": 6,
+      "text": "At the beginning of the final review, Mr. Zhiyuan Tan, Founder of Blue Lantern Award, sincerely expressed his gratitude to the judges in the key words of \"feelings\" and \"rigorous\", and further emphasized on the process and rules of the final review.",
+      "label": "text: At the beginning of the final review, Mr. Zhiyuan Tan, Found",
+      "bbox_norm": [
+        101.01295589923625,
+        329.5021206849222,
+        834.0988141619621,
+        391.5268194775194
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              101.01295589923625,
+              329.5021206849222
+            ],
+            [
+              830.9113114549456,
+              330.8941091570236
+            ],
+            [
+              830.8953708589655,
+              348.5408649449809
+            ],
+            [
+              101.02485520609034,
+              347.1577489936823
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              101.02763589147615,
+              351.2835983576384
+            ],
+            [
+              834.0988141619621,
+              352.6707096115811
+            ],
+            [
+              834.0827528045801,
+              370.31576609423627
+            ],
+            [
+              101.03953407820414,
+              368.937564676345
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              101.04231450183985,
+              373.06302566787315
+            ],
+            [
+              536.1260571836771,
+              373.8798022376096
+            ],
+            [
+              536.1213574284286,
+              391.5268194775194
+            ],
+            [
+              101.05421156859995,
+              390.7153302311893
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p6_p6_b4",
+      "exhibit": "C-3",
+      "page": 6,
+      "text": "Facing the sudden disruption of rhythm, he mentioned that \"Although failing to meet you in person, sometimes regret shows how valuable it is to meet later\", encouraged every attending judge with a positive attitude, and noted that the quality of the final review of Blue Lantern Award will not be affected by the change of the review mode.",
+      "label": "text: Facing the sudden disruption of rhythm, he mentioned that \"A",
+      "bbox_norm": [
+        102.08379498972988,
+        431.50898860154535,
+        895.2796182191624,
+        512.9754522232172
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              102.08379498972988,
+              431.50898860154535
+            ],
+            [
+              862.7282956322308,
+              432.9065105496432
+            ],
+            [
+              862.7118914947963,
+              449.7782365062047
+            ],
+            [
+              102.09513536678085,
+              448.38955301743687
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              102.09815556913014,
+              452.88523425244534
+            ],
+            [
+              855.9820155129003,
+              454.25930567466037
+            ],
+            [
+              855.9658580654664,
+              471.12955158358756
+            ],
+            [
+              102.10949489829731,
+              469.76423885513447
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              102.11251482157758,
+              474.25950468572984
+            ],
+            [
+              895.2796182191624,
+              475.6935730407961
+            ],
+            [
+              895.2620290417193,
+              492.5618042296899
+            ],
+            [
+              102.12385310300618,
+              491.1369496914036
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              102.12687274725609,
+              495.63180017515884
+            ],
+            [
+              364.6536067627524,
+              496.10261582252866
+            ],
+            [
+              364.6553663942688,
+              512.9754522232172
+            ],
+            [
+              102.13820998109135,
+              512.507685799964
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p6_p6_b5",
+      "exhibit": "C-3",
+      "page": 6,
+      "text": "In addition, facing the large increase in the quantity of various kinds of cases, Zhiyuan Tan said it's both motivation and pressure. Considering the actual time factor, the term for this final review was set as three days. Compared with the previous offline final reviews, the term for judges' scoring was prolonged, so as to finish review in high quality.",
+      "label": "text: In addition, facing the large increase in the quantity of va",
+      "bbox_norm": [
+        105.17105719455876,
+        553.2593094879136,
+        894.0401865145551,
+        635.1931850984453
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              105.17105719455876,
+              553.2593094879136
+            ],
+            [
+              894.0401865145551,
+              554.64295750361
+            ],
+            [
+              894.022645510722,
+              571.5054451021801
+            ],
+            [
+              105.18228195152629,
+              570.1309563009603
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              105.18535107844156,
+              574.7440829359675
+            ],
+            [
+              866.5607750227547,
+              576.0683125140389
+            ],
+            [
+              866.544236289166,
+              592.9295532395874
+            ],
+            [
+              105.19657479266877,
+              591.6141624325306
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              105.19964363447956,
+              596.226860534296
+            ],
+            [
+              818.5364899624958,
+              597.4570504280147
+            ],
+            [
+              818.5217021961846,
+              614.3172828809492
+            ],
+            [
+              105.21086630611173,
+              613.0953729327625
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              105.21393486285783,
+              617.7076425609959
+            ],
+            [
+              469.46961177298454,
+              618.3304670389072
+            ],
+            [
+              469.4675489719397,
+              635.1931850984453
+            ],
+            [
+              105.22515649204023,
+              634.5745880797123
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p6_p6_b6",
+      "exhibit": "C-3",
+      "page": 6,
+      "text": "Release of Review Members by Meilin Guo, Chairman of the Jury",
+      "label": "text: Release of Review Members by Meilin Guo, Chairman of the Jur",
+      "bbox_norm": [
+        186.37445510436126,
+        676.4528353470487,
+        681.7494563827378,
+        694.9021184244942
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              186.37445510436126,
+              676.4528353470487
+            ],
+            [
+              681.7494563827378,
+              677.2799840318435
+            ],
+            [
+              681.7392105633088,
+              694.9021184244942
+            ],
+            [
+              186.38309062728956,
+              694.0809779611191
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "kind": "image",
+      "bbox_norm": [
+        177.06367823016214,
+        91.94540128025488,
+        661.2184668393905,
+        291.04735235943406
+      ]
+    }
+  ]
+}

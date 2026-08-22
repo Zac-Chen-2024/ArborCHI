@@ -1,0 +1,566 @@
+{
+  "schema_version": 1,
+  "exhibit": "C-4",
+  "page": 3,
+  "doc_title": "CNBUSINESSREVIEW.COM",
+  "fonts_missing": [],
+  "page_px": [
+    2000,
+    2606
+  ],
+  "scan_level": "light",
+  "seed": 8148,
+  "homography": [
+    [
+      1.0025386525260884,
+      0.0015865153429662398,
+      -2.8516114216949586
+    ],
+    [
+      0.0005905589136156491,
+      1.0031521318921932,
+      -2.4500222501501647
+    ],
+    [
+      3.0728300071948833e-07,
+      1.2223342768752853e-06,
+      0.9999999930794051
+    ]
+  ],
+  "coordinate_convention": "normalized 0-1000, origin top-left",
+  "provenance": "rendered-from-html; bbox measured from DOM, never OCR'd",
+  "snippets": [
+    {
+      "snippet_id": "C-4_p3_p3_b0",
+      "exhibit": "C-4",
+      "page": 3,
+      "text": "order to reverse the lofty feeling of Kunqu Opera in the traditional context and shorten the communication distance between traditional Chinese culture and young people. Cangyu chooses to use the visual forms and language that young people like, create multi- dimensional content creativity on Weibo, Bilibili, Kuaishou, reinterpret and perform the beauty of Kunqu Opera, and let traditional opera and contemporary young people spark new sparks. The most noteworthy collaboration is with the 416 girl group. By reinterpreting traditional songs with the cadence of Kunqu Opera, the refreshing performance rejuvenates the traditional art form, attracting praises from media such as People's Daily, and stirring up a Kunqu Opera craze among young people.",
+      "label": "text: order to reverse the lofty feeling of Kunqu Opera in the tra",
+      "bbox_norm": [
+        96.95694193379576,
+        78.83419383960756,
+        885.7203086884062,
+        213.84458044902755
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              96.95694193379576,
+              78.83419383960756
+            ],
+            [
+              826.394570515726,
+              79.12872642651664
+            ],
+            [
+              826.3859026261932,
+              94.50997735473665
+            ],
+            [
+              96.98392191227981,
+              94.2223400762348
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              96.99184677982277,
+              98.74232220776219
+            ],
+            [
+              841.7454594148053,
+              99.0339496723891
+            ],
+            [
+              841.736042259876,
+              114.41311121655214
+            ],
+            [
+              97.01882334650325,
+              114.12852250763272
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              97.02674721192396,
+              118.64793307445228
+            ],
+            [
+              820.1775527311855,
+              118.92227675676911
+            ],
+            [
+              820.1691895920297,
+              134.2996981980583
+            ],
+            [
+              97.05372036744807,
+              134.03218780665838
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              97.0616432309366,
+              138.55102691717727
+            ],
+            [
+              850.9182826824562,
+              138.8278213663419
+            ],
+            [
+              850.9084187351996,
+              154.20300880856237
+            ],
+            [
+              97.08861297595124,
+              153.93333645071783
+            ]
+          ]
+        },
+        {
+          "line": 4,
+          "quad_norm": [
+            [
+              97.09653483769765,
+              158.45160421331582
+            ],
+            [
+              885.7203086884062,
+              158.73154296913174
+            ],
+            [
+              885.7087458552631,
+              174.10445852878178
+            ],
+            [
+              97.12350117284961,
+              173.8319689170964
+            ]
+          ]
+        },
+        {
+          "line": 5,
+          "quad_norm": [
+            [
+              97.13142203304386,
+              178.34966544012582
+            ],
+            [
+              843.1355764399964,
+              178.6053753812782
+            ],
+            [
+              843.1260937830791,
+              193.9767503882829
+            ],
+            [
+              97.15838495897981,
+              193.72808568295886
+            ]
+          ]
+        },
+        {
+          "line": 6,
+          "quad_norm": [
+            [
+              97.16630481781179,
+              198.2452110747445
+            ],
+            [
+              791.2485121207241,
+              198.47465794446538
+            ],
+            [
+              791.24156373536,
+              213.84458044902755
+            ],
+            [
+              97.19326433517826,
+              213.62168722534912
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-4_p3_p3_b1",
+      "exhibit": "C-4",
+      "page": 3,
+      "text": "As a bridge of communication between platforms, brands, and young people, Cangyu has gradually developed its own methodology over the years, capable of providing brands with content solutions most consistent with the cultural context of young people. This year, Cangyu's content marketing services continue to extend to the backlink, providing businesses with more definitive marketing value through content commerce.",
+      "label": "text: As a bridge of communication between platforms, brands, and ",
+      "bbox_norm": [
+        100.29677053861164,
+        269.99811377458803,
+        860.9340499005896,
+        345.5259524176575
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              100.29677053861164,
+              269.99811377458803
+            ],
+            [
+              860.9340499005896,
+              270.21610376776715
+            ],
+            [
+              860.9237011302621,
+              285.57836417508446
+            ],
+            [
+              100.3235709498778,
+              285.36755134763416
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              100.33165243508678,
+              290.00210270518926
+            ],
+            [
+              854.1668055290891,
+              290.208898712598
+            ],
+            [
+              854.1567877518399,
+              305.5692705420457
+            ],
+            [
+              100.35844943886951,
+              305.3695861625583
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              100.36652989660725,
+              310.00354828829813
+            ],
+            [
+              860.2818054100903,
+              310.2026942745366
+            ],
+            [
+              860.2714897914568,
+              325.56105636703006
+            ],
+            [
+              100.3933234935564,
+              325.3690780026444
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              100.40140292401883,
+              330.0024510089332
+            ],
+            [
+              765.722379786694,
+              330.16865027483414
+            ],
+            [
+              765.7166803009677,
+              345.5259524176575
+            ],
+            [
+              100.42819311478401,
+              345.36602735281645
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-4_p3_p3_b2",
+      "exhibit": "C-4",
+      "page": 3,
+      "text": "This award is both an affirmation and a motivation for Cangyu. Previously, at the 10th TopDigital Innovation Marketing Ceremony in 2023, Cangyu and its client won a gold and a bronze. This is also another good news for Cangyu after a month. In the future, the company will continue to create more marketable excellent cases, helping brands and the new generation to \"party\" together!",
+      "label": "text: This award is both an affirmation and a motivation for Cangy",
+      "bbox_norm": [
+        103.53403317153105,
+        404.130473607096,
+        875.3771267858608,
+        489.2216838313903
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              103.53403317153105,
+              404.130473607096
+            ],
+            [
+              846.2314176473346,
+              404.28225089377446
+            ],
+            [
+              846.2203467648604,
+              421.93382802820486
+            ],
+            [
+              103.56465845756922,
+              421.7900994066356
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              103.57295914850914,
+              426.57657211725285
+            ],
+            [
+              875.3771267858608,
+              426.7236772050468
+            ],
+            [
+              875.3644212994059,
+              444.37242023541785
+            ],
+            [
+              103.60358006356947,
+              444.2336774559989
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              103.6118795698399,
+              449.01946704419396
+            ],
+            [
+              843.1093114077676,
+              449.1502400639265
+            ],
+            [
+              843.0984172801041,
+              466.79681492206885
+            ],
+            [
+              103.64249611485812,
+              466.6740524617051
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              103.6507944367127,
+              471.45915907370977
+            ],
+            [
+              829.1422183605123,
+              471.5774749551725
+            ],
+            [
+              829.1321086288555,
+              489.2216838313903
+            ],
+            [
+              103.6814066126242,
+              489.1112251093907
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-4_p3_p3_b3",
+      "exhibit": "C-4",
+      "page": 3,
+      "text": "For more cases and updates from Cangyu, please follow the official video account: Cangyu Activity Research Institute.",
+      "label": "text: For more cases and updates from Cangyu, please follow the of",
+      "bbox_norm": [
+        105.76648680530985,
+        537.3687217742051,
+        829.5262644096441,
+        575.5223781418565
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              105.76648680530985,
+              537.3687217742051
+            ],
+            [
+              829.5262644096441,
+              537.4575112933727
+            ],
+            [
+              829.516575628193,
+              554.327546590294
+            ],
+            [
+              105.79564833583548,
+              554.246250003044
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              105.80322816414515,
+              558.6331516491906
+            ],
+            [
+              246.61373634907216,
+              558.648590397128
+            ],
+            [
+              246.6353332535842,
+              575.5223781418565
+            ],
+            [
+              105.83238575003412,
+              575.5083968800149
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-4_p3_p3_b4",
+      "exhibit": "C-4",
+      "page": 3,
+      "text": "Disclaimer: This article is reprinted from my website, aiming to provide readers with more news and information. The content involved does not constitute investment or consumption advice and is for reference only for readers.",
+      "label": "text: Disclaimer: This article is reprinted from my website, aimin",
+      "bbox_norm": [
+        106.89946421076468,
+        614.0702358529803,
+        882.5826183956259,
+        670.6183284847051
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              106.89946421076468,
+              614.0702358529803
+            ],
+            [
+              818.5181976140162,
+              614.1240743554613
+            ],
+            [
+              818.5099285512223,
+              629.4531690364321
+            ],
+            [
+              106.92591305803472,
+              629.4060231907691
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              106.93500425319361,
+              634.6773544582223
+            ],
+            [
+              882.5826183956259,
+              634.7262382494363
+            ],
+            [
+              882.5712260399673,
+              650.0527213607285
+            ],
+            [
+              106.9614496325007,
+              650.0111309733177
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              106.97053963566455,
+              655.2817710884451
+            ],
+            [
+              223.85874417370042,
+              655.2876612790592
+            ],
+            [
+              223.87948210238338,
+              670.6183284847051
+            ],
+            [
+              106.99698154769075,
+              670.6135371763085
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-4_p3_p3_b5",
+      "exhibit": "C-4",
+      "page": 3,
+      "text": "[Editor in charge: Mingxu An]",
+      "label": "text: [Editor in charge: Mingxu An]",
+      "bbox_norm": [
+        623.9755796733544,
+        709.98689609707,
+        832.7996663391167,
+        726.0759688796591
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              623.9755796733544,
+              709.98689609707
+            ],
+            [
+              832.7996663391167,
+              709.9904168769016
+            ],
+            [
+              832.7902554521095,
+              726.0759688796591
+            ],
+            [
+              623.9768593607412,
+              726.0745083573057
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": []
+}

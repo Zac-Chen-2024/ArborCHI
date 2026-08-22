@@ -1,0 +1,765 @@
+"""Render exhibits from HTML and measure their bboxes at render time (OT-01/OT-03).
+
+Implements docs/Exhibit渲染管线_技术规格.md. The one idea the whole thing rests on:
+
+    **Rendering is the truth.** A bbox is not recovered afterwards by OCR; it is
+    measured from the DOM at the moment the page is drawn. Every geometric step
+    after that is recorded as a 3x3 homography, the image goes through
+    warpPerspective and the coordinates through perspectiveTransform, and both
+    use the same H.
+
+    OCR is for acceptance only, never for producing coordinates.
+
+That inverts the usual order and removes a whole class of error. Coordinates
+recovered by OCR are a second measurement of something already known exactly,
+and they drift: a character misread, a line merged, a box a few pixels off. Here
+the number the highlight uses is the number the browser laid the text out with.
+
+The five rules from the spec, and where each lives:
+
+  R1  getClientRects(), not getBoundingClientRect()   -> `measure`
+  R2  geometry and photometry strictly separated      -> `warp` vs `weather`
+  R3  keep both quad and axis-aligned box             -> `record`
+  R4  normalise to 0-1000, origin top-left            -> NORM
+  R5  the homography goes into the manifest           -> `build`
+
+Two things the reference implementation left for here: a union box per snippet
+(the spec's §8 -- the viewer highlights one rectangle per snippet, not one per
+line), and the acceptance checks V3/V4/V6 wired in so a bad render fails the run
+instead of being noticed later.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+import zlib
+from contextlib import contextmanager
+from pathlib import Path
+from typing import Any, Dict, List
+
+# cv2, numpy and playwright are imported inside the functions that use them.
+# The acceptance checks below are pure arithmetic, and scripts/audit.py has to
+# be able to run them from an environment that has neither a browser nor
+# OpenCV installed -- an import at module scope would make that impossible and
+# turn "the checks did not run" into "the checks passed".
+
+# The convention the viewer already uses (红线 #8): a coordinate divided by 1000
+# is a fraction of the page, so a highlight holds at any zoom or render width.
+NORM = 1000.0
+
+# Max rotation, perspective jitter, noise sigma, JPEG quality.
+SCAN_LEVELS = {
+    "light": (0.25, 0.0015, 3, 92),
+    "medium": (0.7, 0.004, 6, 82),
+    "heavy": (1.4, 0.008, 11, 70),
+}
+
+
+# ---------------------------------------------------------------------------
+# 1. Render, and measure while the browser still knows where everything is
+# ---------------------------------------------------------------------------
+@contextmanager
+def _chromium(browser):
+    """Yield a browser: the caller's if it has one, otherwise a throw-away."""
+    from playwright.sync_api import sync_playwright
+
+    if browser is not None:
+        yield browser
+        return
+    with sync_playwright() as pw:
+        chrome = pw.chromium.launch()
+        try:
+            yield chrome
+        finally:
+            chrome.close()
+
+
+
+def measure(html: Path, out_png: Path, width: int, scale: int,
+            browser=None) -> Dict[str, Any]:
+    """Draw the page and take every [data-snippet-id] rectangle off the DOM.
+
+    R1: one record per LINE. A snippet that wraps has no single honest
+    rectangle -- one box spanning every line includes the whitespace between
+    them and the empty right-hand end of the last line, which highlights badly
+    and, worse, blurs the adjacency that `mislocation` plants depend on.
+
+    The measurement goes through a Range, not the element. `Element.getClientRects`
+    is per-line only for INLINE elements; on a block -- which is what a `<p>` or
+    `<h1>` carrying data-snippet-id is -- it returns one rect for the whole
+    border box, i.e. exactly the big rectangle R1 forbids, silently. A Range over
+    the element's contents returns one rect per line box in both cases.
+
+    Nested inlines (`<em>`, `<strong>`) split a line into several rects, so rects
+    that sit on the same baseline are merged: the result is one rect per visual
+    line, hugging the text, with the last short line no wider than its words.
+    """
+    from playwright.sync_api import TimeoutError as PWTimeout
+
+    # A set is dozens of pages; launching Chromium per page costs more than
+    # rendering them. `browser` is passed in when a whole set is being built.
+    with _chromium(browser) as chrome:
+        page = chrome.new_page(
+            viewport={"width": width, "height": 1400}, device_scale_factor=scale
+        )
+        # Wait for the document, then for the network, then for the fonts --
+        # in that order, and forgivingly. Waiting on "load" alone means one slow
+        # font stylesheet can hang the whole set on a 30s timeout; waiting on
+        # `document.fonts.ready` is what actually matters, because webfonts
+        # change line breaking and measuring before they land measures a layout
+        # nobody will ever see. If a face genuinely never arrives, the per-page
+        # font check reports it by name rather than the build dying here.
+        page.goto(html.resolve().as_uri(), wait_until="domcontentloaded")
+        try:
+            page.wait_for_load_state("networkidle", timeout=15_000)
+        except PWTimeout:
+            pass
+        try:
+            page.evaluate("() => document.fonts.ready")
+        except Exception:
+            pass
+
+        # Make the viewport the document's own height before anything is
+        # measured. A full-page screenshot is the taller of the two, so a
+        # document shorter than the viewport gets a strip of blank paper below
+        # it -- and, worse, y is then normalised against a page taller than the
+        # one that was laid out, so every box sits slightly high. Resizing also
+        # settles any height-relative CSS before the rects are read.
+        # body, not documentElement: the latter's scrollHeight is clamped
+        # to the viewport, so it can never report a shorter page.
+        doc_h = page.evaluate(
+            "() => Math.ceil(Math.max(document.body.scrollHeight,"
+            "                         document.body.offsetHeight))")
+        if doc_h and doc_h != page.viewport_size["height"]:
+            page.set_viewport_size({"width": width, "height": int(doc_h)})
+            page.wait_for_timeout(50)
+
+        # Shrink anything taller than the rectangle its source document gave it.
+        #
+        # Blocks are pinned at the source's coordinates and re-typeset in a new
+        # face, so a block that comes out taller than its original does not
+        # overflow into empty space -- it lands on the block below. The template
+        # sizes each block by estimate; this is where the estimate is checked
+        # against what the browser actually did, which is the only measurement
+        # that counts.
+        crowded = page.evaluate("""() => {
+            const MIN = 9          // below this a page stops being readable
+            const out = []
+            document.querySelectorAll('[data-fit-h]').forEach((el) => {
+                const max = parseFloat(el.dataset.fitH)
+                if (!(max > 0)) return
+                const start = parseFloat(getComputedStyle(el).fontSize)
+                let size = start
+                while (el.getBoundingClientRect().height > max && size > MIN) {
+                    size = Math.max(MIN, size - 0.5)
+                    el.style.fontSize = size + 'px'
+                }
+                if (size < start) {
+                    out.push({snippet_id: el.dataset.snippetId || '?',
+                              from: start, to: size,
+                              floored: size <= MIN &&
+                                       el.getBoundingClientRect().height > max})
+                }
+            })
+            return out
+        }""")
+
+        rects = page.evaluate("""() => {
+            // Two rects belong to the same visual line when they overlap
+            // vertically by more than half the shorter one. Superscripts and
+            // different font sizes on one line have different heights, so a
+            // shared-top test is not enough.
+            const sameLine = (a, b) => {
+                const overlap = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top)
+                return overlap > 0.5 * Math.min(a.height, b.height)
+            }
+
+            const out = []
+            document.querySelectorAll('[data-snippet-id]').forEach((el) => {
+                const id = el.dataset.snippetId
+                const text = el.textContent.replace(/\\s+/g, ' ').trim()
+                const label = el.dataset.snippetLabel || ''
+                const cs = getComputedStyle(el)
+                // Its own line-height, so the R1 check below compares a box to
+                // the element that produced it rather than to other snippets.
+                const lh = parseFloat(cs.lineHeight) ||
+                           parseFloat(cs.fontSize) * 1.2
+
+                const range = document.createRange()
+                range.selectNodeContents(el)
+                let rects = Array.from(range.getClientRects())
+                    .filter((r) => r.width >= 1 && r.height >= 1)
+                // No text (a figure, a seal): fall back to the element's own box.
+                if (!rects.length) {
+                    rects = Array.from(el.getClientRects())
+                        .filter((r) => r.width >= 1 && r.height >= 1)
+                }
+                rects.sort((a, b) => a.top - b.top || a.left - b.left)
+
+                const lines = []
+                for (const r of rects) {
+                    const last = lines[lines.length - 1]
+                    if (last && sameLine(last, r)) {
+                        last.top = Math.min(last.top, r.top)
+                        last.bottom = Math.max(last.bottom, r.bottom)
+                        last.left = Math.min(last.left, r.left)
+                        last.right = Math.max(last.right, r.right)
+                        last.height = last.bottom - last.top
+                    } else {
+                        lines.push({top: r.top, bottom: r.bottom,
+                                    left: r.left, right: r.right, height: r.height})
+                    }
+                }
+
+                lines.forEach((r, line) => out.push({
+                    snippet_id: id, line, text, label, line_height: lh,
+                    x: r.left + scrollX, y: r.top + scrollY,
+                    w: r.right - r.left, h: r.bottom - r.top,
+                }))
+            })
+            return out
+        }""")
+        # Reserved areas that hold no text (a photograph's place on the page).
+        # They carry no snippet_id and never reach the participant, but the
+        # collision check below needs them: text landing on a photograph is a
+        # layout failure exactly like text landing on text.
+        regions = page.evaluate("""() => {
+            return [...document.querySelectorAll('.image')].map((el) => {
+                const r = el.getBoundingClientRect()
+                return {kind: 'image', x: r.x + scrollX, y: r.y + scrollY,
+                        w: r.width, h: r.height}
+            })
+        }""")
+
+        doc_title = page.title()
+        # Did anything end up in a fallback face? The spec says to wait for the
+        # webfonts; it does not say how to tell that the wait worked, and a
+        # missing face is invisible -- the page still renders, in other metrics,
+        # with other line breaks, and the boxes measured off it are perfectly
+        # self-consistent, so nothing downstream can notice.
+        #
+        # The question has to be asked per element, not per declared family.
+        # Browsers load a face only when something actually uses it, so a family
+        # declared for image captions on a page with no captions never loads and
+        # never should. What matters is whether the face THIS element asked for
+        # is available.
+        missing_fonts = page.evaluate(r"""() => {
+            const generic = /^(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-\w+)$/i
+            const missing = new Set()
+            document.querySelectorAll('[data-snippet-id]').forEach((el) => {
+                const cs = getComputedStyle(el)
+                const first = cs.fontFamily.split(',')[0].trim()
+                                .replace(/^["']|["']$/g, '')
+                if (!first || generic.test(first)) return
+                const want = `${cs.fontStyle} ${cs.fontWeight} `
+                           + `${parseFloat(cs.fontSize)}px "${first}"`
+                if (!document.fonts.check(want)) missing.add(first)
+            })
+            return [...missing]
+        }""")
+
+        page.screenshot(path=str(out_png), full_page=True)
+        page.close()
+
+    fragments = []
+    for r in rects:
+        x, y, w, h = r["x"] * scale, r["y"] * scale, r["w"] * scale, r["h"] * scale
+        fragments.append({
+            "snippet_id": r["snippet_id"],
+            "line": r["line"],
+            "text": r["text"],
+            "label": r["label"],
+            "height": h,
+            "line_height": r["line_height"] * scale,
+            "quad": [[x, y], [x + w, y], [x + w, y + h], [x, y + h]],
+        })
+    boxes = []
+    for r in regions:
+        x, y, w, h = r["x"] * scale, r["y"] * scale, r["w"] * scale, r["h"] * scale
+        boxes.append({"kind": r["kind"],
+                      "quad": [[x, y], [x + w, y], [x + w, y + h], [x, y + h]]})
+
+    return {"fragments": fragments, "regions": boxes, "doc_title": doc_title,
+            "fonts_missing": sorted(missing_fonts), "crowded": crowded}
+
+
+def check_lines(fragments: List[Dict[str, Any]]) -> List[str]:
+    """R1, mechanically: a line box is one line tall.
+
+    This is the check that would have caught measuring blocks instead of lines.
+    A box holding n lines comes out about n times its element's own line-height,
+    and comparing each box to the element that produced it means a 60px title and
+    a 10px footnote are both judged correctly. 1.8 leaves room for a tall glyph
+    or an inline image without admitting a two-line box.
+    """
+    problems = []
+    for frag in fragments:
+        limit = frag["line_height"] * 1.8
+        if limit > 0 and frag["height"] > limit:
+            problems.append(
+                f"R1 {frag['snippet_id']} line {frag['line']}: box is "
+                f"{frag['height']:.0f}px against a line-height of "
+                f"{frag['line_height']:.0f}px -- this is a block box, not a line")
+    return problems
+
+
+# ---------------------------------------------------------------------------
+# 2. Geometry. Everything here goes into H; nothing else may.
+# ---------------------------------------------------------------------------
+
+def h_rotate(deg: float, w: int, h: int):
+    import cv2
+    import numpy as np
+    m = cv2.getRotationMatrix2D((w / 2, h / 2), deg, 1.0)
+    return np.vstack([m, [0, 0, 1]]).astype(np.float64)
+
+
+def h_perspective(w: int, h: int, jitter: float, rng):
+    """Small corner jitter: paper not lying flat, or a photo taken by hand."""
+    import cv2
+    import numpy as np
+    src = np.float32([[0, 0], [w, 0], [w, h], [0, h]])
+    d = jitter * min(w, h)
+    dst = src + rng.uniform(-d, d, src.shape).astype(np.float32)
+    return cv2.getPerspectiveTransform(src, dst).astype(np.float64)
+
+
+def warp(img, level: str, rng) -> tuple:
+    """Apply the geometric layer. Returns (image, H) -- the same H the points use."""
+    import cv2
+    h, w = img.shape[:2]
+    max_deg, jitter, _, _ = SCAN_LEVELS[level]
+    matrix = h_perspective(w, h, jitter, rng) @ h_rotate(rng.uniform(-max_deg, max_deg), w, h)
+    out = cv2.warpPerspective(
+        img, matrix, (w, h),
+        flags=cv2.INTER_CUBIC,
+        borderMode=cv2.BORDER_CONSTANT,
+        borderValue=(252, 250, 246),
+    )
+    return out, matrix
+
+
+def weather(img, level: str, rng):
+    """The photometric layer: paper tone, uneven light, sensor noise, focus,
+    compression. R2 -- none of it moves a pixel, so no coordinate changes and
+    none of it has to be reasoned about when checking a box."""
+    import cv2
+    import numpy as np
+    _, _, noise, quality = SCAN_LEVELS[level]
+    h, w = img.shape[:2]
+
+    yy, xx = np.mgrid[0:h, 0:w]
+    vignette = 1.0 - 0.10 * (((xx - w / 2) / (w / 2)) ** 2 + ((yy - h / 2) / (h / 2)) ** 2)
+    out = (img.astype(np.float32) * vignette[..., None]).clip(0, 255)
+    out = (out * np.array([0.985, 0.995, 1.0], dtype=np.float32)).clip(0, 255).astype(np.uint8)
+
+    out = (out.astype(np.int16)
+           + rng.normal(0, noise, out.shape).astype(np.int16)).clip(0, 255).astype(np.uint8)
+    out = cv2.GaussianBlur(out, (3, 3), 0.5)
+
+    ok, enc = cv2.imencode(".jpg", out, [cv2.IMWRITE_JPEG_QUALITY, quality])
+    return cv2.imdecode(enc, cv2.IMREAD_COLOR) if ok else out
+
+
+def transform(matrix, quad: List[List[float]]) -> List[List[float]]:
+    import cv2
+    import numpy as np
+    pts = np.array(quad, dtype=np.float64).reshape(-1, 1, 2)
+    return cv2.perspectiveTransform(pts, matrix).reshape(-1, 2).tolist()
+
+
+def aabb(quads: List[List[List[float]]]) -> List[float]:
+    import numpy as np
+    pts = np.array([p for q in quads for p in q])
+    return [float(pts[:, 0].min()), float(pts[:, 1].min()),
+            float(pts[:, 0].max()), float(pts[:, 1].max())]
+
+
+# ---------------------------------------------------------------------------
+# 3. Acceptance (spec §7). V3, V4 and V6 run here; V1 is CHECK.png, by eye.
+# ---------------------------------------------------------------------------
+
+ANSWER_KEY_FIELDS = ("planted_id", "distractor", "source_says", "text_clean")
+
+
+def _overlap(a: List[float], b: List[float]) -> float:
+    """Shared area as a fraction of the smaller box. 0 when they do not touch."""
+    x1, y1 = max(a[0], b[0]), max(a[1], b[1])
+    x2, y2 = min(a[2], b[2]), min(a[3], b[3])
+    if x2 <= x1 or y2 <= y1:
+        return 0.0
+    areas = ((a[2] - a[0]) * (a[3] - a[1]), (b[2] - b[0]) * (b[3] - b[1]))
+    smaller = min(areas)
+    return ((x2 - x1) * (y2 - y1) / smaller) if smaller > 0 else 0.0
+
+
+# A little contact is normal -- a descender reaching into the line below, a
+# heading's box brushing the rule under it. A quarter of the smaller box is not.
+COLLISION = 0.25
+
+
+def check_layout(manifest: Dict[str, Any]) -> List[str]:
+    """Nothing may be printed on top of anything else.
+
+    The blocks are pinned at the source document's coordinates but re-typeset,
+    so a block that ends up taller than the rectangle it was given does not
+    overflow into empty space -- it lands on whatever comes next. On a set this
+    size that cannot be caught by looking; a heading that has swallowed the line
+    beneath it is still perfectly legible in isolation, and the CHECK image
+    shows two boxes that each look right.
+    """
+    problems = []
+    items = ([(s["snippet_id"], s["bbox_norm"]) for s in manifest["snippets"]]
+             + [(f"[{r['kind']}]", r["bbox_norm"]) for r in manifest.get("regions", [])])
+
+    for i, (name_a, box_a) in enumerate(items):
+        for name_b, box_b in items[i + 1:]:
+            share = _overlap(box_a, box_b)
+            if share > COLLISION:
+                problems.append(
+                    f"layout {manifest['exhibit']} p{manifest['page']}: "
+                    f"{name_a} and {name_b} overlap by {share:.0%} of the smaller "
+                    f"-- one is printed on top of the other")
+    return problems
+
+
+def check(manifest: Dict[str, Any], expected_ids: set) -> List[str]:
+    problems = []
+
+    # V3: every box inside the page, and the right way round.
+    for snip in manifest["snippets"]:
+        x1, y1, x2, y2 = snip["bbox_norm"]
+        if not (0 <= x1 < x2 <= NORM and 0 <= y1 < y2 <= NORM):
+            problems.append(f"V3 {snip['snippet_id']}: bbox outside 0-1000 or inverted: "
+                            f"{[round(v, 1) for v in snip['bbox_norm']]}")
+
+    # V4: everything the template promised actually rendered. A snippet that
+    # silently failed to draw would leave an argument citing nothing.
+    got = {s["snippet_id"] for s in manifest["snippets"]}
+    for missing in sorted(expected_ids - got):
+        problems.append(f"V4 {missing}: declared in the template but not measured")
+
+    # V6: the answer key is not in a render artefact. It never should be -- this
+    # pipeline does not read planted.json -- which is exactly why it is worth
+    # asserting: the check costs nothing and catches a future careless join.
+    blob = json.dumps(manifest, ensure_ascii=False)
+    for field in ANSWER_KEY_FIELDS:
+        if field in blob:
+            problems.append(f"V6: {field!r} appears in the render manifest")
+
+    return problems
+
+
+# ---------------------------------------------------------------------------
+# 4. One page, end to end
+# ---------------------------------------------------------------------------
+
+def build_page(html: Path, out_dir: Path, exhibit: str, page: int,
+               level: str, seed: int, width: int, scale: int,
+               browser=None, keep_clean: bool = False) -> tuple:
+    import cv2
+    import numpy as np
+    pages_dir = out_dir / "pages" / exhibit
+    man_dir = out_dir / "exhibits" / exhibit
+    pages_dir.mkdir(parents=True, exist_ok=True)
+    man_dir.mkdir(parents=True, exist_ok=True)
+
+    clean_png = man_dir / f"{page}.clean.png"
+    measured = measure(html, clean_png, width, scale, browser)
+
+    img = cv2.imread(str(clean_png))
+    if img is None:
+        raise SystemExit(f"nothing rendered for {exhibit} p{page}")
+    h, w = img.shape[:2]
+
+    rng = np.random.default_rng(seed)
+    warped, matrix = warp(img, level, rng)
+    scanned = weather(warped, level, rng)
+
+    out_jpg = pages_dir / f"{page}.jpg"
+    cv2.imwrite(str(out_jpg), scanned, [cv2.IMWRITE_JPEG_QUALITY, 88])
+
+    # Line fragments first, then one union box per snippet: the viewer highlights
+    # a snippet, the analysis reasons about its lines (spec §8).
+    by_id: Dict[str, List[Dict[str, Any]]] = {}
+    for frag in measured["fragments"]:
+        moved = transform(matrix, frag["quad"])
+        by_id.setdefault(frag["snippet_id"], []).append({
+            "line": frag["line"],
+            "text": frag["text"],
+            "label": frag["label"],
+            "quad_px": moved,
+        })
+
+    def norm_quad(quad):
+        return [[x / w * NORM, y / h * NORM] for x, y in quad]
+
+    snippets = []
+    for snippet_id, frags in by_id.items():
+        frags.sort(key=lambda f: f["line"])
+        union = aabb([f["quad_px"] for f in frags])
+        snippets.append({
+            "snippet_id": snippet_id,
+            "exhibit": exhibit,
+            "page": page,
+            "text": frags[0]["text"],
+            "label": frags[0]["label"],
+            # The union of every line, for the highlight the viewer draws.
+            "bbox_norm": [union[0] / w * NORM, union[1] / h * NORM,
+                          union[2] / w * NORM, union[3] / h * NORM],
+            # Per line, exact after rotation, for adjacency and for analysis.
+            "lines": [{"line": f["line"], "quad_norm": norm_quad(f["quad_px"])}
+                      for f in frags],
+        })
+
+    regions = []
+    for region in measured["regions"]:
+        rq = transform(matrix, region["quad"])
+        box = aabb([rq])
+        regions.append({
+            "kind": region["kind"],
+            "bbox_norm": [box[0] / w * NORM, box[1] / h * NORM,
+                          box[2] / w * NORM, box[3] / h * NORM],
+        })
+
+    manifest = {
+        "schema_version": 1,
+        "exhibit": exhibit,
+        "page": page,
+        "doc_title": measured["doc_title"],
+        "fonts_missing": measured["fonts_missing"],
+        "page_px": [w, h],
+        "scan_level": level,
+        "seed": seed,
+        # R5. Not for reproduction -- for diagnosis. When a box looks wrong,
+        # having H is the difference between "the render is off" and "the
+        # transform is off", which are fixed in different places.
+        "homography": matrix.tolist(),
+        "coordinate_convention": "normalized 0-1000, origin top-left",
+        "provenance": "rendered-from-html; bbox measured from DOM, never OCR'd",
+        "snippets": sorted(snippets, key=lambda s: s["snippet_id"]),
+        "regions": regions,
+    }
+    (man_dir / f"{page}.json").write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    # V1: the boxes drawn back onto the scanned page. The spec calls this the
+    # most important check and says a person has to look at it -- a coordinate
+    # that survives every arithmetic check can still sit on the wrong sentence.
+    overlay = scanned.copy()
+    for snip in manifest["snippets"]:
+        for line in snip["lines"]:
+            pts = np.array([[x / NORM * w, y / NORM * h] for x, y in line["quad_norm"]],
+                           np.int32)
+            cv2.polylines(overlay, [pts], True, (0, 0, 255), 2)
+        x1, y1, x2, y2 = snip["bbox_norm"]
+        cv2.rectangle(overlay, (int(x1 / NORM * w), int(y1 / NORM * h)),
+                      (int(x2 / NORM * w), int(y2 / NORM * h)), (255, 128, 0), 1)
+    # JPEG, not PNG: this image exists to be looked at once, and a set of them
+    # in PNG runs to a quarter of a gigabyte. Compression artefacts cannot hide
+    # a misplaced box.
+    cv2.imwrite(str(man_dir / f"{page}.CHECK.jpg"), overlay,
+                [cv2.IMWRITE_JPEG_QUALITY, 88])
+
+    if not keep_clean:
+        # The unwarped render is an intermediate, and at ~1.5 MB a page a set of
+        # them outweighs everything else the build produces. Re-rendering is
+        # cheap and deterministic, so keeping them buys nothing.
+        clean_png.unlink(missing_ok=True)
+
+    # R1 is judged on the layout, before the warp: line-height is a typographic
+    # quantity, and comparing against it is cleaner than after a perspective.
+    floored = [c for c in measured["crowded"] if c["floored"]]
+    if floored:
+        # Not a failure: the box recorded is still exactly where the words are.
+        # It does mean this block's replacement text is too long for the space
+        # the source document had, which is worth knowing when a page looks
+        # cramped.
+        print(f"    {exhibit} p{page}: {len(floored)} block(s) hit the minimum "
+              f"size and still overflow their source rectangle")
+
+    return manifest, check_lines(measured["fragments"]) + check_layout(manifest)
+
+
+def declared_ids(html: Path) -> set:
+    text = html.read_text(encoding="utf-8")
+    import re
+    return set(re.findall(r'data-snippet-id\s*=\s*"([^"]+)"', text))
+
+
+# ---------------------------------------------------------------------------
+# 5. A whole set, and the two files the rest of the repo actually reads
+# ---------------------------------------------------------------------------
+
+def build_set(spec_path: Path, out_dir: Path, scale: int,
+              keep_clean: bool = False) -> int:
+    """Render every page named by a spec and emit a bundle.
+
+    A spec is one file listing the exhibits and their pages:
+
+        {"exhibits": [
+          {"id": "C-1", "title": "...", "scan": "light",
+           "pages": ["c1_p1.html", "c1_p2.html"]}
+        ]}
+
+    Scan level is per exhibit rather than per bundle, because a real file has
+    documents from different sources: a memo printed yesterday should not carry
+    the same wear as a certificate photocopied three times (spec §6).
+    """
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    root = spec_path.parent
+
+    exhibits, snippets, sizes = [], {}, {}
+    problems: List[str] = []
+
+    from playwright.sync_api import sync_playwright
+
+    with sync_playwright() as pw, _closing(pw.chromium.launch()) as chrome:
+        _render_all(spec, root, out_dir, scale, chrome,
+                    exhibits, snippets, sizes, problems, keep_clean)
+
+    if problems:
+        raise SystemExit("acceptance failed:\n  " + "\n  ".join(problems))
+
+    return _write_bundle(out_dir, scale, exhibits, snippets, sizes)
+
+
+@contextmanager
+def _closing(browser):
+    try:
+        yield browser
+    finally:
+        browser.close()
+
+
+def _render_all(spec, root, out_dir, scale, chrome,
+                exhibits, snippets, sizes, problems, keep_clean) -> None:
+    for ex in spec["exhibits"]:
+        exhibit_id = ex["id"]
+        pages = []
+        for page_no, entry in enumerate(ex["pages"], start=1):
+            # A page is either a filename or {"html": ..., "scan": ...}. The
+            # second form exists because wear belongs to the page, not the
+            # exhibit: an exhibit's slip sheet and the document behind it did
+            # not come off the same machine.
+            if isinstance(entry, str):
+                entry = {"html": entry}
+            level = entry.get("scan") or ex.get("scan", "medium")
+            html = root / entry["html"]
+            # Seed from the exhibit and page, so a page re-renders identically
+            # and no two pages share a skew. crc32, not hash(): PYTHONHASHSEED
+            # randomises string hashing per process, which would make the seed
+            # recorded in the manifest a number that reproduces nothing.
+            seed = (zlib.crc32(f"{exhibit_id}:{page_no}".encode()) % 10_000
+                    if ex.get("seed") is None else ex["seed"] + page_no)
+            manifest, page_problems = build_page(
+                html, out_dir, exhibit_id, page_no, level, seed,
+                ex.get("width", 1000), scale, chrome, keep_clean)
+            problems += page_problems
+            problems += check(manifest, declared_ids(html))
+            for family in manifest["fonts_missing"]:
+                problems.append(
+                    f"font {exhibit_id} p{page_no}: text asks for {family!r} but "
+                    f"the face is not available, so it was laid out in a fallback")
+
+            w, h = manifest["page_px"]
+            pages.append({"page": page_no, "w": w, "h": h})
+            want = spec.get("page_aspect")
+            if want and abs(h / w - want) > 0.01:
+                problems.append(
+                    f"aspect {exhibit_id} p{page_no}: rendered {h / w:.3f}, "
+                    f"spec says {want:.3f} -- the template's page box drifted")
+            for snip in manifest["snippets"]:
+                x1, y1, x2, y2 = snip["bbox_norm"]
+                snippets[snip["snippet_id"]] = {
+                    "snippet_id": snip["snippet_id"],
+                    "exhibit": exhibit_id,
+                    "page": page_no,
+                    # Rounded to whole units of a 1000-space: a third of a
+                    # pixel of a highlight, and it keeps the file diffable.
+                    "bbox": [round(x1), round(y1), round(x2), round(y2)],
+                    "label": snip["label"] or snip["text"][:60],
+                    "text": snip["text"],
+                    "doc_title": manifest["doc_title"],
+                }
+            print(f"  {exhibit_id} p{page_no}: {len(manifest['snippets'])} snippets, "
+                  f"{sum(len(s['lines']) for s in manifest['snippets'])} line boxes, "
+                  f"scan={level}")
+
+        exhibits.append({"id": exhibit_id, "pages": len(pages),
+                         "title": ex.get("title", exhibit_id)})
+        sizes[exhibit_id] = {"pages": pages}
+
+
+def _write_bundle(out_dir: Path, scale: int, exhibits, snippets, sizes) -> int:
+    """The two files the rest of the repo reads."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "snippets.json").write_text(json.dumps({
+        "schema_version": 1,
+        "bbox_space": 1000,
+        # The other bundles say the boxes came from OCR. These did not, and the
+        # difference matters to anyone debugging a highlight: there is no
+        # recognition step here that could have misread anything.
+        "_comment": ("bbox is normalised to a 1000x1000 space (red line #8), not "
+                     "pixels. Measured from the DOM at render time, not OCR'd: "
+                     "per-page homography and line boxes are in exhibits/<EX>/<page>.json."),
+        "exhibits": exhibits,
+        "snippets": snippets,
+    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    index = out_dir / "pages" / "index.json"
+    index.parent.mkdir(parents=True, exist_ok=True)
+    index.write_text(json.dumps({
+        "schema_version": 1,
+        "target_width": 1000 * scale,
+        "exhibits": sizes,
+    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    total_pages = sum(e["pages"] for e in exhibits)
+    print(f"\n{len(exhibits)} exhibits, {total_pages} pages, {len(snippets)} snippets "
+          f"-> {out_dir}")
+    print("  no OCR anywhere in this path; every box came off the DOM")
+    print(f"  check by eye: {out_dir / 'exhibits'}/*/*.CHECK.jpg")
+    return 0
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    src = ap.add_mutually_exclusive_group(required=True)
+    src.add_argument("--spec", type=Path, help="a whole exhibit set")
+    src.add_argument("--html", type=Path, help="a single page")
+    ap.add_argument("--out", required=True, type=Path, help="bundle directory")
+    ap.add_argument("--exhibit", help="with --html")
+    ap.add_argument("--page", type=int, default=1, help="with --html")
+    ap.add_argument("--scan", default="medium", choices=list(SCAN_LEVELS))
+    ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--width", type=int, default=1000, help="CSS px")
+    ap.add_argument("--scale", type=int, default=2, help="deviceScaleFactor")
+    ap.add_argument("--keep-clean", action="store_true",
+                    help="keep the unwarped render of each page")
+    args = ap.parse_args()
+
+    if args.spec:
+        return build_set(args.spec, args.out, args.scale, args.keep_clean)
+
+    if not args.exhibit:
+        ap.error("--html needs --exhibit")
+
+    manifest, problems = build_page(args.html, args.out, args.exhibit, args.page,
+                                    args.scan, args.seed, args.width, args.scale,
+                                    None, args.keep_clean)
+    problems += check(manifest, declared_ids(args.html))
+    if problems:
+        raise SystemExit("acceptance failed:\n  " + "\n  ".join(problems))
+
+    lines = sum(len(s["lines"]) for s in manifest["snippets"])
+    print(f"{args.exhibit} p{args.page}: {len(manifest['snippets'])} snippets, "
+          f"{lines} line boxes, {manifest['page_px'][0]}x{manifest['page_px'][1]}px, "
+          f"scan={args.scan}")
+    print(f"  check by eye: exhibits/{args.exhibit}/{args.page}.CHECK.jpg")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

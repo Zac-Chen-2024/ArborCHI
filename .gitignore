@@ -85,12 +85,14 @@ backend/.venv/
 
 # Material bundles built from a real person's petition file.
 #
-# study_materials/judging_v1 is derived from data/Dehuan Liu. Every exhibit in
-# it is published material -- that is why exhibit group C was the one chosen --
-# but it is still a named individual's immigration case assembled in one place,
-# and this repository is public. The build is reproducible from the source
-# corpus (backend/scripts/build_case_bundle.py), so nothing is lost by keeping
-# it out; putting it in cannot be undone.
+# study_materials/judging_v1 is derived from a real filing under data/, which is
+# itself untracked. Every exhibit in it is published material -- that is why
+# exhibit group C was the one chosen -- but it is still a named individual's
+# immigration case assembled in one place, and this repository is public. The
+# build is reproducible from the source corpus
+# (backend/scripts/build_case_bundle.py), so nothing is lost by keeping it out;
+# putting it in cannot be undone. This comment does not name the petitioner, for
+# the same reason.
 backend/study_materials/judging_v1/
 
 # Captured session figures. They photograph the real exhibit pages -- the same
@@ -98,3 +100,12 @@ backend/study_materials/judging_v1/
 # backend/scripts/capture_flow.py; the page that embeds them is built by
 # backend/scripts/build_walkthrough_page.py, both of which ARE tracked.
 docs/figures/flow/
+
+# Rendered exhibit images. The pages are already covered by the study_materials
+# pages/ rule above; these are the verification overlays and the unwarped
+# intermediates, which are large, regenerable, and only ever looked at by a
+# person. The manifests beside them (page.json, with the homography and the
+# line boxes) ARE tracked -- they are the bboxes, and they are the whole point
+# of not having to run OCR.
+/backend/study_materials/*/exhibits/**/*.png
+/backend/study_materials/*/exhibits/**/*.jpg

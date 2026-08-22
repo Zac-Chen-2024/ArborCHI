@@ -1,0 +1,506 @@
+{
+  "schema_version": 1,
+  "exhibit": "C-5",
+  "page": 2,
+  "doc_title": "LUMEN Optics Won the Silver Award in the Marketing Case Category of the 9thBlue Lantern Awards",
+  "fonts_missing": [],
+  "page_px": [
+    2000,
+    2606
+  ],
+  "scan_level": "light",
+  "seed": 869,
+  "homography": [
+    [
+      0.9973712620788078,
+      -0.00418419826485797,
+      5.367635930917012
+    ],
+    [
+      0.002299050828342099,
+      0.997881252242881,
+      -3.3714660192388073
+    ],
+    [
+      -8.417050877104613e-07,
+      -9.740700361190681e-07,
+      0.9999995393988266
+    ]
+  ],
+  "coordinate_convention": "normalized 0-1000, origin top-left",
+  "provenance": "rendered-from-html; bbox measured from DOM, never OCR'd",
+  "snippets": [
+    {
+      "snippet_id": "C-5_p2_p2_b0",
+      "exhibit": "C-5",
+      "page": 2,
+      "text": "Translation",
+      "label": "text: Translation",
+      "bbox_norm": [
+        99.15496912175347,
+        42.302211444014056,
+        162.27479008743288,
+        54.67795347857331
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              99.21884312308579,
+              42.302211444014056
+            ],
+            [
+              162.27479008743288,
+              42.41824515776226
+            ],
+            [
+              162.2128755676376,
+              54.67795347857331
+            ],
+            [
+              99.15496912175347,
+              54.56061167752849
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p2_p2_b1",
+      "exhibit": "C-5",
+      "page": 2,
+      "text": "LUMEN Optics Won the Silver Award in the Marketing Case Category of the 9th Blue Lantern Awards - Newswire Asia",
+      "label": "text: LUMEN Optics Won the Silver Award in the Marketing Case Cate",
+      "bbox_norm": [
+        118.89225313609377,
+        64.33112233929874,
+        863.5669773568799,
+        97.33744800472779
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              119.06227590429602,
+              64.33112233929874
+            ],
+            [
+              863.5669773568799,
+              65.72876848125902
+            ],
+            [
+              863.5193634226999,
+              80.30616807801708
+            ],
+            [
+              118.98715307882534,
+              78.89017805823804
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              118.96738298953375,
+              82.7216877194019
+            ],
+            [
+              147.59835282303357,
+              82.77632470577893
+            ],
+            [
+              147.52427963094357,
+              97.33744800472779
+            ],
+            [
+              118.89225313609377,
+              97.28210548238043
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p2_p2_b2",
+      "exhibit": "C-5",
+      "page": 2,
+      "text": "Languages Register Log in Send a Release Media Monitoring",
+      "label": "text: Languages Register Log in Send a Release Media Monitoring",
+      "bbox_norm": [
+        98.77719523669549,
+        110.19989267366272,
+        551.8277858545779,
+        127.95957060741267
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              98.86505335454284,
+              110.19989267366272
+            ],
+            [
+              551.8277858545779,
+              111.08532325259544
+            ],
+            [
+              551.7592985000392,
+              127.95957060741267
+            ],
+            [
+              98.77719523669549,
+              127.06121261404266
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p2_p2_b3",
+      "exhibit": "C-5",
+      "page": 2,
+      "text": "Newswire Asia Product & Service News Center Resource Library Contact Us Search",
+      "label": "text: Newswire Asia Product & Service News Center Resource Library",
+      "bbox_norm": [
+        98.50121683737757,
+        163.15983681360626,
+        727.0240146890376,
+        181.3282430323596
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              98.5890986232473,
+              163.15983681360626
+            ],
+            [
+              727.0240146890376,
+              164.44443823999077
+            ],
+            [
+              726.9630192498186,
+              181.3282430323596
+            ],
+            [
+              98.50121683737757,
+              180.02569901038325
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p2_p2_b4",
+      "exhibit": "C-5",
+      "page": 2,
+      "text": "Overview Latest News Special Topic Industry Region Headline News of Newswire Asia Multimedia News Listed Company News",
+      "label": "text: Overview Latest News Special Topic Industry Region Headline ",
+      "bbox_norm": [
+        98.10927718001668,
+        218.13493718207675,
+        862.6103346439099,
+        255.60409196887224
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              98.30264365626246,
+              218.13493718207675
+            ],
+            [
+              862.6103346439099,
+              219.7681887227678
+            ],
+            [
+              862.5551397535174,
+              236.66059775386023
+            ],
+            [
+              98.21473729841662,
+              235.0055151178309
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              98.19719258427222,
+              238.37261477463144
+            ],
+            [
+              261.48109337410244,
+              238.72711326907782
+            ],
+            [
+              261.40015958234846,
+              255.60409196887224
+            ],
+            [
+              98.10927718001668,
+              255.24492885511796
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p2_p2_b5",
+      "exhibit": "C-5",
+      "page": 2,
+      "text": "LUMEN Optics Won the Silver Award in the Marketing Case Category of the 9thBlue Lantern Awards",
+      "label": "sub_title: LUMEN Optics Won the Silver Award in the Marketing Case Cate",
+      "bbox_norm": [
+        100.6597420646071,
+        292.30876966248223,
+        857.2844137515864,
+        341.4104676239861
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              100.9115341458884,
+              292.30876966248223
+            ],
+            [
+              857.2844137515864,
+              294.0197354496396
+            ],
+            [
+              857.2088212797441,
+              317.0636998531872
+            ],
+            [
+              100.79178938185643,
+              315.3232558734131
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              100.77950227761436,
+              317.6847903708705
+            ],
+            [
+              402.9385234622646,
+              318.38123386095486
+            ],
+            [
+              402.83638897556375,
+              341.4104676239861
+            ],
+            [
+              100.6597420646071,
+              340.70224581583653
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p2_p2_b6",
+      "exhibit": "C-5",
+      "page": 2,
+      "text": "LUMEN Sep. 15, 2023 15:54 View: 2,585 Share to:",
+      "label": "text: LUMEN Sep. 15, 2023 15:54 View: 2,585 Share to:",
+      "bbox_norm": [
+        100.37101244545339,
+        377.77560128027744,
+        529.5189799841911,
+        397.24078880705724
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              100.46684876421904,
+              377.77560128027744
+            ],
+            [
+              529.5189799841911,
+              378.8080288780033
+            ],
+            [
+              529.4431729672027,
+              397.24078880705724
+            ],
+            [
+              100.37101244545339,
+              396.19497564348137
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p2_p2_b7",
+      "exhibit": "C-5",
+      "page": 2,
+      "text": "To Build a New Vision for Games & Empower the New Future of Esports Optics",
+      "label": "sub_title: To Build a New Vision for Games & Empower the New Future of ",
+      "bbox_norm": [
+        180.97575818718957,
+        438.47157563949895,
+        865.0508185374633,
+        458.6361814395442
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              181.06784825921284,
+              438.47157563949895
+            ],
+            [
+              865.0508185374633,
+              440.1872687372179
+            ],
+            [
+              864.9906860359165,
+              458.6361814395442
+            ],
+            [
+              180.97575818718957,
+              456.89913955518324
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p2_p2_b8",
+      "exhibit": "C-5",
+      "page": 2,
+      "text": "Guangzhou Sep. 15, 2023 / Newswire Asia / -- The Award Ceremony of 9th Blue Lantern Award was held in Beijing on Sep. 12, 2023. Selected project of LUMEN Optics - LUMEN \\times RX Esports Club: To Empower the New Future of Esports Optics stood out from over 3,200 case works submitted by brand owners, agencies, media advertising, technology companies, and other altogether more than 640 participating companies to win the Silver Award in the Marketing Case Category.",
+      "label": "text: Guangzhou Sep. 15, 2023 / Newswire Asia / -- The Award Cerem",
+      "bbox_norm": [
+        101.30507708800425,
+        497.0816336835927,
+        884.6180837817676,
+        602.6113505953872
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              101.8440756299185,
+              497.0816336835927
+            ],
+            [
+              879.8356197433432,
+              499.11034689107953
+            ],
+            [
+              879.7786471182063,
+              516.7962597690678
+            ],
+            [
+              101.75226631485877,
+              514.7442650058567
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              101.73230667778239,
+              518.5841772280172
+            ],
+            [
+              884.6180837817676,
+              520.6540615635503
+            ],
+            [
+              884.5613224764704,
+              538.3420546344468
+            ],
+            [
+              101.64048733124046,
+              536.2487384456462
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              101.6205255132284,
+              540.0890702446578
+            ],
+            [
+              869.6173279239227,
+              542.1474609400077
+            ],
+            [
+              869.5598908556983,
+              559.8369423552635
+            ],
+            [
+              101.52869613356006,
+              557.7555616739719
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              101.5087321342548,
+              561.5963131186072
+            ],
+            [
+              875.6048244929757,
+              563.6991471672291
+            ],
+            [
+              875.547652772511,
+              581.3907454879416
+            ],
+            [
+              101.41689271981546,
+              579.2647350759961
+            ]
+          ]
+        },
+        {
+          "line": 4,
+          "quad_norm": [
+            [
+              101.39692653885949,
+              583.1059062350432
+            ],
+            [
+              760.8502759438219,
+              584.9212506060535
+            ],
+            [
+              760.7879558227921,
+              602.6113505953872
+            ],
+            [
+              101.30507708800425,
+              600.7762590369654
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": []
+}

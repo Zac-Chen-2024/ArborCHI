@@ -1,0 +1,513 @@
+{
+  "schema_version": 1,
+  "exhibit": "C-3",
+  "page": 9,
+  "doc_title": "Final Review of the 9th Blue Lantern Award Ended Successfully",
+  "fonts_missing": [],
+  "page_px": [
+    2000,
+    2606
+  ],
+  "scan_level": "light",
+  "seed": 6511,
+  "homography": [
+    [
+      1.0013172039441978,
+      -0.002322899678197547,
+      3.6729812865611633
+    ],
+    [
+      0.0013939622087923644,
+      1.0025672183555965,
+      -0.5241786806164548
+    ],
+    [
+      4.674363475985439e-07,
+      9.343602733015477e-07,
+      0.9999991184847881
+    ]
+  ],
+  "coordinate_convention": "normalized 0-1000, origin top-left",
+  "provenance": "rendered-from-html; bbox measured from DOM, never OCR'd",
+  "snippets": [
+    {
+      "snippet_id": "C-3_p9_p9_b0",
+      "exhibit": "C-3",
+      "page": 9,
+      "text": "Translation",
+      "label": "text: Translation",
+      "bbox_norm": [
+        116.78266845973728,
+        46.76264811265822,
+        173.76454552970085,
+        58.357664112442166
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              116.82077706772839,
+              46.76264811265822
+            ],
+            [
+              173.76454552970085,
+              46.8210072009303
+            ],
+            [
+              173.72484324938662,
+              58.357664112442166
+            ],
+            [
+              116.78266845973728,
+              58.29992008998411
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p9_p9_b1",
+      "exhibit": "C-3",
+      "page": 9,
+      "text": "Final Review of the 9th Blue Lantern Award Ended Successfully! _ Review _ Case _ Process",
+      "label": "text: Final Review of the 9th Blue Lantern Award Ended Successfull",
+      "bbox_norm": [
+        166.74372970672064,
+        67.66370590329615,
+        789.0372955676133,
+        83.66094489618946
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              166.79640290836798,
+              67.66370590329615
+            ],
+            [
+              789.0372955676133,
+              68.28929778389107
+            ],
+            [
+              788.9614188480596,
+              83.66094489618946
+            ],
+            [
+              166.74372970672064,
+              83.044312808582
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p9_p9_b3",
+      "exhibit": "C-3",
+      "page": 9,
+      "text": "In the end of the opening ceremony, the summative speech of Chairman Yanshu Wei made it clearer to all attendees of the responsibilities and faiths needed in the era of digital economy to bring mutual assistance between the competition platform and quality content, to constantly output high- quality innovative content, to shoulder the responsibility and mission of the development of digital economy, and to explore brand new growth point of market- oriented economy in the broad environment.",
+      "label": "text: In the end of the opening ceremony, the summative speech of ",
+      "bbox_norm": [
+        102.49901395637035,
+        341.98760340509773,
+        888.1810956055671,
+        447.2864467657589
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              102.84191769915417,
+              341.98760340509773
+            ],
+            [
+              878.5864682870633,
+              342.56877583465103
+            ],
+            [
+              878.4954337095556,
+              360.2210277742994
+            ],
+            [
+              102.78412680354819,
+              359.6526752142892
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              102.77062203793676,
+              363.7807070052921
+            ],
+            [
+              888.1810956055671,
+              364.35313865156553
+            ],
+            [
+              888.0896550129478,
+              382.00336145694786
+            ],
+            [
+              102.71283726476071,
+              381.4439073576869
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              102.69933392982088,
+              385.57150183212366
+            ],
+            [
+              874.2264381413192,
+              386.11811672253566
+            ],
+            [
+              874.1355999094359,
+              403.76669979034097
+            ],
+            [
+              102.64155527810189,
+              403.23283102510226
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              102.62805337360628,
+              407.3599882524621
+            ],
+            [
+              887.0504448615183,
+              407.8997804437768
+            ],
+            [
+              886.9590623765196,
+              425.5462816682793
+            ],
+            [
+              102.57028084237166,
+              425.01944658334185
+            ]
+          ]
+        },
+        {
+          "line": 4,
+          "quad_norm": [
+            [
+              102.55678036809302,
+              429.1461666330991
+            ],
+            [
+              843.6988924399265,
+              429.64109925918876
+            ],
+            [
+              843.6093708879362,
+              447.2864467657589
+            ],
+            [
+              102.49901395637035,
+              446.8037543991346
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p9_p9_b4",
+      "exhibit": "C-3",
+      "page": 9,
+      "text": "Considering the enthusiastic participation of 76 judges for final review, he further conveyed his sentiment and concerns, and shared with all attendees his key ideas in normalized pandemic.",
+      "label": "text: Considering the enthusiastic participation of 76 judges for ",
+      "bbox_norm": [
+        105.17603563363944,
+        503.8344777149556,
+        882.24544651153,
+        545.7738558618255
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              105.31214178492027,
+              503.8344777149556
+            ],
+            [
+              882.24544651153,
+              504.299130329381
+            ],
+            [
+              882.1503280665821,
+              522.7042807284284
+            ],
+            [
+              105.25175160897456,
+              522.2530100285002
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              105.23641902697973,
+              526.9293278649503
+            ],
+            [
+              870.6289703063136,
+              527.370573107488
+            ],
+            [
+              870.5343760554633,
+              545.7738558618255
+            ],
+            [
+              105.17603563363944,
+              545.3457915367793
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p9_p9_b5",
+      "exhibit": "C-3",
+      "page": 9,
+      "text": "\"Judges for the final review of Blue Lantern Award are benchmark and leading figures of the smart retail industry. Based on the review of this competition, on the one hand, I hope you can find quality content from the cases, and explore methodology leading the healthy development of the industry; on the other hand, I hope you could have a restricted view of the review to think on what every digital personnel could do in the rapid development of digital economy, and rethink on what kind of energy smart retail could bring to the digital economy when getting back into the routine.\"",
+      "label": "text: \"Judges for the final review of Blue Lantern Award are bench",
+      "bbox_norm": [
+        105.5602910604303,
+        603.8100338511782,
+        896.2428931200225,
+        733.2176814843742
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              105.98399873924384,
+              603.8100338511782
+            ],
+            [
+              883.4292105159975,
+              604.2024178496973
+            ],
+            [
+              883.3380266977192,
+              621.8321232641856
+            ],
+            [
+              105.92611000527323,
+              621.4525627483134
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              105.91081279341628,
+              626.1146357238418
+            ],
+            [
+              896.2428931200225,
+              626.4970638961436
+            ],
+            [
+              896.1511659277438,
+              644.12464471605
+            ],
+            [
+              105.85293034017464,
+              643.7552504671417
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              105.83763478796763,
+              648.4168176374724
+            ],
+            [
+              891.9786884729838,
+              648.7808469557996
+            ],
+            [
+              891.887148726485,
+              666.4065851589229
+            ],
+            [
+              105.77975861443285,
+              666.055518538439
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              105.76446472160575,
+              670.7165799858824
+            ],
+            [
+              854.5605768886234,
+              671.0477249012296
+            ],
+            [
+              854.4706431961707,
+              688.6721673624876
+            ],
+            [
+              105.70659482675593,
+              688.3533673559496
+            ]
+          ]
+        },
+        {
+          "line": 4,
+          "quad_norm": [
+            [
+              105.69130259303871,
+              693.0139231627987
+            ],
+            [
+              894.6943593579028,
+              693.3464221355745
+            ],
+            [
+              894.6027133640166,
+              710.968290627747
+            ],
+            [
+              105.63343897585221,
+              710.6487973133331
+            ]
+          ]
+        },
+        {
+          "line": 5,
+          "quad_norm": [
+            [
+              105.61814840097489,
+              715.3088475618624
+            ],
+            [
+              823.8158462480966,
+              715.5965568445677
+            ],
+            [
+              823.7272377997625,
+              733.2176814843742
+            ],
+            [
+              105.5602910604303,
+              732.9418088041634
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p9_p9_b6",
+      "exhibit": "C-3",
+      "page": 9,
+      "text": "In the end, Chairman Yanshu Wei expressed his good vision on the industry, expecting that all marketing personnel and all industrial companies could develop and grow into talents and enterprises contributing to the society.",
+      "label": "text: In the end, Chairman Yanshu Wei expressed his good vision on",
+      "bbox_norm": [
+        111.16655074582917,
+        786.6838641913134,
+        879.0698401659849,
+        851.2831009118248
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              111.37916973565802,
+              786.6838641913134
+            ],
+            [
+              879.0698401659849,
+              786.9402386758735
+            ],
+            [
+              878.974928968875,
+              805.3201282435394
+            ],
+            [
+              111.3185499463693,
+              805.0769492308933
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              111.30315906678558,
+              809.7468063903864
+            ],
+            [
+              852.7603460621524,
+              809.9784529177408
+            ],
+            [
+              852.666614516255,
+              828.3567311953432
+            ],
+            [
+              111.24254608116415,
+              828.1378270804761
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              111.22715692892865,
+              832.807160132853
+            ],
+            [
+              429.0289254184229,
+              832.8996049312979
+            ],
+            [
+              428.95411919968643,
+              851.2831009118248
+            ],
+            [
+              111.16655074582917,
+              851.1961168209714
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "kind": "image",
+      "bbox_norm": [
+        177.99199156129635,
+        92.19981843848569,
+        661.8712626462337,
+        303.8500733709962
+      ]
+    }
+  ]
+}

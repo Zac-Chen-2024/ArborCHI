@@ -1,0 +1,492 @@
+{
+  "schema_version": 1,
+  "exhibit": "C-5",
+  "page": 4,
+  "doc_title": "LUMEN Optics Won the Silver Award in the Marketing Case Category of the 9thBlue Lantern Awards",
+  "fonts_missing": [],
+  "page_px": [
+    2000,
+    2606
+  ],
+  "scan_level": "light",
+  "seed": 2704,
+  "homography": [
+    [
+      1.000767623045347,
+      0.0026385935267598283,
+      -2.4182032164805127
+    ],
+    [
+      -0.0011602678506021464,
+      1.0028326560411331,
+      -0.5630516070320506
+    ],
+    [
+      2.3109839012137722e-08,
+      8.526446962296422e-07,
+      1.0000011344470097
+    ]
+  ],
+  "coordinate_convention": "normalized 0-1000, origin top-left",
+  "provenance": "rendered-from-html; bbox measured from DOM, never OCR'd",
+  "snippets": [
+    {
+      "snippet_id": "C-5_p4_p4_b0",
+      "exhibit": "C-5",
+      "page": 4,
+      "text": "Translation",
+      "label": "text: Translation",
+      "bbox_norm": [
+        99.00709516440291,
+        43.26223280131038,
+        162.77424892230312,
+        55.63042510134218
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              99.00709516440291,
+              43.319065424114896
+            ],
+            [
+              162.73647664108907,
+              43.26223280131038
+            ],
+            [
+              162.77424892230312,
+              55.57355779388362
+            ],
+            [
+              99.04660616388705,
+              55.63042510134218
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p4_p4_b1",
+      "exhibit": "C-5",
+      "page": 4,
+      "text": "LUMEN Optics Won the Silver Award in the Marketing Case Category of the 9th Blue Lantern Awards - Newswire Asia",
+      "label": "text: LUMEN Optics Won the Silver Award in the Marketing Case Cate",
+      "bbox_norm": [
+        117.08580513715337,
+        63.72500445076784,
+        862.6477890993423,
+        97.4727262278953
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              117.08580513715337,
+              64.39058844491
+            ],
+            [
+              862.6256101311885,
+              63.72500445076784
+            ],
+            [
+              862.6477890993423,
+              78.34280962154331
+            ],
+            [
+              117.13213632522658,
+              79.00887538099381
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              117.14432824423741,
+              82.85563558321859
+            ],
+            [
+              145.84817592223192,
+              82.82998561620386
+            ],
+            [
+              145.89357344727264,
+              97.44705771492323
+            ],
+            [
+              117.19065564078548,
+              97.4727262278953
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p4_p4_b3",
+      "exhibit": "C-5",
+      "page": 4,
+      "text": "After rounds of selection, LUMEN Optics won high recognition within and outside the industry based on its excellent innovative marketing case with new attempts, new methods, new products and new thoughts",
+      "label": "text: After rounds of selection, LUMEN Optics won high recognition",
+      "bbox_norm": [
+        103.3406191642398,
+        458.39662662909075,
+        884.697621206612,
+        520.9705027783119
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              103.3406191642398,
+              459.0778680146248
+            ],
+            [
+              851.1502882703223,
+              458.39662662909075
+            ],
+            [
+              851.1775624341833,
+              476.0608157881985
+            ],
+            [
+              103.39719342858405,
+              476.7426405510867
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              103.41145159602148,
+              481.194616860257
+            ],
+            [
+              884.6716616772591,
+              480.48210460296144
+            ],
+            [
+              884.697621206612,
+              498.14453476863935
+            ],
+            [
+              103.46802031018586,
+              498.8576564061727
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              103.48227707886977,
+              503.3091959679342
+            ],
+            [
+              247.71065751671418,
+              503.1775118331404
+            ],
+            [
+              247.76157003348726,
+              520.8387061630953
+            ],
+            [
+              103.53884024367095,
+              520.9705027783119
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p4_p4_b4",
+      "exhibit": "C-5",
+      "page": 4,
+      "text": "To Build a New Vision for Games & Empower the New Future of Esports Optics",
+      "label": "sub_title: To Build a New Vision for Games & Empower the New Future of ",
+      "bbox_norm": [
+        185.62779965782062,
+        560.653542093172,
+        865.5156453050471,
+        579.7004404158278
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              185.62779965782062,
+              561.2760937953896
+            ],
+            [
+              865.487777841814,
+              560.653542093172
+            ],
+            [
+              865.5156453050471,
+              579.0773356751407
+            ],
+            [
+              185.6834565563612,
+              579.7004404158278
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p4_p4_b5",
+      "exhibit": "C-5",
+      "page": 4,
+      "text": "In recent years, esports has gradually become a lifestyle of entertainment popular among young people, and has been recognized by the world's major authoritative competitions. In the 19th Asian Games to be held in Hangzhou, e- sports has been listed as an official competition event of the Asian Games for the first time. How to help the constantly increasing professional players and common game players, effectively respond to the personalized visual challenges of esports scenes, and help to gain competitive achievements and enjoy the game world has become an important industrial and social issue now and in the future.",
+      "label": "text: In recent years, esports has gradually become a lifestyle of",
+      "bbox_norm": [
+        106.86100831099469,
+        621.4409280498685,
+        891.8325084100439,
+        760.518428014077
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              106.86100831099469,
+              622.1456378556472
+            ],
+            [
+              874.0894505035475,
+              621.4409280498685
+            ],
+            [
+              874.1146700769232,
+              638.3249014774518
+            ],
+            [
+              106.91497145333436,
+              639.0301831486405
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              106.92574060216536,
+              642.3997456559418
+            ],
+            [
+              876.2119048793248,
+              641.6924261927626
+            ],
+            [
+              876.2370438098967,
+              658.5748806697084
+            ],
+            [
+              106.97969889457389,
+              659.2827734523771
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              106.99046707555063,
+              662.6520331274414
+            ],
+            [
+              891.8079548281937,
+              661.9296993290293
+            ],
+            [
+              891.8325084100439,
+              678.8106250203397
+            ],
+            [
+              107.04442051868173,
+              679.5335436318867
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              107.05518773193468,
+              682.902500515537
+            ],
+            [
+              866.4522348344019,
+              682.2028530616468
+            ],
+            [
+              866.4777370816533,
+              699.0822806864071
+            ],
+            [
+              107.10913632644208,
+              699.7824939325235
+            ]
+          ]
+        },
+        {
+          "line": 4,
+          "quad_norm": [
+            [
+              107.1199025721017,
+              703.1511480655754
+            ],
+            [
+              794.5454649832049,
+              702.517166494287
+            ],
+            [
+              794.5736594426676,
+              719.395130930011
+            ],
+            [
+              107.17384631863898,
+              720.0296245995976
+            ]
+          ]
+        },
+        {
+          "line": 5,
+          "quad_norm": [
+            [
+              107.18461159683567,
+              723.397976022859
+            ],
+            [
+              875.3802627080455,
+              722.6887855108874
+            ],
+            [
+              875.4054282696641,
+              739.5651731777716
+            ],
+            [
+              107.23855049605626,
+              740.2749358783748
+            ]
+          ]
+        },
+        {
+          "line": 6,
+          "quad_norm": [
+            [
+              107.24931480692041,
+              743.6429846326464
+            ],
+            [
+              184.36761110640916,
+              743.5717176896347
+            ],
+            [
+              184.41865667360824,
+              760.4471036377593
+            ],
+            [
+              107.30324885947768,
+              760.518428014077
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-5_p4_p4_b6",
+      "exhibit": "C-5",
+      "page": 4,
+      "text": "LUMEN Optics, upon unremitting innovation and accumulation of optical technology strength over the past 176 years, took the lead to have an insight into the eye pain point for professional players and common game players, and put into scientific research practice, to",
+      "label": "text: LUMEN Optics, upon unremitting innovation and accumulation o",
+      "bbox_norm": [
+        111.43190739928734,
+        801.3216362929159,
+        902.6665516500584,
+        864.8315412384287
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              111.43190739928734,
+              802.0507360685301
+            ],
+            [
+              898.0977869263132,
+              801.3216362929159
+            ],
+            [
+              898.1243073237247,
+              819.7257334074485
+            ],
+            [
+              111.49056584085716,
+              820.4554720475675
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              111.50263299874584,
+              824.2416765394553
+            ],
+            [
+              902.640218117038,
+              823.5076214648367
+            ],
+            [
+              902.6665516500584,
+              841.9099020271551
+            ],
+            [
+              111.56128566197455,
+              842.6445994999475
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              111.57335163117779,
+              846.4304310285983
+            ],
+            [
+              683.4787198425465,
+              845.8992039541045
+            ],
+            [
+              683.5140044697789,
+              864.2998498517524
+            ],
+            [
+              111.63199851691915,
+              864.8315412384287
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "kind": "image",
+      "bbox_norm": [
+        177.2515382148921,
+        106.33091624190777,
+        790.0691135558195,
+        417.36240095263696
+      ]
+    }
+  ]
+}

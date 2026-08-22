@@ -1,0 +1,501 @@
+{
+  "schema_version": 1,
+  "exhibit": "C-3",
+  "page": 2,
+  "doc_title": "Final Review of the 9th Blue Lantern Award Ended Successfully",
+  "fonts_missing": [],
+  "page_px": [
+    2000,
+    2606
+  ],
+  "scan_level": "light",
+  "seed": 7511,
+  "homography": [
+    [
+      0.9988507875035852,
+      0.0035120556117778576,
+      -4.675232334597833
+    ],
+    [
+      -0.002600184587425053,
+      0.9990661950403306,
+      2.2725377331146275
+    ],
+    [
+      -4.179754097827283e-08,
+      -4.0331901764615323e-07,
+      0.9999985621771184
+    ]
+  ],
+  "coordinate_convention": "normalized 0-1000, origin top-left",
+  "provenance": "rendered-from-html; bbox measured from DOM, never OCR'd",
+  "snippets": [
+    {
+      "snippet_id": "C-3_p2_p2_b0",
+      "exhibit": "C-3",
+      "page": 2,
+      "text": "Translation",
+      "label": "text: Translation",
+      "bbox_norm": [
+        92.75853071652531,
+        44.27492559460772,
+        150.15720445486718,
+        55.89173452133887
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              92.75853071652531,
+              44.38927574517106
+            ],
+            [
+              150.10270350441263,
+              44.27492559460772
+            ],
+            [
+              150.15720445486718,
+              55.77743818999796
+            ],
+            [
+              92.81233751874787,
+              55.89173452133887
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p2_p2_b1",
+      "exhibit": "C-3",
+      "page": 2,
+      "text": "Final Review of the 9th Blue Lantern Award Ended Successfully! _ Review _ Case _ ProcessQingzhou | News Sports Auto Real Estate Tourism Education Fashion Science and Technology Finance and Economics Entertainment More Barrier Free Login",
+      "label": "text: Final Review of the 9th Blue Lantern Award Ended Successfull",
+      "bbox_norm": [
+        130.81432258649608,
+        63.5975246662826,
+        835.5932022273743,
+        127.10180417691231
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              130.81432258649608,
+              64.86250445106437
+            ],
+            [
+              765.7223886296996,
+              63.5975246662826
+            ],
+            [
+              765.8173865308676,
+              81.23647287504339
+            ],
+            [
+              130.89753503442213,
+              82.5005389058919
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              130.91952579635745,
+              87.16178642798445
+            ],
+            [
+              835.4969068053738,
+              85.75931363118993
+            ],
+            [
+              835.5932022273743,
+              103.3991897015361
+            ],
+            [
+              131.00274214835272,
+              104.80064840452589
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              131.02473394203827,
+              109.46211462041852
+            ],
+            [
+              722.9080124089722,
+              108.28506593252115
+            ],
+            [
+              723.002219948938,
+              125.92560744408385
+            ],
+            [
+              131.10795419837757,
+              127.10180417691231
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p2_p2_b2",
+      "exhibit": "C-3",
+      "page": 2,
+      "text": "Final Review of the 9th Blue Lantern Award Ended Successfully",
+      "label": "sub_title: Final Review of the 9th Blue Lantern Award Ended Successfull",
+      "bbox_norm": [
+        95.3374097091631,
+        167.29837053682695,
+        722.7289921537085,
+        190.0198012269892
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              95.3374097091631,
+              168.54270690023841
+            ],
+            [
+              722.6143037728698,
+              167.29837053682695
+            ],
+            [
+              722.7289921537085,
+              188.776564264082
+            ],
+            [
+              95.43792152076233,
+              190.0198012269892
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p2_p2_b3",
+      "exhibit": "C-3",
+      "page": 2,
+      "text": "Sep. 13, 2023 16:24",
+      "label": "text: Sep. 13, 2023 16:24",
+      "bbox_norm": [
+        96.6618051386191,
+        237.80954624779656,
+        215.85856309643603,
+        251.85378565350086
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              96.6618051386191,
+              238.04517359339872
+            ],
+            [
+              215.79219407033943,
+              237.80954624779656
+            ],
+            [
+              215.85856309643603,
+              251.61829256086966
+            ],
+            [
+              96.72644331742384,
+              251.85378565350086
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p2_p2_b4",
+      "exhibit": "C-3",
+      "page": 2,
+      "text": "From Sep. 6 to Sep. 8, 2023, final review of 9th Blue Lantern Award was ended successfully.",
+      "label": "text: From Sep. 6 to Sep. 8, 2023, final review of 9th Blue Lanter",
+      "bbox_norm": [
+        96.89949435007823,
+        287.2737889895996,
+        881.733975616149,
+        308.00334988683807
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              96.89949435007823,
+              288.8225651072479
+            ],
+            [
+              881.6283532623886,
+              287.2737889895996
+            ],
+            [
+              881.733975616149,
+              306.4558022364313
+            ],
+            [
+              96.98927969496314,
+              308.00334988683807
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p2_p2_b5",
+      "exhibit": "C-3",
+      "page": 2,
+      "text": "In the past weekend, a \"crucial battle\" exclusively for 76 final review judges, 388 shortlisted companies and over 900 selected case works of Blue Lantern Award went quietly, confidentially, intensely and smoothly.",
+      "label": "text: In the past weekend, a \"crucial battle\" exclusively for 76 f",
+      "bbox_norm": [
+        99.27804923850462,
+        368.45485384358557,
+        888.325217315236,
+        431.2064669562699
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              99.27804923850462,
+              370.00660002620594
+            ],
+            [
+              888.2279140600292,
+              368.45485384358557
+            ],
+            [
+              888.325217315236,
+              386.10530046601707
+            ],
+            [
+              99.36070283651351,
+              387.6559100873017
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              99.38001906529753,
+              391.7805715567691
+            ],
+            [
+              857.8659737755374,
+              390.2901255046615
+            ],
+            [
+              857.9627154320316,
+              407.94133660159446
+            ],
+            [
+              99.46267644858841,
+              409.43068990228863
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              99.48199356200675,
+              413.5555402707996
+            ],
+            [
+              175.3201862548525,
+              413.4066543130545
+            ],
+            [
+              175.40425560967404,
+              431.0576902664684
+            ],
+            [
+              99.56465473083969,
+              431.2064669562699
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p2_p2_b7",
+      "exhibit": "C-3",
+      "page": 2,
+      "text": "To focus on the final review of this Blue Lantern Award, we could see the rigorous and responsible presidium, dedicated and diligent judges, vigorous panel discussion, meticulous work day and night, and full devote to overcome disadvantages such as home- based work...",
+      "label": "text: To focus on the final review of this Blue Lantern Award, we ",
+      "bbox_norm": [
+        110.84796906812738,
+        704.5905847826206,
+        883.2677854970071,
+        767.051278948635
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              110.84796906812738,
+              706.0480923217939
+            ],
+            [
+              862.6346795938769,
+              704.5905847826206
+            ],
+            [
+              862.7315417971871,
+              722.2534706268272
+            ],
+            [
+              110.93086676491409,
+              723.7098939740544
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              110.94967686101103,
+              727.7174864549305
+            ],
+            [
+              883.1705395991625,
+              726.2217631704478
+            ],
+            [
+              883.2677854970071,
+              743.8854832484234
+            ],
+            [
+              111.03257833468994,
+              745.3800927944526
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              111.05138928780123,
+              749.3878678668566
+            ],
+            [
+              663.8875611903201,
+              748.3180758957826
+            ],
+            [
+              663.9807357204538,
+              765.9822843633726
+            ],
+            [
+              111.13429453863043,
+              767.051278948635
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p2_p2_b8",
+      "exhibit": "C-3",
+      "page": 2,
+      "text": "The moving scenes further bring confidence to the Organizing Committee of Blue Lantern Award. It's their persistence to feelings, warmth and quality that encourages numerous excellent building personnel, leaders and thinkers in Chinese smart retail",
+      "label": "text: The moving scenes further bring confidence to the Organizing",
+      "bbox_norm": [
+        112.31734916871807,
+        804.6024969008494,
+        893.5574752933311,
+        867.3664498042223
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              112.31734916871807,
+              806.1103759099607
+            ],
+            [
+              893.4600302230602,
+              804.6024969008494
+            ],
+            [
+              893.5574752933311,
+              822.2691428958377
+            ],
+            [
+              112.40028287765746,
+              823.7758950158425
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              112.41966456885092,
+              827.9043445987829
+            ],
+            [
+              843.0869799169176,
+              826.4952334379759
+            ],
+            [
+              843.1834913551683,
+              844.1626160886898
+            ],
+            [
+              112.50260207764605,
+              845.5706731032253
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              112.52198465687978,
+              849.6993118455905
+            ],
+            [
+              535.9679124528325,
+              848.883457607329
+            ],
+            [
+              536.0587202818874,
+              866.5512065217324
+            ],
+            [
+              112.60492596579185,
+              867.3664498042223
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "kind": "image",
+      "bbox_norm": [
+        183.700259052802,
+        469.9675248313561,
+        858.3877160644696,
+        666.3477459162943
+      ]
+    }
+  ]
+}

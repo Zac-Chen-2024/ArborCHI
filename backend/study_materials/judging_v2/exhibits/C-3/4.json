@@ -1,0 +1,512 @@
+{
+  "schema_version": 1,
+  "exhibit": "C-3",
+  "page": 4,
+  "doc_title": "Final Review of the 9th Blue Lantern Award Ended Successfully",
+  "fonts_missing": [],
+  "page_px": [
+    2000,
+    2606
+  ],
+  "scan_level": "light",
+  "seed": 2018,
+  "homography": [
+    [
+      1.0041496088128405,
+      -0.0010710086184533333,
+      2.72791131617119
+    ],
+    [
+      0.004595216602643217,
+      1.0047325420954525,
+      -4.0675480084463125
+    ],
+    [
+      1.4412631434917023e-06,
+      1.4297822879570366e-06,
+      1.0000009527293328
+    ]
+  ],
+  "coordinate_convention": "normalized 0-1000, origin top-left",
+  "provenance": "rendered-from-html; bbox measured from DOM, never OCR'd",
+  "snippets": [
+    {
+      "snippet_id": "C-3_p4_p4_b0",
+      "exhibit": "C-3",
+      "page": 4,
+      "text": "Translation",
+      "label": "text: Translation",
+      "bbox_norm": [
+        97.63624107375716,
+        43.710533139267106,
+        154.7324462721634,
+        55.46084680027996
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              97.65648516403125,
+              43.710533139267106
+            ],
+            [
+              154.7324462721634,
+              43.90388043675608
+            ],
+            [
+              154.70975890695397,
+              55.46084680027996
+            ],
+            [
+              97.63624107375716,
+              55.26940208119796
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p4_p4_b1",
+      "exhibit": "C-3",
+      "page": 4,
+      "text": "Final Review of the 9th Blue Lantern Award Ended Successfully! _ Review _ Case _ Process",
+      "label": "text: Final Review of the 9th Blue Lantern Award Ended Successfull",
+      "bbox_norm": [
+        165.80156622040917,
+        64.81500731776691,
+        805.19910909605,
+        83.08917643563576
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              165.83399065095978,
+              64.81500731776691
+            ],
+            [
+              805.19910909605,
+              66.94255553594274
+            ],
+            [
+              805.1284500654381,
+              83.08917643563576
+            ],
+            [
+              165.80156622040917,
+              80.99145778923926
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p4_p4_b2",
+      "exhibit": "C-3",
+      "page": 4,
+      "text": "case notes, case qualification examination, release of panel judges for final review, composition and responsibility of panel members, review process, review rules, and review standards.",
+      "label": "text: case notes, case qualification examination, release of panel",
+      "bbox_norm": [
+        97.4998495991463,
+        91.48077426129488,
+        880.1126855837766,
+        135.42636923591158
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              97.5728208298695,
+              91.48077426129488
+            ],
+            [
+              880.1126855837766,
+              94.02432169783143
+            ],
+            [
+              880.0268323709079,
+              112.46977169614081
+            ],
+            [
+              97.5404425950018,
+              109.96793611146161
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              97.53222226576607,
+              114.66153839287773
+            ],
+            [
+              826.1160801286179,
+              116.98121257875232
+            ],
+            [
+              826.0339161107348,
+              135.42636923591158
+            ],
+            [
+              97.4998495991463,
+              133.14552091282158
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p4_p4_b3",
+      "exhibit": "C-3",
+      "page": 4,
+      "text": "The meeting not only specified the strictness of qualification examination and determined the fairness of case review, but also conveyed the value of case content and defined the principle of case level, such as the institutions and enterprises exposed at 315 evening party, and case content publicized by misdeed celebrities, which defined competition participation qualification in details, and whether the nominated cases of level awards, especially the gold award, were of the guidance of positive values, etc.",
+      "label": "text: The meeting not only specified the strictness of qualificati",
+      "bbox_norm": [
+        98.2221330364402,
+        192.0492699940986,
+        880.8624253725624,
+        294.9774500002032
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              98.39955935190355,
+              192.0492699940986
+            ],
+            [
+              880.8624253725624,
+              194.36661752828795
+            ],
+            [
+              880.7837087027214,
+              211.2623987466179
+            ],
+            [
+              98.36983833583355,
+              208.983241102069
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              98.36261973244656,
+              213.09614292571857
+            ],
+            [
+              867.1000102297207,
+              215.32638247822365
+            ],
+            [
+              867.0221595042788,
+              232.22019721816764
+            ],
+            [
+              98.33290335889772,
+              230.02746889129244
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              98.32568588303647,
+              234.1397282911372
+            ],
+            [
+              861.1538136548867,
+              236.30672987436154
+            ],
+            [
+              861.0763404901492,
+              253.19819713378033
+            ],
+            [
+              98.29597415092117,
+              251.0684097340362
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              98.2887578023215,
+              255.1800268605815
+            ],
+            [
+              867.140462516513,
+              257.3176890096116
+            ],
+            [
+              867.0626214394089,
+              274.2062272741417
+            ],
+            [
+              98.25905071055234,
+              272.10606440033365
+            ]
+          ]
+        },
+        {
+          "line": 4,
+          "quad_norm": [
+            [
+              98.25183548895018,
+              276.217039404038
+            ],
+            [
+              785.9734617710013,
+              278.0875902452172
+            ],
+            [
+              785.9006977771058,
+              294.9774500002032
+            ],
+            [
+              98.2221330364402,
+              293.14043365997793
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p4_p4_b4",
+      "exhibit": "C-3",
+      "page": 4,
+      "text": "It's the guidance and profession of the members of the presidium that fully shows respect for the judges, the awards, and each competition participant.",
+      "label": "text: It's the guidance and profession of the members of the presi",
+      "bbox_norm": [
+        101.05077386824418,
+        354.22514341659166,
+        876.3513386056276,
+        395.4010607288493
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              101.12169689673509,
+              354.22514341659166
+            ],
+            [
+              876.3513386056276,
+              356.16007832313966
+            ],
+            [
+              876.2693882015799,
+              373.8027845276574
+            ],
+            [
+              101.09046524527783,
+              371.9073349230207
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              101.08200030713462,
+              376.6998659085639
+            ],
+            [
+              530.3854872018469,
+              377.7436809966583
+            ],
+            [
+              530.3261482858221,
+              395.4010607288493
+            ],
+            [
+              101.05077386824418,
+              394.3791062548464
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p4_p4_b5",
+      "exhibit": "C-3",
+      "page": 4,
+      "text": "Appointment Ceremony - Vitality Comes from People",
+      "label": "text: Appointment Ceremony - Vitality Comes from People",
+      "bbox_norm": [
+        185.0821120352577,
+        436.74021757105766,
+        593.811153455577,
+        455.3099851191322
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              185.11883883038328,
+              436.74021757105766
+            ],
+            [
+              593.811153455577,
+              437.66368150993
+            ],
+            [
+              593.7476811983024,
+              455.3099851191322
+            ],
+            [
+              185.0821120352577,
+              454.40731837937244
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p4_p4_b6",
+      "exhibit": "C-3",
+      "page": 4,
+      "text": "One of the biggest highlights of the opening ceremony is the appointment ceremony of judges for final review of the 9th Blue Lantern Award.",
+      "label": "text: One of the biggest highlights of the opening ceremony is the",
+      "bbox_norm": [
+        105.80751996124411,
+        496.39617721157424,
+        889.7159399658651,
+        537.1764429507822
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              105.87911350795002,
+              496.39617721157424
+            ],
+            [
+              889.7159399658651,
+              498.03262661031306
+            ],
+            [
+              889.6331609590404,
+              515.6560397884782
+            ],
+            [
+              105.84758658864457,
+              514.0594510325293
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              105.83904162155532,
+              518.8468548389652
+            ],
+            [
+              445.14594522402064,
+              519.5333661375356
+            ],
+            [
+              445.0922110143911,
+              537.1764429507822
+            ],
+            [
+              105.80751996124411,
+              536.5071822554831
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-3_p4_p4_b7",
+      "exhibit": "C-3",
+      "page": 4,
+      "text": "Although the judges for final review could not gather in Nanjing as planned for force majeure, the change of appointment mode had no effect on the serious, rational and practical atmosphere of the final review.",
+      "label": "text: Although the judges for final review could not gather in Nan",
+      "bbox_norm": [
+        107.63076799535915,
+        575.6385115307969,
+        879.5544905014691,
+        636.9923682095539
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              107.74045701018288,
+              575.6385115307969
+            ],
+            [
+              863.0963079788041,
+              577.0436313040717
+            ],
+            [
+              863.0152896194452,
+              594.6580268160154
+            ],
+            [
+              107.70881744002081,
+              593.2912854947007
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              107.70142400847297,
+              597.4163281315906
+            ],
+            [
+              879.5544905014691,
+              598.803868145411
+            ],
+            [
+              879.4724052907587,
+              616.4145777227499
+            ],
+            [
+              107.66978955943189,
+              615.0662448508858
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              107.66239732452247,
+              619.1906198431925
+            ],
+            [
+              199.50011211608816,
+              619.3499719302839
+            ],
+            [
+              199.46246870592415,
+              636.9923682095539
+            ],
+            [
+              107.63076799535915,
+              636.8376800115251
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": []
+}

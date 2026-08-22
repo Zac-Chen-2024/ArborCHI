@@ -1,0 +1,773 @@
+{
+  "schema_version": 1,
+  "exhibit": "C-4",
+  "page": 2,
+  "doc_title": "CNBUSINESSREVIEW.COM",
+  "fonts_missing": [],
+  "page_px": [
+    2000,
+    2606
+  ],
+  "scan_level": "light",
+  "seed": 6098,
+  "homography": [
+    [
+      1.0000603961706798,
+      0.0035872751353277395,
+      -3.7669832472078246
+    ],
+    [
+      -0.000603944509657587,
+      1.0016374450622259,
+      -0.21152862893741942
+    ],
+    [
+      3.012342919176842e-07,
+      5.613678192463166e-07,
+      1.0000004544132608
+    ]
+  ],
+  "coordinate_convention": "normalized 0-1000, origin top-left",
+  "provenance": "rendered-from-html; bbox measured from DOM, never OCR'd",
+  "snippets": [
+    {
+      "snippet_id": "C-4_p2_p2_b0",
+      "exhibit": "C-4",
+      "page": 2,
+      "text": "Translation",
+      "label": "text: Translation",
+      "bbox_norm": [
+        96.27777421798258,
+        35.427502654993376,
+        160.51370297964095,
+        48.52441611276107
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              96.27777421798258,
+              35.45862030517185
+            ],
+            [
+              160.45579164325287,
+              35.427502654993376
+            ],
+            [
+              160.51370297964095,
+              48.492793875137174
+            ],
+            [
+              96.33691256776117,
+              48.52441611276107
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-4_p2_p2_b1",
+      "exhibit": "C-4",
+      "page": 2,
+      "text": "CNBUSINESSREVIEW.COM",
+      "label": "sub_title: CNBUSINESSREVIEW.COM",
+      "bbox_norm": [
+        96.47567227832795,
+        79.0690370438889,
+        316.44237728362,
+        98.39322314367689
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              96.47567227832795,
+              79.18144410515838
+            ],
+            [
+              316.3616023012654,
+              79.0690370438889
+            ],
+            [
+              316.44237728362,
+              98.27827424540288
+            ],
+            [
+              96.56262855143831,
+              98.39322314367689
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-4_p2_p2_b2",
+      "exhibit": "C-4",
+      "page": 2,
+      "text": "The 2023 Blue Lantern Awards Successfully Concluded, with Cangyu Achieving Great Results Again",
+      "label": "sub_title: The 2023 Blue Lantern Awards Successfully Concluded, with Ca",
+      "bbox_norm": [
+        96.72055040131931,
+        132.88704857556917,
+        826.4929926268562,
+        175.84177809906097
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              96.72055040131931,
+              133.28385928465605
+            ],
+            [
+              826.4185827152645,
+              132.88704857556917
+            ],
+            [
+              826.4929926268562,
+              154.391322856884
+            ],
+            [
+              96.8179257070006,
+              154.7975786477552
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              96.81580655512096,
+              154.32938151597574
+            ],
+            [
+              278.6818892389783,
+              154.22817658179505
+            ],
+            [
+              278.773533073963,
+              175.7382193408006
+            ],
+            [
+              96.9131758736409,
+              175.84177809906097
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-4_p2_p2_b3",
+      "exhibit": "C-4",
+      "page": 2,
+      "text": "Source: Eastport",
+      "label": "text: Source: Eastport",
+      "bbox_norm": [
+        97.97092381529055,
+        188.61506944479243,
+        199.3819667154424,
+        202.50172316522
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              97.97092381529055,
+              188.67356614861632
+            ],
+            [
+              199.3214491483434,
+              188.61506944479243
+            ],
+            [
+              199.3819667154424,
+              202.4423833070072
+            ],
+            [
+              98.03349256579749,
+              202.50172316522
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-4_p2_p2_b4",
+      "exhibit": "C-4",
+      "page": 2,
+      "text": "On September 12th, the 9th Blue Lantern Awards ceremony, sponsored by the China Digital Commerce Association, concluded successfully in Beijing. Cangyu, which submitted numerous case studies, secured several awards, including the Bronze Prize for KOL Marketing, and Excellence Awards in Entertainment, Leisure & Sports, Home Appliances, and IP categories.",
+      "label": "text: On September 12th, the 9th Blue Lantern Awards ceremony, spo",
+      "bbox_norm": [
+        97.22371702864918,
+        243.99027687696517,
+        876.2248146741829,
+        334.48995138593597
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              97.22371702864918,
+              244.45152687262635
+            ],
+            [
+              852.4101465890296,
+              243.99027687696517
+            ],
+            [
+              852.4732157319282,
+              262.4163272673316
+            ],
+            [
+              97.30715484498901,
+              262.8859518271467
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              97.33176162399512,
+              268.32247738425474
+            ],
+            [
+              876.1623880429626,
+              267.8355853106309
+            ],
+            [
+              876.2248146741829,
+              286.2600885782933
+            ],
+            [
+              97.41519362043293,
+              286.7556165123785
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              97.43979868311244,
+              292.1917628709932
+            ],
+            [
+              822.0218125788589,
+              291.72836488328903
+            ],
+            [
+              822.0856965420137,
+              310.1521848218766
+            ],
+            [
+              97.52322486025716,
+              310.62361630724786
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              97.54782820678962,
+              316.0593835070415
+            ],
+            [
+              855.4948183473604,
+              315.5637484311844
+            ],
+            [
+              855.5577977520168,
+              333.9859137714255
+            ],
+            [
+              97.63124856525002,
+              334.48995138593597
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-4_p2_p2_b5",
+      "exhibit": "C-4",
+      "page": 2,
+      "text": "The Blue Lantern Awards, a recognized and forward- thinking accolade in the field of digital business communication, emphasize the comprehensive process utilized by enterprises (brand owners). This process includes the use of data, media, and various technical tools to execute smart retail communication strategies. Furthermore, the award celebrates the latest, most innovative creative works in the realm of brand marketing digitalization.",
+      "label": "text: The Blue Lantern Awards, a recognized and forward- thinking ",
+      "bbox_norm": [
+        99.8203700627509,
+        376.00074901059395,
+        883.2864939331168,
+        449.14127358525803
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              99.8203700627509,
+              376.5415866191838
+            ],
+            [
+              883.2372313372539,
+              376.00074901059395
+            ],
+            [
+              883.2864939331168,
+              390.58222685088174
+            ],
+            [
+              99.88635718715103,
+              391.12993825582294
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              99.90784580785945,
+              395.88061587559326
+            ],
+            [
+              878.3572321188772,
+              395.33413773706036
+            ],
+            [
+              878.40659745256,
+              409.91483520440505
+            ],
+            [
+              99.97382920264992,
+              410.4681429747513
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              99.995316608833,
+              415.218552088764
+            ],
+            [
+              827.7993438394197,
+              414.6991481204493
+            ],
+            [
+              827.849786569452,
+              429.2794659930344
+            ],
+            [
+              100.06129627433,
+              429.8052547203438
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              100.08278246609069,
+              434.555395351362
+            ],
+            [
+              761.1716324969873,
+              434.0759016726748
+            ],
+            [
+              761.2234955461682,
+              448.65598090772784
+            ],
+            [
+              100.14875840261035,
+              449.14127358525803
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-4_p2_p2_b6",
+      "exhibit": "C-4",
+      "page": 2,
+      "text": "This year's Blue Lantern Awards, carrying the theme \"Starting a New Journey,\" attracted a wide array of attendees, including sociologists, business scholars, marketing experts, and well- known brand owners. Jianwen Xu and Boyan An were among the esteemed judges.",
+      "label": "text: This year's Blue Lantern Awards, carrying the theme \"Startin",
+      "bbox_norm": [
+        102.42501374422234,
+        510.01424393079964,
+        828.5329349827691,
+        566.4038392645758
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              102.42501374422234,
+              510.57112113647895
+            ],
+            [
+              824.6037750278377,
+              510.01424393079964
+            ],
+            [
+              824.6569369606146,
+              525.3576870323385
+            ],
+            [
+              102.49440167119764,
+              525.9212302875287
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              102.51651841852554,
+              530.8139328130022
+            ],
+            [
+              828.4798616676907,
+              530.2452836454358
+            ],
+            [
+              828.5329349827691,
+              545.5877840938213
+            ],
+            [
+              102.58590223959678,
+              546.1631336493347
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              102.60801767822585,
+              551.0555466623414
+            ],
+            [
+              528.7219379291556,
+              550.7165739492975
+            ],
+            [
+              528.7817425312924,
+              566.0609340196031
+            ],
+            [
+              102.67739739375749,
+              566.4038392645758
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-4_p2_p2_b7",
+      "exhibit": "C-4",
+      "page": 2,
+      "text": "It has been reported that this year's awards were judged online by over 650 primary jury members. Additionally, more than 90 final judges collectively reviewed the finalists, selecting the best from a pool of 3,500 entries — a rigorous process indeed. The accolades awarded to Cangyu are a testament to the industry's recognition of the company's deep understanding of the new generation and its innovative strength in content marketing. This success also underscores the power of combining social media with high- quality content, which can unleash remarkable marketing potential in the era of social media.",
+      "label": "text: It has been reported that this year's awards were judged onl",
+      "bbox_norm": [
+        104.85364883549543,
+        605.2087759834687,
+        881.9102410773392,
+        729.0156534381367
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              104.85364883549543,
+              605.8129648646569
+            ],
+            [
+              834.1199790327828,
+              605.2087759834687
+            ],
+            [
+              834.1782138467896,
+              622.0817356333023
+            ],
+            [
+              104.9299047375086,
+              622.6933260059972
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              104.94972632303094,
+              627.0811243688548
+            ],
+            [
+              881.8531870300908,
+              626.4275138268154
+            ],
+            [
+              881.9102410773392,
+              643.2989411281745
+            ],
+            [
+              105.02597748352977,
+              643.960435906528
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              105.0457978365853,
+              648.3479614447924
+            ],
+            [
+              841.5653612147927,
+              647.718889167296
+            ],
+            [
+              841.6234085228608,
+              664.5896774880006
+            ],
+            [
+              105.12204425601197,
+              665.2262234766905
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              105.1418633767156,
+              669.6134762158066
+            ],
+            [
+              844.5547262980414,
+              668.9724594507004
+            ],
+            [
+              844.612697974021,
+              685.8421697043863
+            ],
+            [
+              105.21810505551237,
+              686.4906888398094
+            ]
+          ]
+        },
+        {
+          "line": 4,
+          "quad_norm": [
+            [
+              105.23792294397902,
+              690.8776688052185
+            ],
+            [
+              865.8357384378392,
+              690.208542146597
+            ],
+            [
+              865.8931827437493,
+              707.0769888594508
+            ],
+            [
+              105.31415988258792,
+              707.7538321191934
+            ]
+          ]
+        },
+        {
+          "line": 5,
+          "quad_norm": [
+            [
+              105.33397653893252,
+              712.1405393363342
+            ],
+            [
+              832.8182338834059,
+              711.4912246341428
+            ],
+            [
+              832.8764918115882,
+              728.3589587755798
+            ],
+            [
+              105.41020873779564,
+              729.0156534381367
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-4_p2_p2_b8",
+      "exhibit": "C-4",
+      "page": 2,
+      "text": "Bronze Award: Peace Elite's \"Pear Garden Starlight\" Marketing — Letting Generation Z Inherit the Beauty of Traditional Chinese Art",
+      "label": "sub_title: Bronze Award: Peace Elite's \"Pear Garden Starlight\" Marketin",
+      "bbox_norm": [
+        109.62745687713952,
+        777.4584351816396,
+        873.2636522435885,
+        818.3473719512814
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              109.62745687713952,
+              778.1703341940264
+            ],
+            [
+              873.19598726274,
+              777.4584351816396
+            ],
+            [
+              873.2636522435885,
+              797.388612273924
+            ],
+            [
+              109.71741497996624,
+              798.1096629355022
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              109.71876647396681,
+              798.409223312199
+            ],
+            [
+              505.6336648437085,
+              798.0352718162774
+            ],
+            [
+              505.7120562899654,
+              817.9686756939566
+            ],
+            [
+              109.8087192526538,
+              818.3473719512814
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "snippet_id": "C-4_p2_p2_b9",
+      "exhibit": "C-4",
+      "page": 2,
+      "text": "Case Introduction: \"Peace Elite\" cooperated with the Shanghai Kunqu Opera House to launch the \"Pear Garden Starlight\" game costume designed based on Kunqu Opera styling. It uses the martial arts culture of Kunqu Opera to empower the commercial costumes of the game, hoping to give the game cultural heritage through crossover with traditional Chinese culture. In",
+      "label": "text: Case Introduction: \"Peace Elite\" cooperated with the Shangha",
+      "bbox_norm": [
+        110.84522488132673,
+        825.9996220120568,
+        874.8355441440959,
+        900.782583114725
+      ],
+      "lines": [
+        {
+          "line": 0,
+          "quad_norm": [
+            [
+              110.84522488132673,
+              826.7215251241198
+            ],
+            [
+              861.5897158022094,
+              825.9996220120568
+            ],
+            [
+              861.6420229733585,
+              841.3285633940773
+            ],
+            [
+              110.91439162420427,
+              842.0573866228476
+            ]
+          ]
+        },
+        {
+          "line": 1,
+          "quad_norm": [
+            [
+              110.93352000391769,
+              846.2985894000186
+            ],
+            [
+              874.7835346183108,
+              845.5550748630216
+            ],
+            [
+              874.8355441440959,
+              860.8830180148504
+            ],
+            [
+              111.00268278675242,
+              861.6335728659581
+            ]
+          ]
+        },
+        {
+          "line": 2,
+          "quad_norm": [
+            [
+              111.02181007131352,
+              865.8745328226133
+            ],
+            [
+              866.4937818479438,
+              865.1302632343463
+            ],
+            [
+              866.5459759550367,
+              880.4574062467497
+            ],
+            [
+              111.0909688944455,
+              881.2086383311679
+            ]
+          ]
+        },
+        {
+          "line": 3,
+          "quad_norm": [
+            [
+              111.11009508394832,
+              885.4493554881601
+            ],
+            [
+              345.97430106313215,
+              885.2152040901562
+            ],
+            [
+              346.038180366263,
+              900.5462673752329
+            ],
+            [
+              111.17924994771764,
+              900.782583114725
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": []
+}
