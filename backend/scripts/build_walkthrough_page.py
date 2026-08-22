@@ -168,14 +168,19 @@ CAPTIONS = {
         "rather than the participant's.",
     ),
     "bbox-hover": (
-        "**鼠标移到框上,就地放大那一块区域**——不打开任何东西,也不记任何事件。"
-        "它只是一个阅读辅助:300px 宽的页面上那段字太小,这样不用离开页面就能读。"
-        "悬停**预览**证据卡时框保持不响应:那时指针只是路过。",
-        "Hovering the box <strong>enlarges that region in place</strong>. It "
-        "opens nothing and records nothing — it is a reading aid: the passage is "
-        "small on a 300px-wide page and this makes it legible without leaving "
-        "the page. While an evidence card is merely being <em>previewed</em> on "
-        "hover, the box stays inert; the pointer is only passing through.",
+        "**鼠标移到框上,那一段就飞到屏幕正中放大。** 不打开任何东西,也不记任何事件——"
+        "它只是阅读辅助:300px 宽的页面上那段字只有几毫米高,而读它就是任务本身,"
+        "所以放大要用整个屏幕,而不是它原来所在的那个角落。放大的是**框内那一块**"
+        "加一圈页面上下文,被引句仍用蓝框标出。悬停**预览**证据卡时框保持不响应:"
+        "那时指针只是路过。",
+        "Hovering the box <strong>flies that passage to the middle of the "
+        "screen</strong>. It opens nothing and records nothing — a reading aid: "
+        "the passage is a few millimetres tall in a 300px panel and reading it "
+        "is the task, so the aid uses the whole screen rather than the corner it "
+        "came from. What is enlarged is <strong>the boxed region</strong> plus a "
+        "little page context, with the cited sentence still outlined. While an "
+        "evidence card is merely being <em>previewed</em> on hover the box stays "
+        "inert; the pointer is only passing through.",
     ),
     "bbox-zoom": (
         "**只有点框上那个放大镜按钮才打开弹窗。** 打开它是被记录的动作 —— "

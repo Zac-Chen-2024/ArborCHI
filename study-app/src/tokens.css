@@ -114,18 +114,26 @@ body{
 .bbox-zoom:focus-visible{outline:2px solid var(--c-ev);outline-offset:2px}
 .bbox-zoom svg{width:11px;height:11px}
 
-/* The loupe: the boxed region alone, at the panel's full width. Sits over the
-   page, clear of the box, and never intercepts the pointer -- moving onto it
-   would leave the box and dismiss it. */
-.loupe{
-  position:absolute;left:8px;right:8px;z-index:30;pointer-events:none;
-  background:#fff;border:1px solid var(--c-ev-line);border-radius:8px;padding:6px;
-  box-shadow:0 10px 30px rgba(15,23,42,.18),0 2px 6px rgba(15,23,42,.08);
+/* Hover magnification: the passage flies to the middle of the screen.
+ *
+ * Carried over from the product frontend's BBoxLightbox -- a portal, fixed
+ * position, 300ms from the box's own rectangle to the centre of the viewport.
+ * In a 300px panel the cited passage is a few millimetres tall and reading it
+ * IS the task, so the reading aid uses the whole screen rather than the corner
+ * of the panel it came from. It never takes the pointer: moving onto it would
+ * mean leaving the box, which dismisses it. */
+.hover-loupe{
+  position:fixed;z-index:60;pointer-events:none;
+  background:#fff;border-radius:8px;padding:8px;
+  box-shadow:0 24px 60px rgba(15,23,42,.30),0 4px 12px rgba(15,23,42,.12);
+  transition:left .3s cubic-bezier(.32,.72,0,1),top .3s cubic-bezier(.32,.72,0,1),
+             width .3s cubic-bezier(.32,.72,0,1),height .3s cubic-bezier(.32,.72,0,1),
+             opacity .22s ease;
 }
-.loupe-crop{position:relative;overflow:hidden;border-radius:4px;background:#fff;width:100%}
-.loupe-crop img{position:absolute;max-width:none;image-rendering:auto}
-
-@media (prefers-reduced-motion:reduce){.bbox{transition:none}}
+.hover-loupe-crop{position:relative;overflow:hidden;border-radius:4px;width:100%;height:100%;background:#fff}
+.hover-loupe-crop img{position:absolute;max-width:none}
+.hover-loupe-box{position:absolute;border:2px solid var(--c-ev);border-radius:2px;background:rgba(37,99,235,.10)}
+@media (prefers-reduced-motion:reduce){.hover-loupe{transition:opacity .15s ease}}
 
 .pgsel{
   height:26px;border-radius:6px;border:1px solid var(--c-line);background:#fff;

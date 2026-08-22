@@ -36,6 +36,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { pageImage, type PageImage } from '../../../lib/pageImage'
+import { HoverLoupe } from './HoverLoupe'
 import type { Linkage } from './index'
 
 interface Props {
@@ -148,7 +149,7 @@ export function PageView({
   /** Last page the observer reported, so an outside jump can tell whether it
    *  needs to move at all -- and so reporting cannot re-trigger scrolling. */
   const inView = useRef(0)
-  const [loupe, setLoupe] = useState(false)
+  const [loupeFrom, setLoupeFrom] = useState<DOMRect | null>(null)
   const [citedImg, setCitedImg] = useState<PageImage | null>(null)
 
   const snippet = linkage?.snippet
@@ -235,31 +236,9 @@ export function PageView({
   const onCitedLoaded = useCallback((img: PageImage) => setCitedImg(img), [])
 
   useEffect(() => {
-    setLoupe(false)
+    setLoupeFrom(null)
     setCitedImg(null)
   }, [exhibit, snippet?.snippet_id])
-
-  // The loupe shows the boxed region alone, scaled to the panel's width. Both
-  // the crop and its shape come from the same 0-1000 coordinates the box uses,
-  // so the two can never point at different parts of the page.
-  const lens = (() => {
-    if (!box || !citedImg) return null
-    const [x1, y1, x2, y2] = box
-    const w = (x2 - x1) / 10
-    const h = (y2 - y1) / 10
-    if (w <= 0 || h <= 0) return null
-    return {
-      crop: { aspectRatio: `${(w / 100) * citedImg.w} / ${(h / 100) * citedImg.h}` },
-      img: {
-        width: `${(100 / w) * 100}%`,
-        height: `${(100 / h) * 100}%`,
-        left: `${-(x1 / 10 / w) * 100}%`,
-        top: `${-(y1 / 10 / h) * 100}%`,
-      },
-      // Below the passage when there is room beneath it, above it otherwise.
-      below: y2 / 10 < 60,
-    }
-  })()
 
   return (
     <div ref={scrollRef} className="scroll bg-slate-50 p-3 flex flex-col gap-2.5">
@@ -275,8 +254,10 @@ export function PageView({
               <>
                 <div
                   ref={boxRef}
-                  onMouseEnter={() => interactive && setLoupe(true)}
-                  onMouseLeave={() => setLoupe(false)}
+                  onMouseEnter={(e) =>
+                    interactive && setLoupeFrom(e.currentTarget.getBoundingClientRect())
+                  }
+                  onMouseLeave={() => setLoupeFrom(null)}
                   className={`bbox absolute rounded-sm border-2 border-blue-500 bg-blue-500/10 ${
                     linkage?.preview ? 'border-dashed pointer-events-none' : 'is-live'
                   }`}
@@ -305,26 +286,15 @@ export function PageView({
                   )}
                 </div>
 
-                {loupe && lens && citedImg && (
-                  <div
-                    className="loupe"
-                    style={
-                      lens.below
-                        ? { top: `calc(${box[3] / 10}% + 10px)` }
-                        : { bottom: `calc(${100 - box[1] / 10}% + 10px)` }
-                    }
-                    aria-hidden="true"
-                  >
-                    <div className="loupe-crop" style={lens.crop}>
-                      <img src={citedImg.url} alt="" style={lens.img} draggable={false} />
-                    </div>
-                  </div>
-                )}
               </>
             )}
           </Page>
         </div>
       ))}
+
+      {loupeFrom && citedImg && box && (
+        <HoverLoupe page={citedImg} bbox={box} origin={loupeFrom} />
+      )}
     </div>
   )
 }
