@@ -287,8 +287,16 @@ def _check_rendered_bundles() -> None:
     import importlib.util
 
     script = os.path.join(ROOT, 'backend', 'scripts', 'render_exhibits.py')
-    manifests = glob.glob(os.path.join(
-        ROOT, 'backend', 'study_materials', '*', 'exhibits', '*', '*.json'))
+    # In-repo bundles, plus wherever material is being built. Generated material
+    # lives outside the repository until it has been accepted, so without the
+    # second path these checks would have nothing to look at and would report
+    # that as fine -- point ARBOR_MATERIAL_DIR at the build directory (TRY/) to
+    # run them over work in progress.
+    roots = [os.path.join(ROOT, 'backend', 'study_materials')]
+    if os.environ.get('ARBOR_MATERIAL_DIR'):
+        roots.append(os.environ['ARBOR_MATERIAL_DIR'])
+    manifests = [m for root in roots
+                 for m in glob.glob(os.path.join(root, '*', 'exhibits', '*', '*.json'))]
     if not manifests or not os.path.exists(script):
         return
     try:

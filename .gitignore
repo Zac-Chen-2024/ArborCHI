@@ -101,11 +101,13 @@ backend/study_materials/judging_v1/
 # backend/scripts/build_walkthrough_page.py, both of which ARE tracked.
 docs/figures/flow/
 
-# Rendered exhibit images. The pages are already covered by the study_materials
-# pages/ rule above; these are the verification overlays and the unwarped
-# intermediates, which are large, regenerable, and only ever looked at by a
-# person. The manifests beside them (page.json, with the homography and the
-# line boxes) ARE tracked -- they are the bboxes, and they are the whole point
-# of not having to run OCR.
-/backend/study_materials/*/exhibits/**/*.png
-/backend/study_materials/*/exhibits/**/*.jpg
+# Generated exhibit material does not land in the repository on its own.
+#
+# It is built into TRY/ and stays there until it has been looked at and
+# accepted; only then does a bundle belong here, and that is a decision to be
+# made deliberately rather than by a build script choosing a path. Rendered
+# pages, verification overlays and the unwarped intermediates are large and
+# regenerable in any case (backend/scripts/render_exhibits.py --spec ... --out ...).
+/backend/study_materials/judging_v2/
+/backend/study_materials/templates/
+/backend/study_materials/*/exhibits/
