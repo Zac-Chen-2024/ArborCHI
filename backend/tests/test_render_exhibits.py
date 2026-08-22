@@ -13,6 +13,7 @@ reference implementation, so it gets a test.
 import importlib.util
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "render_exhibits.py"
@@ -191,9 +192,6 @@ def test_a_page_with_no_regions_key_still_checks():
 #
 # These use a painted image built by hand, so what the check does is visible
 # without a browser.
-
-np = pytest.importorskip("numpy", reason="V1 verification is image arithmetic")
-
 
 def painted(*blobs, size=(200, 400)):
     """A white page with a solid rectangle of each given colour."""

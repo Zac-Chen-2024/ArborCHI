@@ -322,6 +322,29 @@ _check_rendered_bundles()
 
 
 # ---------------------------------------------------------------------------
+# A test module may not skip itself out of existence
+#
+# `pytest.importorskip` at module scope skips the WHOLE file, not the tests
+# below it. tests/test_render_exhibits.py picked one up for its last few cases
+# and took the other thirty with it -- including the checks that keep the answer
+# key out of a render artefact -- on any machine without numpy. The suite
+# reported green; a clean checkout was the only place the count differed.
+#
+# Inside a test function it is fine: that skips one test, and says so.
+
+SKIP_CALL = re.compile(r'^\S.*\bimportorskip\b')
+
+for path in walk(os.path.join(ROOT, 'backend', 'tests'), ('.py',)):
+    rel = os.path.relpath(path, ROOT).replace(os.sep, '/')
+    for n, line in enumerate(io.open(path, encoding='utf-8'), 1):
+        if SKIP_CALL.match(line):
+            note('SKIP', f'{rel}:{n}: importorskip at module scope skips the '
+                         f'whole file, not just the tests that need it. Declare '
+                         f'the dependency in requirements-dev.txt, or skip '
+                         f'inside the test that needs it.')
+
+
+# ---------------------------------------------------------------------------
 
 def main() -> int:
     print(f'i18n     : {len(en)} keys, {len(used)} referenced in components')

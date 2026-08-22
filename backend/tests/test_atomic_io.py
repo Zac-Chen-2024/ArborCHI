@@ -2,13 +2,15 @@
 app/core/atomic_io -- crash-safe, lock-guarded JSON I/O (M3).
 
 Written before the implementation (M2) so that M3 turns them green.
+
+M3 landed, so these import the module rather than skipping past it. An
+importorskip here would have gone on quietly hiding all eight of them the day
+this module stopped importing, which is the one day they matter.
 """
 import json
 import threading
 
-import pytest
-
-atomic_io = pytest.importorskip("app.core.atomic_io", reason="M3 not landed yet")
+from app.core import atomic_io
 
 
 def test_roundtrip(tmp_path):

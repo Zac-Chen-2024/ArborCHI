@@ -3,3 +3,20 @@ pytest==8.3.3
 pytest-asyncio==0.24.0
 ruff==0.6.9
 respx==0.21.1
+
+# The exhibit render pipeline (scripts/render_exhibits.py) and its tests. Not
+# needed to serve a study -- the bundles it produces are read as plain JSON and
+# JPEG -- but needed to build one, and needed for the acceptance checks to run
+# under CI. Until these were declared they lived only in a developer's venv,
+# and the whole of tests/test_render_exhibits.py skipped itself on a clean
+# checkout: 37 tests, including the ones that guard the answer key, quietly not
+# running while the suite reported green.
+numpy==2.4.6
+opencv-python-headless==5.0.0.93
+
+# Rendering a page also needs playwright and a browser:
+#     pip install playwright==1.62.0 && playwright install chromium
+# It is left out of CI on purpose. Nothing in the test suite drives a browser --
+# the tests check the acceptance rules against manifests built by hand, which is
+# what has to hold on every commit; rendering is what a person runs when the
+# material changes, and a ~150 MB browser download on every CI run buys nothing.
