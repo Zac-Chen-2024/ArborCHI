@@ -38,8 +38,23 @@ from typing import Any, Dict, List
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from design_common import PAGE_H, PAGE_W, count_paras, load_blocks, norm, paginate  # noqa: E402
-from exhibit_genres import FLOWING, SINGLE, divider  # noqa: E402
+from design_common import (  # noqa: E402
+    PAGE_H,
+    PAGE_W,
+    count_paras,
+    load_blocks,
+    load_pages,
+    norm,
+    paginate,
+)
+from exhibit_genres import FLOWING as WEB_GENRES  # noqa: E402
+from exhibit_genres import SINGLE, divider  # noqa: E402
+from exhibit_genres_print import PRINT_GENRES  # noqa: E402
+
+# A book and a paper are laid out by `exhibit_genres_print`; everything that is
+# a web page or an office document by `exhibit_genres`. Same call signature, so
+# the build does not care which a document is.
+FLOWING = {**WEB_GENRES, **PRINT_GENRES}
 
 # How much text a page of each genre holds, in characters, for the first sheet
 # and for the ones after it. Set by building the set and lowering whatever the
@@ -191,6 +206,30 @@ DOCS: List[Dict[str, Any]] = [
         },
     },
     {
+        "exhibit": "G-5", "genre": "book", "scan": "medium",
+        "title": "Market Study and Practice — Nanhu University Press",
+        "content": {
+            "series": "Twenty-First Century Communication Studies Series",
+            "title": "Market Study and Practice",
+            "editor": "Ruiheng Fang, Editor-in-Chief",
+            "press": "Nanhu University Press",
+        },
+    },
+    {
+        "exhibit": "D-8", "genre": "paper", "scan": "light",
+        "title": "New Rules of Advertising Communication",
+        "content": {
+            "journal": "Journal of Communication Studies",
+            "issue": "Vol. 34, No. 2",
+            "title": ("New Rules of Advertising Communication: "
+                      "From AIDMA, AISAS to IRMAP"),
+            "short_title": "New Rules of Advertising Communication",
+            "authors": "Ruiheng Fang, Yanting Qiu",
+            "affiliation": "School of Journalism & Communication, Nanhu University",
+            "footer": "Journal of Communication Studies",
+        },
+    },
+    {
         "exhibit": "C-9", "genre": "portal", "scan": "light",
         "title": "Smart Retail Committee Was Established in Beijing",
         "content": {
@@ -209,7 +248,56 @@ DOCS: List[Dict[str, Any]] = [
 ]
 
 
-def build(out: Path, ocr: Path, only: str | None) -> int:
+# What each sheet of a book is. Detected from the sheet rather than declared,
+# because the source is what says where the contents end and the colophon
+# begins, and a hand-written table would go stale the moment a page moved.
+def page_kind(genre: str, index: int, items) -> str:
+    if genre == "paper":
+        return "front" if index == 0 else "body"
+    if genre != "book":
+        return "body"
+    if index == 0:
+        return "cover"
+    import re
+
+    text = " ".join(i["text"] for i in items)
+    if "CIP" in text or "Cataloging" in text or "Cataloguing" in text:
+        return "colophon"
+    # Contents are recognised by their folios, not by the first line. A sheet
+    # in the middle of a contents run opens with the running head, so testing
+    # the top of the page put the second half of the table through as prose.
+    if len(re.findall(r"\(\d{1,4}\)", text)) >= 3:
+        return "contents"
+    return "blurb"
+
+
+def mirror_pages(doc, pages) -> list:
+    """One designed sheet per source sheet.
+
+    The alternative -- reflowing a document into as many pages as its own
+    setting needs -- gives a tidier book and a different filing. A replica whose
+    exhibit runs to four sheets where the original ran to twelve is not a
+    replica of it, and page counts are part of what a reader of the real thing
+    sees.
+    """
+    # The source's first sheet is the slip sheet, which the build already emits
+    # as a divider; its text is filtered out, so what is left here is an empty
+    # page that would render as a blank one.
+    pages = pages[1:]
+
+    if doc["genre"] in SINGLE:
+        return [SINGLE[doc["genre"]](doc)]
+
+    render = FLOWING[doc["genre"]]
+    total, sheets, start = len(pages), [], 1
+    for n, items in enumerate(pages):
+        doc["page_kind"] = page_kind(doc["genre"], n, items)
+        sheets.append(render(doc, items, n + 1, total, start, True))
+        start += count_paras(items)
+    return sheets
+
+
+def build(out: Path, ocr: Path, only: str | None, mirror: bool = False) -> int:
     out.mkdir(parents=True, exist_ok=True)
     exhibits = []
 
@@ -224,7 +312,11 @@ def build(out: Path, ocr: Path, only: str | None) -> int:
         (out / name).write_text(divider(doc), encoding="utf-8")
         pages.append({"html": name, "scan": "medium"})
 
-        if doc["genre"] in SINGLE:
+        if mirror:
+            # Only a page printed from a browser gets the web filters.
+            web = doc["genre"] in ("portal", "news", "newswire", "faculty")
+            sheets = mirror_pages(doc, load_pages(ocr, doc["exhibit"], web))
+        elif doc["genre"] in SINGLE:
             sheets = [SINGLE[doc["genre"]](doc)]
         else:
             items = load_blocks(ocr, doc["exhibit"])
@@ -271,8 +363,11 @@ def main() -> int:
     ap.add_argument("--ocr", required=True, type=Path,
                     help="replica corpus the body text comes from")
     ap.add_argument("--only", help="build a single exhibit, e.g. C-1")
+    ap.add_argument("--mirror", action="store_true",
+                    help="one designed sheet per source sheet, rather than "
+                         "reflowing the text into as many pages as it needs")
     args = ap.parse_args()
-    return build(args.out, args.ocr, args.only)
+    return build(args.out, args.ocr, args.only, args.mirror)
 
 
 if __name__ == "__main__":

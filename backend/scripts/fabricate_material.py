@@ -49,7 +49,12 @@ SRC = Path(r"F:/Python-Project/Arbor_CHI_2027/data/Dehuan Liu/OCR/ocr_results_l"
 OUT = Path(r"F:/Python-Project/Arbor_CHI_2027/TRY")
 
 # Exhibit C-10 of the source is a private email and is not replicated.
-EXHIBITS = ["c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8", "c9"]
+#
+# g5 and d8 are not in group C. They are here because the criterion's evidence
+# cites them: a book the petitioner edited and a paper he co-wrote. A set that
+# leaves them out is not a replica of the filing, it is a replica of one folder
+# of it.
+EXHIBITS = ["c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8", "c9", "g5", "d8"]
 
 PAGE_WIDTH = 1400
 
@@ -66,6 +71,59 @@ FONTS = {
 # Commerce" must be replaced before "China", or the long name is left holding a
 # substituted fragment.
 SUBSTITUTIONS: list[tuple[str, str]] = [
+    # -- the book (G-5) and the paper (D-8) --------------------------------
+    #
+    # Publications, their catalogue entries, and the people credited in them.
+    # A book's colophon identifies a person as precisely as a name does: an
+    # ISBN, a CIP number and a press address between them name exactly one
+    # book, and that book has one editor-in-chief.
+    ("Market Research and Applications", "Market Study and Practice"),
+    ("Market Research and Application", "Market Study and Practice"),
+    ("Market Survey Textbook", "Market Study: A Textbook"),
+    ("Modern Market Research", "Contemporary Market Study"),
+    ("National Market Research Association", "National Market Study Association"),
+    ("Center for Market and Media Research", "Centre for Market and Media Study"),
+    ("21st Century Journalism and Communication Series",
+     "Twenty-First Century Communication Studies Series"),
+    ("978- 7- 301- 10091- 2", "978- 7- 902- 41773- 6"),
+    ("978-7-301-10091-2", "978-7-902-41773-6"),
+    ("F. 1302", "F. 4417"),
+    ("F.713.5", "F.740.2"),
+    ("(2005) No. 131218", "(2005) No. 274905"),
+    ("No. 205 Chengfu Road, Haidian District, Beijing 100871",
+     "No. 88 Yunqi Road, Xihu District, Hangzhou 310013"),
+    ("http://www.pup.cn", "http://www.nhup.cn"),
+    ("ss@pup.pku.edu.cn", "ss@nhup.nanhu.edu.cn"),
+    ("fd@pup.pku.edu.cn", "fd@nhup.nanhu.edu.cn"),
+    ("010- 62752024", "010- 84913077"),
+    ("62752015", "84910211"),
+    ("62750672", "84910348"),
+    ("62765016", "84910592"),
+    ("62754962", "84910736"),
+    ("Xinhua Bookstore", "Cloudgate Bookshops"),
+    ("World Knowledge Printing House", "Riverbend Printing House"),
+    ("Spring Studio", "Nine Rivers Studio"),
+    ("Zhou, Lijin", "Han, Ruoxi"),
+    ("Lijing Zhou", "Ruoxi Han"),
+    ("Zhou Jing", "Cao Meilin"),
+    ("Jing Zhou", "Meilin Cao"),
+    ("Ren, Jing", "Tang, Yuan"),
+    ("Jing Ren", "Yuan Tang"),
+    ("Siluo Chen", "Yanting Qiu"),
+    # ISMAS is the paper's own proposed model, so it names its authors as
+    # surely as the byline does. AIDMA and AISAS are other people's published
+    # frameworks and stay: a fabricated paper may cite the literature.
+    ("ISMAS", "IRMAP"),
+    # Real firms and real people the text makes claims about. A fabricated
+    # document that says what a named living person wrote is worse than one
+    # that names nobody.
+    ("Nao Bai Jin", "Golden Rest"),
+    ("Yuzhu Shi", "Zhenhai Mu"),
+    ("Qin Chi", "Yunhe"),
+    ("Procter & Gamble", "Halcyon Household"),
+    ("E·S·Lewis", "R·T·Alder"),
+    ("E. S. Lewis", "R. T. Alder"),
+
     # -- the award ---------------------------------------------------------
     ("Tiger Roar Award Ended Successfully", "Blue Lantern Award Ended Successfully"),
     ("Tiger Roar Awards Organizing Committee", "Blue Lantern Awards Organizing Committee"),
@@ -289,6 +347,18 @@ ALL_SUBSTITUTIONS = SUBSTITUTIONS + TAIL_ORGS + _pseudonyms()
 # replaced before it ("Li Li" inside "Li Xiannian").
 ALL_SUBSTITUTIONS.sort(key=lambda pair: -len(pair[0]))
 
+# Matched without regard to case, because the source does not keep to one.
+# The same organisation appears as "China Advertising Association of Commerce"
+# in a heading, "CHINADAILY.COM.CN" in a masthead and "Market research and
+# application" in a running head, and a case-sensitive pass replaced the first
+# and left the other two. Four real names survived that way in the earlier set,
+# and neither the substitution nor the audit noticed, because both were
+# comparing exactly.
+#
+# The replacement follows the case it found: an all-capitals match gets an
+# all-capitals replacement, everything else gets the name as written.
+_COMPILED = [(re.compile(re.escape(old), re.I), new) for old, new in ALL_SUBSTITUTIONS]
+
 
 def substitute(text: str) -> str:
     """Apply the map, then drop any Chinese that came through with it.
@@ -299,8 +369,8 @@ def substitute(text: str) -> str:
     are absent -- so the Chinese runs are removed rather than replaced.
     """
     out = clean_markup(text)
-    for old, new in ALL_SUBSTITUTIONS:
-        out = out.replace(old, new)
+    for pattern, new in _COMPILED:
+        out = pattern.sub(lambda m, n=new: n.upper() if m.group(0).isupper() else n, out)
     out = CJK.sub(" ", out)
     return re.sub(r"[ \t]{2,}", " ", out).strip()
 
@@ -393,13 +463,23 @@ def audit(out: Path) -> list:
         text.append(page.get("markdown_text") or "")
         for block in page.get("text_blocks") or []:
             text.append(block.get("text_content") or "")
-    blob = " ".join(text)
+    # Folded, for the same reason the substitution is: an original that comes
+    # back in a different case is just as much of a leak, and an audit that
+    # cannot see it is worse than no audit, because it says the set is clean.
+    blob = " ".join(text).lower()
     originals = [a for a, _ in ALL_SUBSTITUTIONS] + [
         "Dehuan", "Liping", "Xubin", "Xiaodong", "ZEISS", "Tiger Roar",
         "NetEase", "Baidu", "Google", "Tencent", "Sohu", "China Daily",
         "PR Newswire", "Tsinghua", "Peking Univ", "CAAC", "DMCC",
+        # From the book and the paper. Fragments rather than whole names,
+        # because a colophon identifies a book by its numbers as surely as by
+        # its title -- an ISBN or a press e-mail domain surviving is the same
+        # leak as a name surviving.
+        "ISMAS", "Siluo", "Yuzhu", "Nao Bai", "Qin Chi", "Procter",
+        "pup.cn", "pku.edu", "Chengfu", "Xinhua Book", "10091", "131218",
+        "62752015", "62750672", "62765016", "62754962", "F.713.5",
     ]
-    return sorted({o for o in originals if o in blob})
+    return sorted({o for o in originals if o.lower() in blob})
 
 
 def main() -> int:

@@ -147,6 +147,53 @@ def load_blocks(ocr: Path, exhibit: str) -> List[Dict[str, str]]:
     return out
 
 
+def load_pages(ocr: Path, exhibit: str, web: bool = True) -> List[List[Dict[str, str]]]:
+    """The same cleaning as `load_blocks`, but keeping the source's pages.
+
+    Used when a set mirrors a filing sheet for sheet rather than reflowing it.
+    A page whose every block was chrome comes back empty and is still a page:
+    that is what a printed web page looks like when the sheet caught the header
+    and a photograph and little else, and dropping it would make the replica
+    shorter than the thing it replicates.
+
+    `web` is what a source page IS, and it decides two filters that only make
+    sense for one kind of document. Both were written for pages printed from a
+    browser and both destroy a book:
+
+      * the chrome filter drops a run of words that never reaches a full stop,
+        because on a web page that is a menu. In a book it is the contents and
+        the colophon -- "Chapter 7 Brand research (157)", "Responsible editor:
+        ..." -- and dropping them left the contents pages blank.
+      * the de-duplicator drops a passage the corpus has seen before, because a
+        printed web page repeats its header on every sheet. A book's two
+        contents sheets are near-identical in the source and both are real.
+    """
+    folder = ocr / exhibit.lower().replace("-", "")
+    seen: set = set()
+    pages: List[List[Dict[str, str]]] = []
+    for path in sorted(folder.glob("page_*.json"),
+                       key=lambda p: int(re.search(r"(\d+)", p.stem).group(1))):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        items: List[Dict[str, str]] = []
+        for block in sorted(data["text_blocks"],
+                            key=lambda b: (b["bbox_list"][1], b["bbox_list"][0])):
+            text = tidy(" ".join((block.get("text_content") or "").split()))
+            if not text or text == "Translation" or EXHIBIT_SLIP.fullmatch(text):
+                continue
+            key = text.lower()[:90]
+            if web:
+                if key in seen:
+                    continue
+                seen.add(key)
+            if block["block_type"] in ("title", "sub_title"):
+                if not (web and is_chrome(text)):
+                    items.append({"kind": "head", "text": text})
+            elif not web or (readable(text) and not is_chrome(text)):
+                items.append({"kind": "para", "text": text})
+        pages.append(items)
+    return pages
+
+
 def paginate(items: List[Dict[str, str]], first: int,
              rest: int | None = None) -> List[List[Dict[str, str]]]:
     """Split a flow of headings and paragraphs into pages by how much text each

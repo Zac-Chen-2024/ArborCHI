@@ -184,7 +184,7 @@ BROCHURE_CSS = """
 """
 
 
-def brochure(doc, items, page_no, total, start):
+def brochure(doc, items, page_no, total, start, full_chrome=False):
     d = doc["content"]
     head = (f"""
   <div class="mast">
@@ -237,9 +237,12 @@ PORTAL_CSS = """
 """
 
 
-def portal(doc, items, page_no, total, start):
+def portal(doc, items, page_no, total, start, full_chrome=False):
     d = doc["content"]
-    if page_no == 1:
+    # A web page printed to paper repeats its header on every sheet -- that is
+    # why the real filing's twelve-page article is twelve pages. A running head
+    # would be tidier and would not be what the exhibit looks like.
+    if page_no == 1 or full_chrome:
         head = f"""
   <div class="util"><span>{esc(d["util"])}</span><span class="r">Search</span></div>
   <div class="brandbar">
@@ -299,7 +302,7 @@ NEWS_CSS = """
 """
 
 
-def news(doc, items, page_no, total, start):
+def news(doc, items, page_no, total, start, full_chrome=False):
     d = doc["content"]
     head = (f"""
   <div class="mast"><div class="n">{esc(d["masthead"])}</div>
@@ -308,7 +311,7 @@ def news(doc, items, page_no, total, start):
   <div class="kicker">{esc(d["section"])}</div>
   <h1>{esc(d["headline"])}</h1>
   <div class="byline">{esc(d["source"])} &nbsp;·&nbsp; <b>{esc(d["date"])}</b></div>"""
-            if page_no == 1 else f"""
+            if page_no == 1 or full_chrome else f"""
   <div class="runhead">{esc(d["masthead"])} &nbsp;·&nbsp; {esc(d["date"])}</div>""")
     return page(d["headline"], NEWS_FONTS, NEWS_CSS, f"""{head}
   {flow(items, doc["exhibit"], start)}
@@ -352,9 +355,9 @@ WIRE_CSS = """
 """
 
 
-def newswire(doc, items, page_no, total, start):
+def newswire(doc, items, page_no, total, start, full_chrome=False):
     d = doc["content"]
-    if page_no == 1:
+    if page_no == 1 or full_chrome:
         head = f"""
   <div class="util">{"".join(f"<span>{esc(x)}</span>" for x in d["util"])}</div>
   <div class="head"><div class="wm">{esc(d["wire"])}<i>{esc(d["wire_tail"])}</i></div>
@@ -415,9 +418,9 @@ FACULTY_CSS = """
 """
 
 
-def faculty(doc, items, page_no, total, start):
+def faculty(doc, items, page_no, total, start, full_chrome=False):
     d = doc["content"]
-    if page_no == 1:
+    if page_no == 1 or full_chrome:
         head = f"""
   <div class="top"><div class="crest">{esc(d["crest"])}</div>
     <div><div class="u">{esc(d["university"])}</div>
@@ -528,7 +531,7 @@ RELEASE_CSS = """
 """
 
 
-def release(doc, items, page_no, total, start):
+def release(doc, items, page_no, total, start, full_chrome=False):
     d = doc["content"]
     if page_no == 1:
         head = f"""
