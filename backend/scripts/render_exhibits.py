@@ -155,6 +155,31 @@ def measure(html: Path, out_png: Path, width: int, scale: int,
         doc_h = page.evaluate(
             "() => Math.ceil(Math.max(document.body.scrollHeight,"
             "                         document.body.offsetHeight))")
+
+        # How far the citable text runs past the type area.
+        #
+        # A designed page has a fixed height and hides what will not fit, which
+        # is how a paragraph disappears without anyone noticing: the citation
+        # still resolves, the box is still correct, and the words are simply not
+        # on the sheet. Nobody can answer a question about a passage that was
+        # cropped off the bottom.
+        #
+        # Measured against the type area rather than by comparing scrollHeight
+        # with clientHeight, which looks like the obvious test and is not one:
+        # `overflow:hidden` makes a box unscrollable, and Chromium then reports
+        # the two as equal however far the content runs past the edge. That
+        # version of this check sat here reporting zero while a paragraph ran
+        # under the footer and off the page.
+        overflow = page.evaluate("""() => {
+            const b = document.body, cs = getComputedStyle(b)
+            const r = b.getBoundingClientRect()
+            const floor = r.top + b.clientHeight - parseFloat(cs.paddingBottom)
+            let worst = 0
+            document.querySelectorAll('[data-snippet-id]').forEach((el) => {
+                worst = Math.max(worst, el.getBoundingClientRect().bottom - floor)
+            })
+            return Math.round(worst)
+        }""")
         if doc_h and doc_h != page.viewport_size["height"]:
             page.set_viewport_size({"width": width, "height": int(doc_h)})
             page.wait_for_timeout(50)
@@ -187,6 +212,12 @@ def measure(html: Path, out_png: Path, width: int, scale: int,
                 }
             })
             return out
+        }""")
+
+        box = page.evaluate("""() => {
+            const r = document.body.getBoundingClientRect()
+            return {x: r.x + scrollX, y: r.y + scrollY,
+                    width: r.width, height: r.height}
         }""")
 
         rects = page.evaluate("""() => {
@@ -249,11 +280,16 @@ def measure(html: Path, out_png: Path, width: int, scale: int,
         # collision check below needs them: text landing on a photograph is a
         # layout failure exactly like text landing on text.
         regions = page.evaluate("""() => {
-            return [...document.querySelectorAll('.image')].map((el) => {
-                const r = el.getBoundingClientRect()
-                return {kind: 'image', x: r.x + scrollX, y: r.y + scrollY,
-                        w: r.width, h: r.height}
-            })
+            // Reserved areas and page furniture: a photograph's place on the
+            // page, a footer, a seal. None of them are citable, and none of
+            // them may have text printed across them.
+            return [...document.querySelectorAll('.image, [data-region]')]
+                .map((el) => {
+                    const r = el.getBoundingClientRect()
+                    return {kind: el.dataset.region || 'image',
+                            x: r.x + scrollX, y: r.y + scrollY,
+                            w: r.width, h: r.height}
+                })
         }""")
 
         doc_title = page.title()
@@ -283,7 +319,15 @@ def measure(html: Path, out_png: Path, width: int, scale: int,
             return [...missing]
         }""")
 
-        page.screenshot(path=str(out_png), full_page=True)
+        # Photograph the body's own rectangle, not the whole document.
+        #
+        # `full_page` captures the documentElement, and a child's top margin can
+        # escape the body and make the document taller than the page -- a 20px
+        # margin on a running head did exactly that, so every continuation sheet
+        # came out 1314px tall against a 1294px design and the aspect check
+        # rejected the lot. Clipping to the body makes the image the page by
+        # construction, whatever a template does with its margins.
+        page.screenshot(path=str(out_png), clip=box)
 
         # A second render in which the browser paints each line box in a colour
         # of its own, so the finished page can be asked where its own text is.
@@ -310,9 +354,17 @@ def measure(html: Path, out_png: Path, width: int, scale: int,
             // which matters because the rects were measured before this ran.
             style.textContent =
                 '*, *::before, *::after { background-image: none !important;' +
-                ' background-color: #fff !important; border-color: #ddd !important;' +
-                ' color: #333 !important; box-shadow: none !important;' +
-                ' text-shadow: none !important }'
+                // transparent, NOT white: a decorative overlay -- a certificate's
+                // frame, a watermark -- is an absolutely positioned element, and
+                // positioned elements paint above in-flow content. Painting one
+                // white turns it into a sheet over the page, and the marks under
+                // it vanish. Which is how this was found: the certificate's
+                // frame hid every line that did not carry its own z-index.
+                ' background-color: transparent !important;' +
+                ' border-color: #ddd !important; color: #333 !important;' +
+                ' box-shadow: none !important; text-shadow: none !important;' +
+                ' filter: none !important }' +
+                'body { background-color: #fff !important }'
             const out = []
             let i = 0
             document.querySelectorAll('[data-snippet-id]').forEach((el) => {
@@ -336,15 +388,20 @@ def measure(html: Path, out_png: Path, width: int, scale: int,
         }""".replace("MARKS", json.dumps(MARK_COLOURS)))
 
         marked_png = None
-        if marks:
+        if marks is not None:
             marked_png = out_png.with_name(out_png.stem + ".marked.png")
-            page.screenshot(path=str(marked_png), full_page=True)
+            page.screenshot(path=str(marked_png), clip=box)
 
         page.close()
 
+    # Everything measured is in page coordinates; the image starts at the clip
+    # origin, so the two only agree once that origin is taken off.
+    ox, oy = box["x"], box["y"]
+
     fragments = []
     for r in rects:
-        x, y, w, h = r["x"] * scale, r["y"] * scale, r["w"] * scale, r["h"] * scale
+        x, y = (r["x"] - ox) * scale, (r["y"] - oy) * scale
+        w, h = r["w"] * scale, r["h"] * scale
         fragments.append({
             "snippet_id": r["snippet_id"],
             "line": r["line"],
@@ -356,12 +413,14 @@ def measure(html: Path, out_png: Path, width: int, scale: int,
         })
     boxes = []
     for r in regions:
-        x, y, w, h = r["x"] * scale, r["y"] * scale, r["w"] * scale, r["h"] * scale
+        x, y = (r["x"] - ox) * scale, (r["y"] - oy) * scale
+        w, h = r["w"] * scale, r["h"] * scale
         boxes.append({"kind": r["kind"],
                       "quad": [[x, y], [x + w, y], [x + w, y + h], [x, y + h]]})
 
     return {"fragments": fragments, "regions": boxes, "doc_title": doc_title,
             "fonts_missing": sorted(missing_fonts), "crowded": crowded,
+            "overflow": overflow,
             "marks": marks, "marked_png": marked_png}
 
 
@@ -548,6 +607,20 @@ def check_marks(manifest: Dict[str, Any], marked, marks) -> List[str]:
     line_px = (sorted(heights)[len(heights) // 2] / NORM * h) if heights else 30.0
     tolerance = max(6.0, line_px / 3)
 
+    # Sideways gets more room than up and down, for a reason worth writing out.
+    #
+    # On a justified line `getClientRects()` returns the LINE BOX, which runs to
+    # the measure, while the paint stops at the last glyph -- the difference is
+    # the space justification pushed to the end of the line. Measured here: 12px
+    # on a 1685px column, and nothing at all on the last line of a paragraph,
+    # which is not justified. That is typography, not a misplaced box.
+    #
+    # The error this check exists to catch is a box on the wrong line, and that
+    # is vertical, so the vertical tolerance stays at a third of a line. A
+    # horizontal error that matters -- the wrong column, the wrong paragraph --
+    # is far larger than half a line height.
+    tol = (line_px / 2, tolerance, line_px / 2, tolerance)
+
     # Snippets are grouped by colour: a page with more snippets than the palette
     # has colours reuses them, and then the honest comparison is the union of
     # everything wearing that colour against every pixel of it.
@@ -582,19 +655,22 @@ def check_marks(manifest: Dict[str, Any], marked, marks) -> List[str]:
                    max(s["bbox_norm"][2] for s in snippets) / NORM * w,
                    max(s["bbox_norm"][3] for s in snippets) / NORM * h]
 
-        drift = max(abs(p - c) for p, c in zip(painted, claimed))
+        gaps = [abs(p - c) for p, c in zip(painted, claimed)]
+        drift = max(gaps)
         worst = max(worst, drift)
-        if drift > tolerance:
+        over = max(g - t for g, t in zip(gaps, tol))
+        if over > 0:
             problems.append(
                 f"V1 {manifest['exhibit']} p{manifest['page']}: {names} is "
                 f"recorded at {[round(c) for c in claimed]} but the page paints "
                 f"it at {[int(v) for v in painted]} -- {drift:.0f}px out, "
-                f"against a tolerance of {tolerance:.0f}px")
+                f"{over:.0f}px past what a line of {line_px:.0f}px allows")
 
     # Recorded in the artefact, so "V1 passed" is a number someone can read off
     # the manifest rather than a claim in a commit message.
     manifest["v1_max_drift_px"] = round(worst, 1)
     manifest["v1_tolerance_px"] = round(tolerance, 1)
+    manifest["v1_tolerance_x_px"] = round(line_px / 2, 1)
     return problems
 
 
@@ -774,7 +850,15 @@ def build_page(html: Path, out_dir: Path, exhibit: str, page: int,
 
     problems = check_lines(measured["fragments"]) + check_layout(manifest)
 
-    if marked is not None and measured.get("marks"):
+    if measured.get("overflow", 0) > 2:
+        problems.append(
+            f"overflow {exhibit} p{page}: citable text runs {measured['overflow']}px "
+            f"past the type area and is cropped -- give this genre a smaller "
+            f"page budget")
+
+    if marked is not None and measured.get("marks") is not None:
+        # An empty list is a page with nothing citable on it -- an exhibit slip
+        # sheet. That is verified, and trivially so; it is not unverifiable.
         problems += check_marks(manifest, marked, measured["marks"])
     else:
         # Never silently: a check that did not run must not look like one that

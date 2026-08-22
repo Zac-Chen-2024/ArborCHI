@@ -326,7 +326,7 @@ def test_display_type_still_catches_a_whole_line():
     manifest = page_of(with_lines("s1", (40, 40, 300, 100), line_h=60))
     problems = render.check_marks(manifest, painted((RED, (40, 128, 300, 188))),
                                   [{"snippet_id": "s1", "rgb": RED}])
-    assert len(problems) == 1 and "tolerance of 20px" in problems[0]
+    assert len(problems) == 1 and "a line of 60px allows" in problems[0]
 
 
 def test_a_page_with_no_line_boxes_falls_back():
@@ -336,3 +336,36 @@ def test_a_page_with_no_line_boxes_falls_back():
     render.check_marks(manifest, painted((RED, (40, 60, 300, 90))),
                        [{"snippet_id": "s1", "rgb": RED}])
     assert manifest["v1_tolerance_px"] == 10
+
+
+# --- sideways gets more room than up and down ------------------------------
+#
+# On a justified line getClientRects() returns the line box, which runs to the
+# measure, while the paint stops at the last glyph: the difference is the space
+# justification pushed to the line end. 12px on a 1685px column in this set, and
+# nothing on a paragraph's last line, which is not justified. The error the
+# check exists for is a box on the wrong LINE, and that is vertical.
+
+def test_a_justified_line_may_overhang_sideways():
+    """Half a line of horizontal slack: real, bounded, and not a defect."""
+    manifest = page_of(with_lines("s1", (40, 60, 300, 120), line_h=60))
+    problems = render.check_marks(manifest, painted((RED, (40, 60, 275, 120))),
+                                  [{"snippet_id": "s1", "rgb": RED}])
+    assert manifest["v1_tolerance_x_px"] == 30
+    assert check_ok(problems)
+
+
+def test_the_same_slip_downwards_is_not_allowed():
+    """25px is fine across and far too much down -- the axes are not the same."""
+    manifest = page_of(with_lines("s1", (40, 60, 300, 120), line_h=60))
+    problems = render.check_marks(manifest, painted((RED, (40, 85, 300, 145))),
+                                  [{"snippet_id": "s1", "rgb": RED}])
+    assert len(problems) == 1
+
+
+def test_a_gross_horizontal_error_is_still_caught():
+    """The wrong column is nothing like a trailing space."""
+    manifest = page_of(with_lines("s1", (40, 60, 300, 120), line_h=60))
+    problems = render.check_marks(manifest, painted((RED, (140, 60, 380, 120))),
+                                  [{"snippet_id": "s1", "rgb": RED}])
+    assert len(problems) == 1
