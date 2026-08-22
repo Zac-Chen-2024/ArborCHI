@@ -508,5 +508,41 @@
       ]
     }
   ],
-  "regions": []
+  "regions": [],
+  "v1_marks": [
+    {
+      "snippet_id": "C-3_p4_p4_b0",
+      "rgb": "0,0,128"
+    },
+    {
+      "snippet_id": "C-3_p4_p4_b1",
+      "rgb": "0,0,255"
+    },
+    {
+      "snippet_id": "C-3_p4_p4_b2",
+      "rgb": "0,128,0"
+    },
+    {
+      "snippet_id": "C-3_p4_p4_b3",
+      "rgb": "0,128,128"
+    },
+    {
+      "snippet_id": "C-3_p4_p4_b4",
+      "rgb": "0,128,255"
+    },
+    {
+      "snippet_id": "C-3_p4_p4_b5",
+      "rgb": "0,255,0"
+    },
+    {
+      "snippet_id": "C-3_p4_p4_b6",
+      "rgb": "0,255,128"
+    },
+    {
+      "snippet_id": "C-3_p4_p4_b7",
+      "rgb": "0,255,255"
+    }
+  ],
+  "v1_max_drift_px": 3.5,
+  "v1_tolerance_px": 16.5
 }

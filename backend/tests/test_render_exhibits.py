@@ -180,3 +180,161 @@ def test_a_page_with_no_regions_key_still_checks():
     page = laid_out((0, 0, 500, 200), (0, 100, 500, 300))
     del page["regions"]
     assert len(render.check_layout(page)) == 1
+
+
+# --- V1: the page is asked where its own text is ---------------------------
+#
+# The only check here that is not reading its own numbers back. Everything else
+# traces the same coordinates through the same matrix, so none of it can notice
+# the coordinates being wrong; measured directly, an ink-coverage test cannot
+# even tell a correctly rotated box from one the homography never touched.
+#
+# These use a painted image built by hand, so what the check does is visible
+# without a browser.
+
+np = pytest.importorskip("numpy", reason="V1 verification is image arithmetic")
+
+
+def painted(*blobs, size=(200, 400)):
+    """A white page with a solid rectangle of each given colour."""
+    img = np.full((size[0], size[1], 3), 250, np.uint8)
+    for rgb, (x1, y1, x2, y2) in blobs:
+        r, g, b = (int(v) for v in rgb.split(","))
+        img[y1:y2, x1:x2] = (b, g, r)          # the array is BGR
+    return img
+
+
+def marked_manifest(snippets):
+    h, w = 200, 400
+    return {
+        "exhibit": "C-4", "page": 2, "snippets": [
+            {"snippet_id": sid,
+             "bbox_norm": [x1 / w * 1000, y1 / h * 1000,
+                           x2 / w * 1000, y2 / h * 1000],
+             "lines": []}
+            for sid, (x1, y1, x2, y2) in snippets
+        ],
+    }
+
+
+RED, GREEN = render.MARK_COLOURS[0], render.MARK_COLOURS[1]
+
+
+def test_v1_passes_when_the_paint_is_where_the_manifest_says():
+    box = (40, 60, 300, 90)
+    problems = render.check_marks(
+        marked_manifest([("s1", box)]), painted((RED, box)),
+        [{"snippet_id": "s1", "rgb": RED}])
+    assert check_ok(problems)
+
+
+def test_v1_records_the_drift_it_measured():
+    box = (40, 60, 300, 90)
+    manifest = marked_manifest([("s1", box)])
+    render.check_marks(manifest, painted((RED, box)),
+                       [{"snippet_id": "s1", "rgb": RED}])
+    assert manifest["v1_max_drift_px"] <= 1
+
+
+def test_v1_catches_a_box_off_by_a_line():
+    manifest = marked_manifest([("s1", (40, 60, 300, 90))])
+    image = painted((RED, (40, 100, 300, 130)))       # the text is 40px lower
+    problems = render.check_marks(manifest, image,
+                                  [{"snippet_id": "s1", "rgb": RED}])
+    assert len(problems) == 1 and "40px out" in problems[0]
+
+
+def test_v1_catches_a_box_that_is_the_wrong_width():
+    manifest = marked_manifest([("s1", (40, 60, 300, 90))])
+    problems = render.check_marks(manifest, painted((RED, (40, 60, 200, 90))),
+                                  [{"snippet_id": "s1", "rgb": RED}])
+    assert len(problems) == 1
+
+
+def test_v1_catches_a_snippet_that_was_never_painted():
+    """A snippet the render never drew: the strongest form of missing."""
+    manifest = marked_manifest([("s1", (40, 60, 300, 90))])
+    problems = render.check_marks(manifest, painted((GREEN, (40, 60, 300, 90))),
+                                  [{"snippet_id": "s1", "rgb": RED}])
+    assert len(problems) == 1 and "no such pixels" in problems[0]
+
+
+def test_v1_tolerates_antialiasing_at_the_edges():
+    """Chroma subsampling smears a pixel or two; that is not a defect."""
+    manifest = marked_manifest([("s1", (40, 60, 300, 90))])
+    problems = render.check_marks(manifest, painted((RED, (42, 61, 298, 92))),
+                                  [{"snippet_id": "s1", "rgb": RED}])
+    assert check_ok(problems)
+
+
+def test_v1_compares_shared_colours_as_a_group():
+    """More snippets than colours means two share one; the check then compares
+    everything wearing that colour against every pixel of it."""
+    a, b = (20, 20, 120, 50), (20, 120, 120, 150)
+    manifest = marked_manifest([("s1", a), ("s2", b)])
+    problems = render.check_marks(
+        manifest, painted((RED, a), (RED, b)),
+        [{"snippet_id": "s1", "rgb": RED}, {"snippet_id": "s2", "rgb": RED}])
+    assert check_ok(problems)
+
+
+def test_v1_names_the_page_and_the_snippet():
+    manifest = marked_manifest([("C-4_p2_p2_b7", (40, 60, 300, 90))])
+    problems = render.check_marks(manifest, painted((RED, (40, 120, 300, 150))),
+                                  [{"snippet_id": "C-4_p2_p2_b7", "rgb": RED}])
+    assert "C-4 p2" in problems[0] and "C-4_p2_p2_b7" in problems[0]
+
+
+# --- the V1 tolerance is a fraction of a line, not a fixed distance --------
+#
+# The error worth catching is a box on the wrong line, so the allowance has to
+# scale with the line: a page set in 11px type and one set in 40px display type
+# do not deserve the same slack, and a fixed pixel budget is either too tight
+# for the second or useless on the first.
+
+def with_lines(sid, box, line_h):
+    h, w = 200, 400
+    x1, y1, x2, y2 = box
+    return {"snippet_id": sid,
+            "bbox_norm": [x1 / w * 1000, y1 / h * 1000, x2 / w * 1000, y2 / h * 1000],
+            "lines": [{"line": 0, "quad_norm": [[0, 0], [10, 0],
+                                                [10, line_h / h * 1000],
+                                                [0, line_h / h * 1000]]}]}
+
+
+def page_of(snippet):
+    return {"exhibit": "C-4", "page": 2, "snippets": [snippet]}
+
+
+def test_small_type_gets_a_tight_tolerance():
+    """12px lines: a 6px slip is most of a line and must not pass."""
+    manifest = page_of(with_lines("s1", (40, 60, 300, 72), line_h=12))
+    problems = render.check_marks(manifest, painted((RED, (40, 68, 300, 80))),
+                                  [{"snippet_id": "s1", "rgb": RED}])
+    assert manifest["v1_tolerance_px"] == 6
+    assert len(problems) == 1
+
+
+def test_display_type_gets_a_wider_one():
+    """60px lines: the same 8px slip is a fifth of a line and is antialiasing."""
+    manifest = page_of(with_lines("s1", (40, 40, 300, 100), line_h=60))
+    problems = render.check_marks(manifest, painted((RED, (40, 48, 300, 108))),
+                                  [{"snippet_id": "s1", "rgb": RED}])
+    assert manifest["v1_tolerance_px"] == 20
+    assert check_ok(problems)
+
+
+def test_display_type_still_catches_a_whole_line():
+    manifest = page_of(with_lines("s1", (40, 40, 300, 100), line_h=60))
+    problems = render.check_marks(manifest, painted((RED, (40, 128, 300, 188))),
+                                  [{"snippet_id": "s1", "rgb": RED}])
+    assert len(problems) == 1 and "tolerance of 20px" in problems[0]
+
+
+def test_a_page_with_no_line_boxes_falls_back():
+    """Nothing to scale against; the floor applies rather than a crash."""
+    manifest = page_of({"snippet_id": "s1", "bbox_norm": [100, 300, 750, 450],
+                        "lines": []})
+    render.check_marks(manifest, painted((RED, (40, 60, 300, 90))),
+                       [{"snippet_id": "s1", "rgb": RED}])
+    assert manifest["v1_tolerance_px"] == 10

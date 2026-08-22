@@ -290,5 +290,25 @@
         426.61883224099734
       ]
     }
-  ]
+  ],
+  "v1_marks": [
+    {
+      "snippet_id": "C-5_p3_p3_b0",
+      "rgb": "0,0,128"
+    },
+    {
+      "snippet_id": "C-5_p3_p3_b1",
+      "rgb": "0,0,255"
+    },
+    {
+      "snippet_id": "C-5_p3_p3_b3",
+      "rgb": "0,128,0"
+    },
+    {
+      "snippet_id": "C-5_p3_p3_b4",
+      "rgb": "0,128,128"
+    }
+  ],
+  "v1_max_drift_px": 4.0,
+  "v1_tolerance_px": 14.8
 }

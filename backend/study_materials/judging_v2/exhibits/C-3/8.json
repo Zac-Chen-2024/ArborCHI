@@ -467,5 +467,33 @@
         300.5806029821763
       ]
     }
-  ]
+  ],
+  "v1_marks": [
+    {
+      "snippet_id": "C-3_p8_p8_b0",
+      "rgb": "0,0,128"
+    },
+    {
+      "snippet_id": "C-3_p8_p8_b1",
+      "rgb": "0,0,255"
+    },
+    {
+      "snippet_id": "C-3_p8_p8_b3",
+      "rgb": "0,128,0"
+    },
+    {
+      "snippet_id": "C-3_p8_p8_b4",
+      "rgb": "0,128,128"
+    },
+    {
+      "snippet_id": "C-3_p8_p8_b5",
+      "rgb": "0,128,255"
+    },
+    {
+      "snippet_id": "C-3_p8_p8_b6",
+      "rgb": "0,255,0"
+    }
+  ],
+  "v1_max_drift_px": 4.1,
+  "v1_tolerance_px": 16.4
 }

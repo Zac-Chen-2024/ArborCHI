@@ -863,5 +863,41 @@
         835.9614504948091
       ]
     }
-  ]
+  ],
+  "v1_marks": [
+    {
+      "snippet_id": "C-9_p2_p2_b0",
+      "rgb": "0,0,128"
+    },
+    {
+      "snippet_id": "C-9_p2_p2_b1",
+      "rgb": "0,0,255"
+    },
+    {
+      "snippet_id": "C-9_p2_p2_b7",
+      "rgb": "0,128,0"
+    },
+    {
+      "snippet_id": "C-9_p2_p2_b3",
+      "rgb": "0,128,128"
+    },
+    {
+      "snippet_id": "C-9_p2_p2_b4",
+      "rgb": "0,128,255"
+    },
+    {
+      "snippet_id": "C-9_p2_p2_b5",
+      "rgb": "0,255,0"
+    },
+    {
+      "snippet_id": "C-9_p2_p2_b6",
+      "rgb": "0,255,128"
+    },
+    {
+      "snippet_id": "C-9_p2_p2_b8",
+      "rgb": "0,255,255"
+    }
+  ],
+  "v1_max_drift_px": 6.5,
+  "v1_tolerance_px": 12.0
 }

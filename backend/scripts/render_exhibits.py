@@ -27,6 +27,21 @@ Two things the reference implementation left for here: a union box per snippet
 (the spec's §8 -- the viewer highlights one rectangle per snippet, not one per
 line), and the acceptance checks V3/V4/V6 wired in so a bad render fails the run
 instead of being noticed later.
+
+The spec leaves V1 -- "the box is on the right words" -- to a person looking at
+CHECK.png. That does not scale past a page or two, and it is the check that
+matters most, so `check_marks` does it mechanically instead. Every page is
+rendered a second time with the browser painting each line box in a colour of
+its own, and that render goes through the same homography. The coloured pixels
+are the paint pass's account of where a line ended up; `bbox_norm` is
+getClientRects()'s account carried through the matrix. Two accounts from two
+code paths, compared per snippet, on every page.
+
+It has to be that, and not something simpler. Every other check here reads the
+same numbers back through the same matrix, so none of them can notice the
+numbers being wrong -- measured directly, an ink-coverage test could not tell a
+correctly rotated box from one the homography never touched, because a fraction
+of a degree still leaves a box sitting on its own text.
 """
 from __future__ import annotations
 
@@ -47,6 +62,15 @@ from typing import Any, Dict, List
 # The convention the viewer already uses (红线 #8): a coordinate divided by 1000
 # is a fraction of the page, so a highlight holds at any zoom or render width.
 NORM = 1000.0
+
+# Colours for the marked render. Saturated, far apart in hue, and never near
+# paper or ink, so they survive the warp, the noise and the JPEG and can still
+# be told apart. Twelve is more than any page needs at once; snippets that share
+# one are separated by being nowhere near each other, and the check pairs a
+# colour with the snippet it was assigned rather than guessing from the colour.
+MARK_COLOURS = [f"{r},{g},{b}"
+                for r in (0, 128, 255) for g in (0, 128, 255) for b in (0, 128, 255)
+                if not (r == g == b)]        # 24, greys excluded: paper and ink
 
 # Max rotation, perspective jitter, noise sigma, JPEG quality.
 SCAN_LEVELS = {
@@ -260,6 +284,62 @@ def measure(html: Path, out_png: Path, width: int, scale: int,
         }""")
 
         page.screenshot(path=str(out_png), full_page=True)
+
+        # A second render in which the browser paints each line box in a colour
+        # of its own, so the finished page can be asked where its own text is.
+        #
+        # This is the witness for V1. Everything else in this file traces the
+        # SAME numbers through the same matrix, so it cannot notice the numbers
+        # being wrong -- an ink-coverage check, for instance, cannot tell a
+        # correctly rotated box from one that never got rotated at all, because
+        # a 0.7 degree error still leaves the box on its words. The highlights
+        # below come from the paint pass rather than from getClientRects(), so
+        # comparing them against the manifest compares two independent accounts
+        # of where a line is, and a disagreement is a real defect.
+        marks = page.evaluate("""() => {
+            if (!window.CSS || !CSS.highlights) return null
+            const style = document.createElement('style')
+            // Strip the page down to greys first. The marked render is an
+            // instrument, not an exhibit: the only saturated colour on it
+            // should be the marks. A theme is free to choose any colour, and
+            // one of them will eventually land near a palette entry after the
+            // warp and the JPEG -- the portal's red rule did, and was read as a
+            // snippet spanning the whole page.
+            //
+            // Only paint properties are touched. Nothing here can move a line,
+            // which matters because the rects were measured before this ran.
+            style.textContent =
+                '*, *::before, *::after { background-image: none !important;' +
+                ' background-color: #fff !important; border-color: #ddd !important;' +
+                ' color: #333 !important; box-shadow: none !important;' +
+                ' text-shadow: none !important }'
+            const out = []
+            let i = 0
+            document.querySelectorAll('[data-snippet-id]').forEach((el) => {
+                const range = document.createRange()
+                range.selectNodeContents(el)
+                // One hue per line is not possible -- a Highlight covers a Range,
+                // and the paint pass decides where its lines fall. That is the
+                // point: the split into lines is the browser's, not ours.
+                const name = 'm' + i
+                CSS.highlights.set(name, new Highlight(range))
+                const rgb = MARKS[i % MARKS.length]
+                // Appended after the reset above, so these win on order.
+                style.textContent += `::highlight(${name}){`
+                                   + `background-color:rgb(${rgb}) !important;`
+                                   + `color:rgb(${rgb}) !important}`
+                out.push({snippet_id: el.dataset.snippetId, rgb})
+                i += 1
+            })
+            document.head.appendChild(style)
+            return out
+        }""".replace("MARKS", json.dumps(MARK_COLOURS)))
+
+        marked_png = None
+        if marks:
+            marked_png = out_png.with_name(out_png.stem + ".marked.png")
+            page.screenshot(path=str(marked_png), full_page=True)
+
         page.close()
 
     fragments = []
@@ -281,7 +361,8 @@ def measure(html: Path, out_png: Path, width: int, scale: int,
                       "quad": [[x, y], [x + w, y], [x + w, y + h], [x, y + h]]})
 
     return {"fragments": fragments, "regions": boxes, "doc_title": doc_title,
-            "fonts_missing": sorted(missing_fonts), "crowded": crowded}
+            "fonts_missing": sorted(missing_fonts), "crowded": crowded,
+            "marks": marks, "marked_png": marked_png}
 
 
 def check_lines(fragments: List[Dict[str, Any]]) -> List[str]:
@@ -325,19 +406,27 @@ def h_perspective(w: int, h: int, jitter: float, rng):
     return cv2.getPerspectiveTransform(src, dst).astype(np.float64)
 
 
-def warp(img, level: str, rng) -> tuple:
-    """Apply the geometric layer. Returns (image, H) -- the same H the points use."""
+def make_h(level: str, w: int, h: int, rng):
+    """The page's geometry, as one matrix. Nothing else may move a pixel."""
+    max_deg, jitter, _, _ = SCAN_LEVELS[level]
+    return h_perspective(w, h, jitter, rng) @ h_rotate(rng.uniform(-max_deg, max_deg), w, h)
+
+
+def apply_h(img, matrix):
     import cv2
     h, w = img.shape[:2]
-    max_deg, jitter, _, _ = SCAN_LEVELS[level]
-    matrix = h_perspective(w, h, jitter, rng) @ h_rotate(rng.uniform(-max_deg, max_deg), w, h)
-    out = cv2.warpPerspective(
+    return cv2.warpPerspective(
         img, matrix, (w, h),
         flags=cv2.INTER_CUBIC,
         borderMode=cv2.BORDER_CONSTANT,
         borderValue=(252, 250, 246),
     )
-    return out, matrix
+
+
+def warp(img, level: str, rng) -> tuple:
+    """Apply the geometric layer. Returns (image, H) -- the same H the points use."""
+    matrix = make_h(level, img.shape[1], img.shape[0], rng)
+    return apply_h(img, matrix), matrix
 
 
 def weather(img, level: str, rng):
@@ -424,6 +513,91 @@ def check_layout(manifest: Dict[str, Any]) -> List[str]:
     return problems
 
 
+def check_marks(manifest: Dict[str, Any], marked, marks) -> List[str]:
+    """Ask the finished page where its own text is, and see if it agrees.
+
+    The second render paints every line box in a colour of its own, then goes
+    through the same warp as the exhibit. So the coloured pixels are the paint
+    pass's account of where a line ended up, and `bbox_norm` is
+    getClientRects()'s account carried through the homography. Two accounts,
+    two code paths, one number: if they agree the box really is on the words.
+
+    This is the one check with that property. Every other check in this file
+    reads the same numbers back, so none of them can notice the numbers being
+    wrong -- measured directly, an ink-coverage test cannot even distinguish a
+    correctly rotated box from one the homography never touched, because a
+    fraction of a degree still leaves a box sitting on its own text.
+    """
+    import cv2
+    import numpy as np
+
+    h, w = marked.shape[:2]
+    problems = []
+    worst = 0.0
+
+    # The tolerance is a fraction of a line, not a fixed number of pixels. The
+    # error that matters is a box on the wrong line, so the gate should scale
+    # with the thing it is measured against: a page set in 11px type and one set
+    # in 40px display type do not deserve the same allowance. Measured across
+    # this set the true disagreement runs to 6.5px on lines around 40px tall --
+    # antialiasing, cubic resampling and the chroma smear at every edge -- so a
+    # third of a line leaves real margin while staying far below the ~1.45 lines
+    # that being off by one costs.
+    heights = [max(q[1] for q in line["quad_norm"]) - min(q[1] for q in line["quad_norm"])
+               for s in manifest["snippets"] for line in s["lines"]]
+    line_px = (sorted(heights)[len(heights) // 2] / NORM * h) if heights else 30.0
+    tolerance = max(6.0, line_px / 3)
+
+    # Snippets are grouped by colour: a page with more snippets than the palette
+    # has colours reuses them, and then the honest comparison is the union of
+    # everything wearing that colour against every pixel of it.
+    by_colour: Dict[str, List[Dict[str, Any]]] = {}
+    index = {s["snippet_id"]: s for s in manifest["snippets"]}
+    for mark in marks:
+        snippet = index.get(mark["snippet_id"])
+        if snippet:
+            by_colour.setdefault(mark["rgb"], []).append(snippet)
+
+    pixels = marked.reshape(-1, 3).astype(np.int16)
+    for rgb, snippets in by_colour.items():
+        r, g, b = (int(v) for v in rgb.split(","))
+        near = (np.abs(pixels - np.array([b, g, r], np.int16)).max(axis=1) < 40)
+        mask = near.reshape(h, w).astype(np.uint8)
+        # Chroma subsampling smears a few pixels at every edge; drop specks so
+        # they cannot stretch the bounding box.
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+        found = np.argwhere(mask > 0)
+
+        names = ", ".join(s["snippet_id"] for s in snippets)
+        if not found.size:
+            problems.append(
+                f"V1 {manifest['exhibit']} p{manifest['page']}: {names} was "
+                f"painted rgb({rgb}) but no such pixels are on the page")
+            continue
+
+        painted = [found[:, 1].min(), found[:, 0].min(),
+                   found[:, 1].max(), found[:, 0].max()]
+        claimed = [min(s["bbox_norm"][0] for s in snippets) / NORM * w,
+                   min(s["bbox_norm"][1] for s in snippets) / NORM * h,
+                   max(s["bbox_norm"][2] for s in snippets) / NORM * w,
+                   max(s["bbox_norm"][3] for s in snippets) / NORM * h]
+
+        drift = max(abs(p - c) for p, c in zip(painted, claimed))
+        worst = max(worst, drift)
+        if drift > tolerance:
+            problems.append(
+                f"V1 {manifest['exhibit']} p{manifest['page']}: {names} is "
+                f"recorded at {[round(c) for c in claimed]} but the page paints "
+                f"it at {[int(v) for v in painted]} -- {drift:.0f}px out, "
+                f"against a tolerance of {tolerance:.0f}px")
+
+    # Recorded in the artefact, so "V1 passed" is a number someone can read off
+    # the manifest rather than a claim in a commit message.
+    manifest["v1_max_drift_px"] = round(worst, 1)
+    manifest["v1_tolerance_px"] = round(tolerance, 1)
+    return problems
+
+
 def check(manifest: Dict[str, Any], expected_ids: set) -> List[str]:
     problems = []
 
@@ -457,7 +631,7 @@ def check(manifest: Dict[str, Any], expected_ids: set) -> List[str]:
 
 def build_page(html: Path, out_dir: Path, exhibit: str, page: int,
                level: str, seed: int, width: int, scale: int,
-               browser=None, keep_clean: bool = False) -> tuple:
+               browser=None, drop_clean: bool = False) -> tuple:
     import cv2
     import numpy as np
     pages_dir = out_dir / "pages" / exhibit
@@ -479,6 +653,20 @@ def build_page(html: Path, out_dir: Path, exhibit: str, page: int,
 
     out_jpg = pages_dir / f"{page}.jpg"
     cv2.imwrite(str(out_jpg), scanned, [cv2.IMWRITE_JPEG_QUALITY, 88])
+
+    # The marked render goes through the SAME matrix -- not a fresh one drawn
+    # from the same seed, the same object. Re-deriving it would make the check
+    # agree with itself by construction, which is the failure mode this whole
+    # detour exists to avoid.
+    marked = None
+    if measured.get("marked_png"):
+        raw = cv2.imread(str(measured["marked_png"]))
+        if raw is not None:
+            marked = weather(apply_h(raw, matrix), level, np.random.default_rng(seed))
+            if not drop_clean:
+                cv2.imwrite(str(man_dir / f"{page}.marked.png"), marked)
+        if drop_clean:
+            measured["marked_png"].unlink(missing_ok=True)
 
     # Line fragments first, then one union box per snippet: the viewer highlights
     # a snippet, the analysis reasons about its lines (spec §8).
@@ -540,14 +728,24 @@ def build_page(html: Path, out_dir: Path, exhibit: str, page: int,
         "provenance": "rendered-from-html; bbox measured from DOM, never OCR'd",
         "snippets": sorted(snippets, key=lambda s: s["snippet_id"]),
         "regions": regions,
+        # Which colour each snippet was painted in the marked render. Kept so
+        # that V1 can be re-checked against <page>.marked.png later without
+        # re-rendering, and so a failure can be looked at rather than guessed at.
+        "v1_marks": measured.get("marks") or [],
     }
-    (man_dir / f"{page}.json").write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-
-    # V1: the boxes drawn back onto the scanned page. The spec calls this the
-    # most important check and says a person has to look at it -- a coordinate
-    # that survives every arithmetic check can still sit on the wrong sentence.
-    overlay = scanned.copy()
+    # The boxes drawn back onto the scanned page. The spec makes this V1 and
+    # says a person has to look at it. `check_marks` now answers the same
+    # question mechanically, on every page, by asking the render where its own
+    # text is -- so this image is no longer the only thing standing between a
+    # wrong coordinate and a study; it is for reading a page that looks odd.
+    #
+    # Drawn on the file that will be served, re-read from disk, not on the array
+    # it came from. The participant sees the JPEG; verifying against the pixels
+    # that existed before compression verifies something nobody will ever look
+    # at. Outside the strokes this image is now byte-identical to the page, so
+    # "the boxes are in the right place" is a statement about the exhibit rather
+    # than about an intermediate.
+    overlay = cv2.imread(str(out_jpg))
     for snip in manifest["snippets"]:
         for line in snip["lines"]:
             pts = np.array([[x / NORM * w, y / NORM * h] for x, y in line["quad_norm"]],
@@ -556,16 +754,11 @@ def build_page(html: Path, out_dir: Path, exhibit: str, page: int,
         x1, y1, x2, y2 = snip["bbox_norm"]
         cv2.rectangle(overlay, (int(x1 / NORM * w), int(y1 / NORM * h)),
                       (int(x2 / NORM * w), int(y2 / NORM * h)), (255, 128, 0), 1)
-    # JPEG, not PNG: this image exists to be looked at once, and a set of them
-    # in PNG runs to a quarter of a gigabyte. Compression artefacts cannot hide
-    # a misplaced box.
-    cv2.imwrite(str(man_dir / f"{page}.CHECK.jpg"), overlay,
-                [cv2.IMWRITE_JPEG_QUALITY, 88])
+    # PNG: a verification image should not itself be lossy. Re-compressing it
+    # would put artefacts around exactly the thin coloured lines being judged.
+    cv2.imwrite(str(man_dir / f"{page}.CHECK.png"), overlay)
 
-    if not keep_clean:
-        # The unwarped render is an intermediate, and at ~1.5 MB a page a set of
-        # them outweighs everything else the build produces. Re-rendering is
-        # cheap and deterministic, so keeping them buys nothing.
+    if drop_clean:
         clean_png.unlink(missing_ok=True)
 
     # R1 is judged on the layout, before the warp: line-height is a typographic
@@ -579,7 +772,25 @@ def build_page(html: Path, out_dir: Path, exhibit: str, page: int,
         print(f"    {exhibit} p{page}: {len(floored)} block(s) hit the minimum "
               f"size and still overflow their source rectangle")
 
-    return manifest, check_lines(measured["fragments"]) + check_layout(manifest)
+    problems = check_lines(measured["fragments"]) + check_layout(manifest)
+
+    if marked is not None and measured.get("marks"):
+        problems += check_marks(manifest, marked, measured["marks"])
+    else:
+        # Never silently: a check that did not run must not look like one that
+        # passed. CSS.highlights needs Chromium 105 or newer.
+        manifest["v1_max_drift_px"] = None
+        print(f"    {exhibit} p{page}: V1 not verified -- this browser has no "
+              f"CSS Custom Highlight API, so the page could not be asked where "
+              f"its own text is")
+
+    # Written last, so the file carries what the checks found. Writing it before
+    # them put v1_max_drift_px on the object and not in the artefact, which is
+    # the worst of both: the number existed and nobody could read it.
+    (man_dir / f"{page}.json").write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    return manifest, problems
 
 
 def declared_ids(html: Path) -> set:
@@ -593,7 +804,7 @@ def declared_ids(html: Path) -> set:
 # ---------------------------------------------------------------------------
 
 def build_set(spec_path: Path, out_dir: Path, scale: int,
-              keep_clean: bool = False) -> int:
+              drop_clean: bool = False) -> int:
     """Render every page named by a spec and emit a bundle.
 
     A spec is one file listing the exhibits and their pages:
@@ -617,7 +828,7 @@ def build_set(spec_path: Path, out_dir: Path, scale: int,
 
     with sync_playwright() as pw, _closing(pw.chromium.launch()) as chrome:
         _render_all(spec, root, out_dir, scale, chrome,
-                    exhibits, snippets, sizes, problems, keep_clean)
+                    exhibits, snippets, sizes, problems, drop_clean)
 
     if problems:
         raise SystemExit("acceptance failed:\n  " + "\n  ".join(problems))
@@ -634,7 +845,7 @@ def _closing(browser):
 
 
 def _render_all(spec, root, out_dir, scale, chrome,
-                exhibits, snippets, sizes, problems, keep_clean) -> None:
+                exhibits, snippets, sizes, problems, drop_clean) -> None:
     for ex in spec["exhibits"]:
         exhibit_id = ex["id"]
         pages = []
@@ -655,7 +866,7 @@ def _render_all(spec, root, out_dir, scale, chrome,
                     if ex.get("seed") is None else ex["seed"] + page_no)
             manifest, page_problems = build_page(
                 html, out_dir, exhibit_id, page_no, level, seed,
-                ex.get("width", 1000), scale, chrome, keep_clean)
+                ex.get("width", 1000), scale, chrome, drop_clean)
             problems += page_problems
             problems += check(manifest, declared_ids(html))
             for family in manifest["fonts_missing"]:
@@ -720,7 +931,7 @@ def _write_bundle(out_dir: Path, scale: int, exhibits, snippets, sizes) -> int:
     print(f"\n{len(exhibits)} exhibits, {total_pages} pages, {len(snippets)} snippets "
           f"-> {out_dir}")
     print("  no OCR anywhere in this path; every box came off the DOM")
-    print(f"  check by eye: {out_dir / 'exhibits'}/*/*.CHECK.jpg")
+    print(f"  check by eye: {out_dir / 'exhibits'}/*/*.CHECK.png")
     return 0
 
 
@@ -736,19 +947,19 @@ def main() -> int:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--width", type=int, default=1000, help="CSS px")
     ap.add_argument("--scale", type=int, default=2, help="deviceScaleFactor")
-    ap.add_argument("--keep-clean", action="store_true",
-                    help="keep the unwarped render of each page")
+    ap.add_argument("--drop-clean", action="store_true",
+                    help="delete each page's unwarped render after warping")
     args = ap.parse_args()
 
     if args.spec:
-        return build_set(args.spec, args.out, args.scale, args.keep_clean)
+        return build_set(args.spec, args.out, args.scale, args.drop_clean)
 
     if not args.exhibit:
         ap.error("--html needs --exhibit")
 
     manifest, problems = build_page(args.html, args.out, args.exhibit, args.page,
                                     args.scan, args.seed, args.width, args.scale,
-                                    None, args.keep_clean)
+                                    None, args.drop_clean)
     problems += check(manifest, declared_ids(args.html))
     if problems:
         raise SystemExit("acceptance failed:\n  " + "\n  ".join(problems))
@@ -757,7 +968,7 @@ def main() -> int:
     print(f"{args.exhibit} p{args.page}: {len(manifest['snippets'])} snippets, "
           f"{lines} line boxes, {manifest['page_px'][0]}x{manifest['page_px'][1]}px, "
           f"scan={args.scan}")
-    print(f"  check by eye: exhibits/{args.exhibit}/{args.page}.CHECK.jpg")
+    print(f"  check by eye: exhibits/{args.exhibit}/{args.page}.CHECK.png")
     return 0
 
 

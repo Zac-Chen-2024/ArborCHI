@@ -410,5 +410,29 @@
         302.81162726764
       ]
     }
-  ]
+  ],
+  "v1_marks": [
+    {
+      "snippet_id": "C-3_p5_p5_b0",
+      "rgb": "0,0,128"
+    },
+    {
+      "snippet_id": "C-3_p5_p5_b2",
+      "rgb": "0,0,255"
+    },
+    {
+      "snippet_id": "C-3_p5_p5_b3",
+      "rgb": "0,128,0"
+    },
+    {
+      "snippet_id": "C-3_p5_p5_b4",
+      "rgb": "0,128,128"
+    },
+    {
+      "snippet_id": "C-3_p5_p5_b5",
+      "rgb": "0,128,255"
+    }
+  ],
+  "v1_max_drift_px": 2.5,
+  "v1_tolerance_px": 15.4
 }

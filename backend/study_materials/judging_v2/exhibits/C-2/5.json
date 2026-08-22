@@ -739,5 +739,41 @@
       ]
     }
   ],
-  "regions": []
+  "regions": [],
+  "v1_marks": [
+    {
+      "snippet_id": "C-2_p5_p5_b0",
+      "rgb": "0,0,128"
+    },
+    {
+      "snippet_id": "C-2_p5_p5_b1",
+      "rgb": "0,0,255"
+    },
+    {
+      "snippet_id": "C-2_p5_p5_b3",
+      "rgb": "0,128,0"
+    },
+    {
+      "snippet_id": "C-2_p5_p5_b4",
+      "rgb": "0,128,128"
+    },
+    {
+      "snippet_id": "C-2_p5_p5_b6",
+      "rgb": "0,128,255"
+    },
+    {
+      "snippet_id": "C-2_p5_p5_b7",
+      "rgb": "0,255,0"
+    },
+    {
+      "snippet_id": "C-2_p5_p5_b8",
+      "rgb": "0,255,128"
+    },
+    {
+      "snippet_id": "C-2_p5_p5_b9",
+      "rgb": "0,255,255"
+    }
+  ],
+  "v1_max_drift_px": 3.1,
+  "v1_tolerance_px": 16.3
 }

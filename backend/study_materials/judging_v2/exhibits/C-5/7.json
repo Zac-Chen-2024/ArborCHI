@@ -724,5 +724,37 @@
       ]
     }
   ],
-  "regions": []
+  "regions": [],
+  "v1_marks": [
+    {
+      "snippet_id": "C-5_p7_p7_b0",
+      "rgb": "0,0,128"
+    },
+    {
+      "snippet_id": "C-5_p7_p7_b1",
+      "rgb": "0,0,255"
+    },
+    {
+      "snippet_id": "C-5_p7_p7_b2",
+      "rgb": "0,128,0"
+    },
+    {
+      "snippet_id": "C-5_p7_p7_b3",
+      "rgb": "0,128,128"
+    },
+    {
+      "snippet_id": "C-5_p7_p7_b4",
+      "rgb": "0,128,255"
+    },
+    {
+      "snippet_id": "C-5_p7_p7_b5",
+      "rgb": "0,255,0"
+    },
+    {
+      "snippet_id": "C-5_p7_p7_b6",
+      "rgb": "0,255,128"
+    }
+  ],
+  "v1_max_drift_px": 3.6,
+  "v1_tolerance_px": 15.6
 }

@@ -425,5 +425,33 @@
         291.04735235943406
       ]
     }
-  ]
+  ],
+  "v1_marks": [
+    {
+      "snippet_id": "C-3_p6_p6_b0",
+      "rgb": "0,0,128"
+    },
+    {
+      "snippet_id": "C-3_p6_p6_b1",
+      "rgb": "0,0,255"
+    },
+    {
+      "snippet_id": "C-3_p6_p6_b3",
+      "rgb": "0,128,0"
+    },
+    {
+      "snippet_id": "C-3_p6_p6_b4",
+      "rgb": "0,128,128"
+    },
+    {
+      "snippet_id": "C-3_p6_p6_b5",
+      "rgb": "0,128,255"
+    },
+    {
+      "snippet_id": "C-3_p6_p6_b6",
+      "rgb": "0,255,0"
+    }
+  ],
+  "v1_max_drift_px": 3.1,
+  "v1_tolerance_px": 15.8
 }
